@@ -10,18 +10,20 @@
 #include <unordered_map>
 #include "inthash.h"
 
+
 long long encode(const std::string& str) {
-	long long encoded = 0;
-	for (char c : str) {
-		int val = 0;
-		switch (c) {
-			case 'C': val = 1; break;
-			case 'G': val = 2; break;
-			case 'T': val = 3; break;
-		}
-		encoded = encoded * 4 + val;
-	}
-	return encoded;
+    long long encoded = 0;
+    for (char c : str) {
+        int val = 0; 
+        switch (c) {
+            case 'A': val = 0; break; 
+            case 'C': val = 1; break;
+            case 'G': val = 2; break;
+            case 'T': val = 3; break;
+        }
+        encoded = encoded * 4 + val;
+    }
+    return encoded;
 }
 
 
@@ -94,7 +96,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	uint64_t mask = (1ULL << k) - 1;
+	uint64_t mask = (1ULL << (2 * k)) - 1;
 
 	// Read sequences from the FASTA file
 	auto sequences = FileReader::readFastaFile(filename);
@@ -114,6 +116,7 @@ int main(int argc, char* argv[]) {
 			std::string decoded = decode(unhashed, k);
 
 			// Print results
+			std::cout << "k = " << k << std::endl;
 			std::cout << "K-mer original: " << kmer << std::endl;
 			std::cout << "Encoded: " << encoded << std::endl;
 			std::cout << "Hashed: " << hashed << ", Unhashed (encoded value): " << unhashed << std::endl;
@@ -121,16 +124,6 @@ int main(int argc, char* argv[]) {
 
 		}
 	}
-
-	uint64_t key = 572581857647311335; // Encoded value
-	uint64_t maske = (1ULL << 60) - 1; // Juste un exemple de mask, ajustez selon la taille de vos données
-
-	uint64_t hashed = hash_64(key, maske);
-	uint64_t unhashed = hash_64i(hashed, maske);
-
-	std::cout << "Key: " << key << ", Hashed: " << hashed << ", Unhashed: " << unhashed << std::endl;
-
-	// Ceci devrait afficher que "Key" et "Unhashed" sont identiques si tout est correct.
 
 	return 0;
 }
