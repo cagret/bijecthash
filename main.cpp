@@ -8,11 +8,18 @@
 #include <algorithm>
 #include <string>
 #include <unordered_map>
+#include "inthash.h"
 
 long long encode(const std::string& str) {
 	long long encoded = 0;
 	for (char c : str) {
-		encoded = encoded * 4 + (c - 'A');
+		int val = 0;
+		switch (c) {
+			case 'C': val = 1; break;
+			case 'G': val = 2; break;
+			case 'T': val = 3; break;
+		}
+		encoded = encoded * 4 + val;
 	}
 	return encoded;
 }
@@ -70,33 +77,61 @@ std::string permuteKmers(const std::vector<std::string>& kmers, const std::vecto
 	return permutedSequence;
 }
 
-
-
 int main(int argc, char* argv[]) {
+	// Check if the correct number of arguments are provided
 	if (argc != 4 || std::string(argv[1]) != "-f") {
-		std::cerr << "Usage: " << argv[0] << " -f <filename> <k>" << std::endl;
+		std::cerr << "Error: Invalid arguments. Usage: " << argv[0] << " -f <filename> <k>" << std::endl;
 		return 1;
 	}
 
+	// Parse command-line arguments
 	std::string filename = argv[2];
-	int k = std::stoi(argv[3]); // Taille des k-mers
+	int k = std::stoi(argv[3]); // Size of k-mers
 
+	// Validate k
+	if (k <= 0) {
+		std::cerr << "Error: Invalid value for k. Please provide a positive integer." << std::endl;
+		return 1;
+	}
+
+	uint64_t mask = (1ULL << k) - 1;
+
+	// Read sequences from the FASTA file
 	auto sequences = FileReader::readFastaFile(filename);
+
+	// Process each sequence
 	for (const auto& seq : sequences) {
 		std::cout << "ID: " << seq.first << std::endl;
-		std::cout << "Sequence: " << seq.second << std::endl;
-		auto kmers = extractKmers(seq.second, k);
 
+		// Extract k-mers from the sequence
+		auto kmers = extractKmers(seq.second, k);
 		for (const auto& kmer : kmers) {
-			// Génère une permutation aléatoire pour chaque k-mer
-			std::vector<int> permutation = generateRandomPermutation(kmer.size());
-			std::string permutedK = permute(kmer, permutation);
+			// Apply encoding to each k-mer
+			uint64_t encoded = encode(kmer);
+
+			// Apply hashing to the encoded k-mer
+			uint64_t hashed = hash_64(encoded, mask);
+			uint64_t original = hash_64i(hashed, mask);
+
+			// Decode the original hash to retrieve the k-mer
+			std::string decoded = decode(encoded, k);
+
+			// Print results
 			std::cout << "K-mer original: " << kmer << std::endl;
-			std::cout << "K-mer permuted: " << permutedK << std::endl;
+			std::cout << "Encoded: " << encoded << ", Decoded: " << decoded << std::endl;
+			std::cout << "Hashed: " << hashed << ", Unhashed: " << original << std::endl;
 		}
 	}
 
+	uint64_t key = 572581857647311335; // Encoded value
+	uint64_t maske = (1ULL << 60) - 1; // Juste un exemple de mask, ajustez selon la taille de vos données
+
+	uint64_t hashed = hash_64(key, maske);
+	uint64_t unhashed = hash_64i(hashed, maske);
+
+	std::cout << "Key: " << key << ", Hashed: " << hashed << ", Unhashed: " << unhashed << std::endl;
+
+	// Ceci devrait afficher que "Key" et "Unhashed" sont identiques si tout est correct.
+
 	return 0;
 }
-
-
