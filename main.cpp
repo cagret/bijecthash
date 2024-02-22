@@ -106,20 +106,19 @@ int main(int argc, char* argv[]) {
 		// Extract k-mers from the sequence
 		auto kmers = extractKmers(seq.second, k);
 		for (const auto& kmer : kmers) {
-			// Apply encoding to each k-mer
-			uint64_t encoded = encode(kmer);
+			uint64_t encoded = encode(kmer); // Assurez-vous que encode retourne un uint64_t
 
-			// Apply hashing to the encoded k-mer
 			uint64_t hashed = hash_64(encoded, mask);
-			uint64_t original = hash_64i(hashed, mask);
+			uint64_t unhashed = hash_64i(hashed, mask);
 
-			// Decode the original hash to retrieve the k-mer
-			std::string decoded = decode(encoded, k);
+			std::string decoded = decode(unhashed, k);
 
 			// Print results
 			std::cout << "K-mer original: " << kmer << std::endl;
-			std::cout << "Encoded: " << encoded << ", Decoded: " << decoded << std::endl;
-			std::cout << "Hashed: " << hashed << ", Unhashed: " << original << std::endl;
+			std::cout << "Encoded: " << encoded << std::endl;
+			std::cout << "Hashed: " << hashed << ", Unhashed (encoded value): " << unhashed << std::endl;
+			std::cout << "Decoded from unhashed: " << decoded << std::endl; // Ceci devrait correspondre au k-mer original si tout est correct
+
 		}
 	}
 
