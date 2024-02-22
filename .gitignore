@@ -1,2 +1,7 @@
 *.o
+*.fa
+*.pdf
+*.csv
+benchmark
+benchmark_hash
 BijectHash

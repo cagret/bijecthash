@@ -26,6 +26,11 @@ $(TARGET): $(OBJ_FILES)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+# Règle pour compiler le fichier de benchmark
+benchmark: benchmark.o fileReader.o inthash.o
+	$(CXX) $(CXXFLAGS) -o benchmark benchmark.o fileReader.o inthash.o
+
+
 # Règle clean pour nettoyer les fichiers compilés
 clean:
 	rm -f $(TARGET) *.o
