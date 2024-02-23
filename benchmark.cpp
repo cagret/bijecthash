@@ -10,6 +10,8 @@
 #include <string>
 #include <unordered_map>
 #include <chrono>
+#include <numeric>
+#include <omp.h>
 #include "inthash.h"
 #include "fileReader.hpp"
 //#define DEBUG 
@@ -68,6 +70,12 @@ std::vector<int> generateRandomPermutation(int k) {
 }
 
 
+std::vector<int> generateIdentityPermutation(int k) {
+	std::vector<int> identity(k);
+	std::iota(identity.begin(), identity.end(), 0);
+	return identity;
+}
+
 std::vector<std::string> extractKmers(const std::string& sequence, int k) {
 	std::vector<std::string> kmers;
 	for (size_t i = 0; i + k <= sequence.length(); i++) {
@@ -107,7 +115,6 @@ double calculateVariance(const std::map<uint64_t, std::vector<uint64_t>>& index)
 	return variance;
 }
 
-
 int main(int argc, char* argv[]) {
 	if (argc < 3) {
 		std::cerr << "Usage: " << argv[0] << " -f <fichier1;fichier2;...> <k1> <k2> ...\n";
@@ -130,42 +137,121 @@ int main(int argc, char* argv[]) {
 	}
 
 	std::ofstream outFile("benchmark_results.csv");
-	outFile << "Dataset,KSize,ExecutionTime(ms),Variance\n";
-  for (const auto& filename : files) {
-        std::cout << filename << "..." << std::endl;
-        auto sequences = FileReader::readFastaFile(filename); // Lisez une fois par fichier
+	std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+	std::chrono::duration<double, std::milli> elapsed;
+	double variance;
+	outFile << "Dataset,KSize,ExecutionType,ExecutionTime(ms),Variance\n";
+	for (const auto& filename : files) {
+		auto sequences = FileReader::readFastaFile(filename); // Charger les séquences une fois par fichier
 
-        for (const auto& k : kSizes) {
-            std::cout << k << "..." << std::endl;
-            auto start = std::chrono::high_resolution_clock::now();
+		// Parcourir chaque taille de k-mer
+		for (const auto& k : kSizes) {
+			// Déclaration préalable pour éviter les redéclarations
+			std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+			std::chrono::duration<double, std::milli> elapsed;
+			double variance;
 
-            std::map<uint64_t, std::vector<uint64_t>> kmerIndex;
-            auto permutation = generateRandomPermutation(k); // Générer une fois par k
+			// Utilisation d'une map globale pour stocker les résultats finaux
+			std::map<uint64_t, std::vector<uint64_t>> globalKmerIndex;
 
-            for (const auto& seq : sequences) {
-                auto kmers = extractKmers(seq.second, k);
+			// Test avec la permutation identité
+			std::vector<int> identityPermutation = generateIdentityPermutation(k);
 
-                for (const auto& kmer : kmers) {
-                    auto permutedKmer = applyPermutation(kmer, permutation);
+			start = std::chrono::high_resolution_clock::now();
 
-                    std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
-                    std::string suffixKmer = permutedKmer.substr(k / 3 + 2, k - (k / 3 + 2));
+			// Initialisation de la parallélisation avec OpenMP
+#pragma omp parallel shared(globalKmerIndex)
+			{
+				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
 
-                    uint64_t prefixEncoded = encode(prefixKmer);
-                    uint64_t suffixEncoded = encode(suffixKmer);
-                    kmerIndex[prefixEncoded].push_back(suffixEncoded);
-                }
-            }
+#pragma omp for nowait // Distribuer les itérations de la boucle entre les threads sans attendre
+				for (size_t i = 0; i < sequences.size(); ++i) {
+					const auto& seq = sequences[i];
+					auto kmers = extractKmers(seq.second, k);
 
-            auto end = std::chrono::high_resolution_clock::now();
-            std::chrono::duration<double, std::milli> elapsed = end - start;
-            double variance = calculateVariance(kmerIndex);
-    outFile << filename << "," << k << "," << elapsed.count() << "," << variance << "\n";
-        }	
-}
+					for (const auto& kmer : kmers) {
+						std::string permutedKmer = applyPermutation(kmer, identityPermutation);
+						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
+						std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
+
+						uint64_t prefixEncoded = encode(prefixKmer);
+						uint64_t suffixEncoded = encode(suffixKmer);
+
+						localKmerIndex[prefixEncoded].push_back(suffixEncoded);
+					}
+				}
+
+				// Fusionner les index locaux dans l'index global de manière sécurisée
+#pragma omp critical
+				for (const auto& pair : localKmerIndex) {
+					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+				}
+			}
+
+			end = std::chrono::high_resolution_clock::now();
+			elapsed = end - start;
+			variance = calculateVariance(globalKmerIndex);
+			outFile << filename << "," << k << ",Identity," << elapsed.count() << "," << variance << "\n";
+			/***********************************************************/
+			globalKmerIndex.clear();
+
+			// Générer une permutation aléatoire pour cette exécution
+			auto randomPermutation = generateRandomPermutation(k);
+
+			// Marquer le début du traitement
+			start = std::chrono::high_resolution_clock::now();
+
+			// Utilisation d'OpenMP pour paralléliser la boucle sur les séquences
+#pragma omp parallel shared(globalKmerIndex)
+			{
+				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+
+				// Parallélisation de la boucle sur les séquences
+#pragma omp for nowait // Distribuer les itérations de la boucle entre les threads sans attendre
+				for (size_t i = 0; i < sequences.size(); ++i) {
+					const auto& seq = sequences[i];
+					auto kmers = extractKmers(seq.second, k);
+
+					// Boucle sur chaque k-mer extrait
+					for (const auto& kmer : kmers) {
+						// Appliquer la permutation aléatoire au k-mer courant
+						std::string permutedKmer = applyPermutation(kmer, randomPermutation);
+
+						// Découper le k-mer permuté en préfixe et suffixe
+						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
+						std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
+
+						// Encoder le préfixe et le suffixe
+						uint64_t prefixEncoded = encode(prefixKmer);
+						uint64_t suffixEncoded = encode(suffixKmer);
+
+						// Ajouter le suffixe encodé dans l'index local
+						localKmerIndex[prefixEncoded].push_back(suffixEncoded);
+					}
+				}
+
+				// Fusionner les index locaux dans l'index global de manière sécurisée
+#pragma omp critical
+				{
+					for (const auto& pair : localKmerIndex) {
+						globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					}
+				}
+			}
+
+			// Calculer le temps d'exécution après le traitement
+			end = std::chrono::high_resolution_clock::now();
+			elapsed = end - start;
+
+			// Calculer la variance des tailles des tables pour cette permutation
+			variance = calculateVariance(globalKmerIndex);
+
+			// Enregistrer les résultats pour la permutation aléatoire dans le fichier de sortie
+			outFile << filename << "," << k << ",Random," << elapsed.count() << "," << variance << "\n";
+
+		}
+	}
 
 	outFile.close();
 	return 0;
-
 }
-

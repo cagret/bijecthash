@@ -6,7 +6,7 @@ import numpy as np
 df = pd.read_csv('benchmark_hash_results.csv')
 
 # Configurer le graphique
-fig, ax1 = plt.subplots(figsize=(12, 7))
+fig, ax1 = plt.subplots()
 
 # Axe pour le temps d'exécution
 color = 'tab:red'
@@ -25,21 +25,16 @@ for i, dataset in enumerate(datasets):
 # Axe secondaire pour la variance
 ax2 = ax1.twinx()
 color = 'tab:blue'
-ax2.set_ylabel('Variance (log scale)', color=color)
-ax2.set_yscale('log')
+ax2.set_ylabel('Variance', color=color)
 ax2.tick_params(axis='y', labelcolor=color)
 
 for i, dataset in enumerate(datasets):
     subset = df[df['Dataset'] == dataset]
-    ax2.plot(subset['KSize'], np.log10(subset['Variance'] + 1e-10), '--', color=colors[i], label=f'Variance {dataset}')
+    ax2.plot(subset['KSize'], subset['Variance'], '--', color=colors[i], label=f'Variance {dataset}')
 
-plt.title('Algorithm Performance: Execution Time and Variance in Suffix Distribution')
 fig.tight_layout()
-
-# Création d'une légende combinée pour les deux axes
-lines, labels = ax1.get_legend_handles_labels()
-lines2, labels2 = ax2.get_legend_handles_labels()
-ax2.legend(lines + lines2, labels + labels2, loc='upper right')
-
+plt.title('Algorithm Performance: Execution Time and Variance in Suffix Distribution')
+ax1.legend(loc='upper left')
+ax2.legend(loc='upper right')
 plt.show()
 

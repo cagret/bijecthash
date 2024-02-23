@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <chrono>
+#include <omp.h>
 #include "inthash.h"
 #include "fileReader.hpp"
 //#define DEBUG 
@@ -142,19 +143,29 @@ int main(int argc, char* argv[]) {
 			std::map<uint64_t, std::vector<uint64_t>> kmerIndex;
 			auto permutation = generateRandomPermutation(k); // Générer une fois par k
 
-			for (const auto& seq : sequences) {
+
+
+#pragma omp parallel for
+			for (int seqIndex = 0; seqIndex < sequences.size(); ++seqIndex) {
+				auto& seq = sequences[seqIndex]; // Utilisez seqIndex pour accéder à l'élément
 				auto kmers = extractKmers(seq.second, k);
+				std::map<uint64_t, std::vector<uint64_t>> localIndex; // Index local pour éviter la concurrence
 
 				for (const auto& kmer : kmers) {
-					uint64_t encoded = encode(kmer); 
-
+					uint64_t encoded = encode(kmer);
 					uint64_t hashed = hash_64(encoded, mask);
+					localIndex[hashed].push_back(encoded);
+				}
 
-					kmerIndex[hashed].push_back(encoded); 
-
-
+#pragma omp critical
+				{
+					for (const auto& pair : localIndex) {
+						kmerIndex[pair.first].insert(kmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					}
 				}
 			}
+
+
 
 			auto end = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed = end - start;
