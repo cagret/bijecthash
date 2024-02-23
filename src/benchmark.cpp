@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include <cmath>
 #include <algorithm>
 #include <random>
@@ -10,11 +11,36 @@
 #include <chrono>
 #include <numeric>
 #include <omp.h>
+#include <sys/resource.h>
 
 #include "inthash.h"
 #include "fileReader.hpp"
 
+
+
+long long getPeakMemoryUsage() {
+	struct rusage rusage;
+	getrusage(RUSAGE_SELF, &rusage);
+	return rusage.ru_maxrss; 
+}
+
+
 long long encode(const std::string& str) {
+	long long encoded = 0;
+	for (char c : str) {
+		int val = 0; 
+		switch (c) {
+			case 'A': val = 0; break; 
+			case 'C': val = 1; break;
+			case 'G': val = 2; break;
+			case 'T': val = 3; break;
+		}
+		encoded = encoded * 4 + val;
+	}
+	return encoded;
+}
+
+long long encode2(const std::string& str) {
 	static const std::unordered_map<char, int> charMap = {{'A', 0}, {'C', 1}, {'G', 2}, {'T', 3}};
 	long long encoded = 0;
 	for (char c : str) {
@@ -97,8 +123,7 @@ int main(int argc, char* argv[]) {
 	}
 
 	std::ofstream outFile("benchmark2_results.csv");
-	outFile << "Dataset,KSize,ExecutionType,ExecutionTime(ms),Variance\n";
-
+	outFile << "Dataset,KSize,ExecutionType,ExecutionTime(ms),Variance,MemoryUsed(KB)\n";
 	for (const auto& filename : files) {
 		auto sequences = FileReader::readFastaFile(filename);
 
@@ -106,25 +131,33 @@ int main(int argc, char* argv[]) {
 			std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
 			std::chrono::duration<double, std::milli> elapsed;
 			double variance;
+			long memoryBefore, memoryAfter, memoryUsed;
 			uint64_t mask = (1ULL << (2 * k)) - 1;
 
 			std::unordered_map<uint64_t, std::vector<uint64_t>> globalKmerIndex;
 			auto identityPermutation = generateRandomPermutation(k); // Reuse this permutation if k does not change often
 
 			/************************    IDENTITY    ***********************************/
+			memoryBefore = getPeakMemoryUsage();
 			start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 			{
-				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-
+				//std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
 #pragma omp for nowait
 				for (size_t i = 0; i < sequences.size(); ++i) {
 					const auto& seq = sequences[i];
 					auto kmers = extractKmers(seq.second, k);
 
 					for (const auto& kmer : kmers) {
-						uint64_t encoded = encode(kmer);
-						localKmerIndex[encoded].push_back(encoded);
+						std::string permutedKmer = applyPermutation(kmer, identityPermutation);
+						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
+						std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
+
+						uint64_t prefixEncoded = encode(prefixKmer);
+						uint64_t suffixEncoded = encode(suffixKmer);
+
+						localKmerIndex[prefixEncoded].push_back(suffixEncoded);
 					}
 				}
 
@@ -136,7 +169,9 @@ int main(int argc, char* argv[]) {
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 			variance = calculateVariance(globalKmerIndex);
-			outFile << filename << "," << k << ",Identity," << elapsed.count() << "," << variance << "\n";
+			memoryAfter = getPeakMemoryUsage();
+			memoryUsed = memoryAfter - memoryBefore;
+			outFile << filename << "," << k << ",Identity," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
 
 
 
@@ -144,10 +179,12 @@ int main(int argc, char* argv[]) {
 			globalKmerIndex.clear(); // Nettoyage avant de commencer
 			auto randomPermutation = generateRandomPermutation(k); // Génération d'une permutation aléatoire
 
+			memoryBefore = getPeakMemoryUsage();
 			start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 			{
-				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				//std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
 
 #pragma omp for nowait
 				for (size_t i = 0; i < sequences.size(); ++i) {
@@ -156,8 +193,17 @@ int main(int argc, char* argv[]) {
 
 					for (const auto& kmer : kmers) {
 						std::string permutedKmer = applyPermutation(kmer, randomPermutation);
-						uint64_t encoded = encode(permutedKmer);
-						localKmerIndex[encoded].push_back(encoded);
+
+						// Découper le k-mer permuté en préfixe et suffixe
+						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
+						std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
+
+						// Encoder le préfixe et le suffixe
+						uint64_t prefixEncoded = encode(prefixKmer);
+						uint64_t suffixEncoded = encode(suffixKmer);
+
+						// Ajouter le suffixe encodé dans l'index local
+						localKmerIndex[prefixEncoded].push_back(suffixEncoded);
 					}
 				}
 
@@ -169,16 +215,21 @@ int main(int argc, char* argv[]) {
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 			variance = calculateVariance(globalKmerIndex);
-			outFile << filename << "," << k << ",Random," << elapsed.count() << "," << variance << "\n";
+			memoryAfter = getPeakMemoryUsage();
+			memoryUsed = memoryAfter - memoryBefore;
+			outFile << filename << "," << k << ",Random," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+
+
 
 			/************************    IntHASH    ***********************************/
 			globalKmerIndex.clear(); // Nettoyage avant de commencer
 
+			memoryBefore = getPeakMemoryUsage();
 			start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 			{
-				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-
+				//std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
 #pragma omp for nowait
 				for (size_t i = 0; i < sequences.size(); ++i) {
 					const auto& seq = sequences[i];
@@ -199,7 +250,11 @@ int main(int argc, char* argv[]) {
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 			variance = calculateVariance(globalKmerIndex);
-			outFile << filename << "," << k << ",IntHash," << elapsed.count() << "," << variance << "\n";
+			memoryAfter = getPeakMemoryUsage();
+			memoryUsed = memoryAfter - memoryBefore;
+			outFile << filename << "," << k << ",IntHash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+
+
 
 		}
 	}
