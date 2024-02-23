@@ -25,7 +25,7 @@ long long getPeakMemoryUsage() {
 }
 
 
-long long encode(const std::string& str) {
+long long encode2(const std::string& str) {
 	long long encoded = 0;
 	for (char c : str) {
 		int val = 0; 
@@ -40,7 +40,7 @@ long long encode(const std::string& str) {
 	return encoded;
 }
 
-long long encode2(const std::string& str) {
+long long encode(const std::string& str) {
 	static const std::unordered_map<char, int> charMap = {{'A', 0}, {'C', 1}, {'G', 2}, {'T', 3}};
 	long long encoded = 0;
 	for (char c : str) {
@@ -138,12 +138,13 @@ int main(int argc, char* argv[]) {
 			auto identityPermutation = generateRandomPermutation(k); // Reuse this permutation if k does not change often
 
 			/************************    IDENTITY    ***********************************/
-			memoryBefore = getPeakMemoryUsage();
+			globalKmerIndex.clear(); 
+			memoryBefore = 0;// getPeakMemoryUsage();
 			start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 			{
-				//std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
 #pragma omp for nowait
 				for (size_t i = 0; i < sequences.size(); ++i) {
 					const auto& seq = sequences[i];
@@ -163,9 +164,13 @@ int main(int argc, char* argv[]) {
 
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
-					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					 globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+                                               std::make_move_iterator(pair.second.begin()),
+                                               std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+
 				}
 			}
+#pragma omp barrier
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 			variance = calculateVariance(globalKmerIndex);
@@ -177,14 +182,14 @@ int main(int argc, char* argv[]) {
 
 			/************************    RANDOM    ***********************************/
 			globalKmerIndex.clear(); // Nettoyage avant de commencer
-			auto randomPermutation = generateRandomPermutation(k); // Génération d'une permutation aléatoire
 
-			memoryBefore = getPeakMemoryUsage();
+			memoryBefore =0;// getPeakMemoryUsage();
+			auto randomPermutation = generateRandomPermutation(k); // Génération d'une permutation aléatoire
 			start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 			{
-				//std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
 
 #pragma omp for nowait
 				for (size_t i = 0; i < sequences.size(); ++i) {
@@ -209,9 +214,13 @@ int main(int argc, char* argv[]) {
 
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
-					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					//globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					 globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+                                               std::make_move_iterator(pair.second.begin()),
+                                               std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 				}
 			}
+#pragma omp barrier
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 			variance = calculateVariance(globalKmerIndex);
@@ -224,12 +233,12 @@ int main(int argc, char* argv[]) {
 			/************************    IntHASH    ***********************************/
 			globalKmerIndex.clear(); // Nettoyage avant de commencer
 
-			memoryBefore = getPeakMemoryUsage();
+			memoryBefore = 0;
 			start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 			{
-				//std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-				std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; 
 #pragma omp for nowait
 				for (size_t i = 0; i < sequences.size(); ++i) {
 					const auto& seq = sequences[i];
@@ -244,9 +253,13 @@ int main(int argc, char* argv[]) {
 
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
-					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					//globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					 globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+                                               std::make_move_iterator(pair.second.begin()),
+                                               std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 				}
 			}
+#pragma omp barrier
 			end = std::chrono::high_resolution_clock::now();
 			elapsed = end - start;
 			variance = calculateVariance(globalKmerIndex);
