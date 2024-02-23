@@ -53,9 +53,10 @@ This repository includes two benchmarking tools: benchmark and benchmark_hash. T
 To compile the benchmarks, use the following g++ commands which will produce the executable files benchmark and benchmark_hash:
 
 ```bash
-g++ -o benchmark benchmark.cpp fileReader.cpp -std=c++11
-g++ -o benchmark_hash benchmark_hash.cpp fileReader.cpp inthash.c -std=c++11
+g++ -o benchmark benchmark.cpp fileReader.cpp -std=c++11 -O3 -fopenmp
+g++ -o benchmark_hash benchmark_hash.cpp fileReader.cpp inthash.c -std=c++11 -O3 -fopenmp
 ```
+
 Ensure you have a C++11 compatible compiler and the necessary files: benchmark.cpp, benchmark_hash.cpp, fileReader.cpp, and inthash.c.
 #### Running the Benchmarks
 
