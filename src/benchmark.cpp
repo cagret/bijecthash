@@ -105,24 +105,28 @@ void visualizeSuffixDistribution(const std::unordered_map<uint64_t, std::vector<
 		return;
 	}
 #endif
+
+
 	for (const auto& pair : prefixSuffixMap) {
 #ifdef DEBUG
 		std::cout << "Pair: " << pair.first << ", Suffixes: " << pair.second.size() << std::endl;
 #endif
 		const auto& prefix = pair.first;
 		const auto& suffixes = pair.second;
-		std::unordered_map<uint64_t, int> suffixCount; // pour compter les suffixes
+		std::unordered_map<uint64_t, int> suffixCount;
 
 		// Compter les occurrences de chaque suffixe
 		for (const auto& suffix : suffixes) {
 			suffixCount[suffix]++;
 		}
+
+		// Écrire le préfixe et le nombre d'occurrences de chaque suffixe
 #ifdef DEBUG
 		std::cout << "Writing to file..." << std::endl;
 #endif
-		outFile << "Prefix: " << decode(prefix,k) << ", Suffix distribution: ";
+		outFile << prefix << " : ";
 		for (const auto& countPair : suffixCount) {
-			outFile << "(" << decode(countPair.first,k) << ":" << countPair.second << ") ";
+			outFile << countPair.second << " ";
 		}
 		outFile << "\n";
 #ifdef DEBUG
@@ -130,6 +134,69 @@ void visualizeSuffixDistribution(const std::unordered_map<uint64_t, std::vector<
 #endif
 	}
 }
+
+void writeDataHeatMap(
+		const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMap,
+		const std::string& outputFileName) {
+
+	std::ofstream outFile(outputFileName);
+	if (!outFile.is_open()) {
+		std::cerr << "Unable to open file: " << outputFileName << std::endl;
+		return;
+	}
+
+	outFile << "Prefix,SuffixCount\n";
+
+	// Écriture des données
+	for (const auto& pair : prefixSuffixMap) {
+		uint64_t prefix = pair.first;
+		size_t suffixCount = pair.second.size();
+
+		outFile << prefix << "," << suffixCount << "\n";
+	}
+
+	outFile.close();
+}
+/*
+   void writeHeatmapData(
+   const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMapIdentity,
+   const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMapRandom,
+   const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMapIntHash,
+   const std::string& outputFileName) {
+
+   std::ofstream outFile(outputFileName);
+
+   outFile << "Prefix,Identity,Random,IntHash\n";
+
+// Pour chaque préfixe dans l'algorithme Identity
+for (const auto& pair : prefixSuffixMapIdentity) {
+uint64_t prefix = pair.first;
+
+outFile << prefix;
+
+outFile << "," << pair.second.size();
+
+auto itRandom = prefixSuffixMapRandom.find(prefix);
+if (itRandom != prefixSuffixMapRandom.end()) {
+outFile << "," << itRandom->second.size();
+} else {
+outFile << ",0";
+}
+
+auto itIntHash = prefixSuffixMapIntHash.find(prefix);
+if (itIntHash != prefixSuffixMapIntHash.end()) {
+outFile << "," << itIntHash->second.size();
+} else {
+outFile << ",0"; 
+}
+
+outFile << "\n";
+}
+
+outFile.close();
+}
+*/
+
 
 std::string determineFileType(const std::string& filename) {
 	std::ifstream file(filename);
@@ -195,6 +262,10 @@ int main(int argc, char* argv[]) {
 			uint64_t mask = (1ULL << (2 * k)) - 1;
 
 			std::unordered_map<uint64_t, std::vector<uint64_t>> globalKmerIndex;
+			//std::unordered_map<uint64_t, std::vector<uint64_t>> prefixSuffixMapIdentity;
+			//std::unordered_map<uint64_t, std::vector<uint64_t>> prefixSuffixMapRandom;
+			//std::unordered_map<uint64_t, std::vector<uint64_t>> prefixSuffixMapIntHash;
+
 			auto identityPermutation = generateRandomPermutation(k); // Reuse this permutation if k does not change often
 
 			/************************    IDENTITY    ***********************************/
@@ -232,7 +303,9 @@ int main(int argc, char* argv[]) {
 					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
 							std::make_move_iterator(pair.second.begin()),
 							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
-
+												     //prefixSuffixMapIdentity[pair.first].insert(prefixSuffixMapIdentity[pair.first].end(),
+												     //		std::make_move_iterator(pair.second.begin()),
+												     //		std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 				}
 			}
 #pragma omp barrier
@@ -242,8 +315,8 @@ int main(int argc, char* argv[]) {
 			memoryAfter = getPeakMemoryUsage();
 			memoryUsed = memoryAfter - memoryBefore;
 			outFile << filename << "," << k << ",Identity," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-
-			visualizeSuffixDistribution(globalKmerIndex,k,outFile);
+			writeDataHeatMap(globalKmerIndex, "identity_data.csv");
+			//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
 
 
 			/************************    RANDOM    ***********************************/
@@ -280,10 +353,14 @@ int main(int argc, char* argv[]) {
 
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
-					//globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
 					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
 							std::make_move_iterator(pair.second.begin()),
 							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+
+					//prefixSuffixMapRandom[pair.first].insert(prefixSuffixMapRandom[pair.first].end(),
+					//		std::make_move_iterator(pair.second.begin()),
+					//		std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 				}
 			}
 #pragma omp barrier
@@ -294,27 +371,9 @@ int main(int argc, char* argv[]) {
 			memoryUsed = memoryAfter - memoryBefore;
 			outFile << filename << "," << k << ",Random," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
 
-			visualizeSuffixDistribution(globalKmerIndex,k,outFile);
-			/*
-			   for (const auto& pair : globalKmerIndex) {
-			   const auto& prefix = pair.first;
-			   const auto& suffixes = pair.second;
-			   std::unordered_map<uint64_t, int> suffixCount; // pour compter les suffixes
+			//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
 
-			// Compter les occurrences de chaque suffixe
-			for (const auto& suffix : suffixes) {
-			suffixCount[suffix]++;
-			}
-
-			// Écrire les informations sur la répartition des suffixes
-			outFile << "Prefix: " << decode(prefix) << ", Suffix distribution: ";
-			for (const auto& countPair : suffixCount) {
-			outFile << "(" << decode(countPair.first) << ":" << countPair.second << ") ";
-			}
-			outFile << "\n";
-			}
-			*/
-
+			writeDataHeatMap(globalKmerIndex, "random_data.csv");
 
 			/************************    IntHASH    ***********************************/
 			globalKmerIndex.clear(); // Nettoyage avant de commencer
@@ -331,9 +390,18 @@ int main(int argc, char* argv[]) {
 					auto kmers = extractKmers(seq.second, k);
 
 					for (const auto& kmer : kmers) {
-						uint64_t encoded = encode(kmer);
-						uint64_t hashed = hash_64(encoded, mask); // Utilisation de la fonction de hachage IntHash
-						localKmerIndex[hashed].push_back(encoded);
+						std::string prefixKmer = kmer.substr(0, k / 3 + 2);
+                                                std::string suffixKmer = kmer.substr(k / 3 + 2);
+
+                                                // Encoder le préfixe et le suffixe
+                                                uint64_t prefixEncoded = encode(prefixKmer);
+                                                uint64_t suffixEncoded = encode(suffixKmer);
+						uint64_t prefixEncodHashed = hash_64(prefixEncoded,mask);
+                                                // Ajouter le suffixe encodé dans l'index local
+                                                localKmerIndex[prefixEncodHashed].push_back(suffixEncoded);
+						//uint64_t encoded = encode(kmer);
+						//uint64_t hashed = hash_64(encoded, mask); // Utilisation de la fonction de hachage IntHash
+						//localKmerIndex[hashed].push_back(encoded);
 					}
 				}
 
@@ -343,6 +411,9 @@ int main(int argc, char* argv[]) {
 					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
 							std::make_move_iterator(pair.second.begin()),
 							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+												     //prefixSuffixMapIntHash[pair.first].insert(prefixSuffixMapIntHash[pair.first].end(),
+												     //		std::make_move_iterator(pair.second.begin()),
+												     //		std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 				}
 			}
 #pragma omp barrier
@@ -352,9 +423,10 @@ int main(int argc, char* argv[]) {
 			memoryAfter = getPeakMemoryUsage();
 			memoryUsed = memoryAfter - memoryBefore;
 			outFile << filename << "," << k << ",IntHash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+			//writeHeatmapData(prefixSuffixMapIdentity, prefixSuffixMapRandom, prefixSuffixMapIntHash, "heatmap_data.csv");
+			//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
 
-			visualizeSuffixDistribution(globalKmerIndex,k,outFile);
-
+			writeDataHeatMap(globalKmerIndex, "IntHash_data.csv");
 
 		}
 	}
