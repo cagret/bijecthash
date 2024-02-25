@@ -7,6 +7,7 @@
 class FileReader {
 public:
     static std::vector<std::pair<std::string, std::string>> readFastaFile(const std::string& filename);
+    static std::vector<std::pair<std::string, std::string>> readFastqFile(const std::string& filename);
 };
 
 #endif // FILEREADER_HPP

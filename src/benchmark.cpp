@@ -16,7 +16,7 @@
 #include "inthash.h"
 #include "fileReader.hpp"
 
-
+//#define DEBUG
 
 long long getPeakMemoryUsage() {
 	struct rusage rusage;
@@ -25,26 +25,14 @@ long long getPeakMemoryUsage() {
 }
 
 
-long long encode2(const std::string& str) {
-	long long encoded = 0;
-	for (char c : str) {
-		int val = 0; 
-		switch (c) {
-			case 'A': val = 0; break; 
-			case 'C': val = 1; break;
-			case 'G': val = 2; break;
-			case 'T': val = 3; break;
-		}
-		encoded = encoded * 4 + val;
-	}
-	return encoded;
-}
-
 long long encode(const std::string& str) {
 	static const std::unordered_map<char, int> charMap = {{'A', 0}, {'C', 1}, {'G', 2}, {'T', 3}};
 	long long encoded = 0;
 	for (char c : str) {
-		encoded = encoded * 4 + charMap.at(c);
+		auto it = charMap.find(c);
+		if (it != charMap.end()) { // Character is known (A, C, G, T)
+			encoded = encoded * 4 + it->second;
+		}
 	}
 	return encoded;
 }
@@ -103,6 +91,64 @@ double calculateVariance(const std::unordered_map<uint64_t, std::vector<uint64_t
 	return variance;
 }
 
+
+void visualizeSuffixDistribution(const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMap, int k, std::ofstream& outFile){
+#ifdef DEBUG
+	std::cout << "Prefix: " <<std::endl;
+	if (!outFile.is_open()) {
+		std::cerr << "Failed to open output file." << std::endl;
+		return;
+	}
+	std::cout << "Map size: " << prefixSuffixMap.size() << std::endl;
+	if (prefixSuffixMap.empty()) {
+		std::cout << "Map is empty." << std::endl;
+		return;
+	}
+#endif
+	for (const auto& pair : prefixSuffixMap) {
+#ifdef DEBUG
+		std::cout << "Pair: " << pair.first << ", Suffixes: " << pair.second.size() << std::endl;
+#endif
+		const auto& prefix = pair.first;
+		const auto& suffixes = pair.second;
+		std::unordered_map<uint64_t, int> suffixCount; // pour compter les suffixes
+
+		// Compter les occurrences de chaque suffixe
+		for (const auto& suffix : suffixes) {
+			suffixCount[suffix]++;
+		}
+#ifdef DEBUG
+		std::cout << "Writing to file..." << std::endl;
+#endif
+		outFile << "Prefix: " << decode(prefix,k) << ", Suffix distribution: ";
+		for (const auto& countPair : suffixCount) {
+			outFile << "(" << decode(countPair.first,k) << ":" << countPair.second << ") ";
+		}
+		outFile << "\n";
+#ifdef DEBUG
+		std::cout << "Done writing to file." << std::endl;
+#endif
+	}
+}
+
+std::string determineFileType(const std::string& filename) {
+	std::ifstream file(filename);
+	std::string line;
+	while (std::getline(file, line)) {
+		if (!line.empty()) { // Skip any empty lines at the start of the file
+			if (line[0] == '>') {
+				return "FASTA";
+			} else if (line[0] == '@') {
+				return "FASTQ";
+			}
+			break; // Exit after checking the first non-empty line
+		}
+	}
+	return "UNKNOWN"; // Return UNKNOWN if the file does not start with expected characters
+}
+
+
+
 int main(int argc, char* argv[]) {
 	if (argc < 3) {
 		std::cerr << "Usage: " << argv[0] << " -f <fichier1;fichier2;...> <k1> <k2> ...\n";
@@ -121,12 +167,26 @@ int main(int argc, char* argv[]) {
 	for (int i = 3; i < argc; ++i) {
 		kSizes.push_back(std::stoi(argv[i]));
 	}
-
 	std::ofstream outFile("benchmark2_results.csv");
+	if (!outFile.is_open()) {
+		std::cerr << "Error: Unable to open output file.\n";
+		return 1; // Exit with error code
+	}
 	outFile << "Dataset,KSize,ExecutionType,ExecutionTime(ms),Variance,MemoryUsed(KB)\n";
+	std::vector<std::pair<std::string, std::string>> sequences;
 	for (const auto& filename : files) {
-		auto sequences = FileReader::readFastaFile(filename);
+		std::string fileType = determineFileType(filename);
 
+		if (fileType == "FASTA") {
+			sequences = FileReader::readFastaFile(filename);
+			std::cout << "Processed " << sequences.size() << " sequences from FASTA file.\n";
+		} else if (fileType == "FASTQ") {
+			sequences = FileReader::readFastqFile(filename);
+			std::cout << "Processed " << sequences.size() << " sequences from FASTQ file.\n";
+		} else {
+			std::cerr << "Error: File type unknown or file does not start with '>' or '@'.\n";
+			continue; // Skip this file and continue with the next
+		}
 		for (const auto& k : kSizes) {
 			std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
 			std::chrono::duration<double, std::milli> elapsed;
@@ -149,7 +209,9 @@ int main(int argc, char* argv[]) {
 				for (size_t i = 0; i < sequences.size(); ++i) {
 					const auto& seq = sequences[i];
 					auto kmers = extractKmers(seq.second, k);
-
+#ifdef DEBUG
+					std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
+#endif
 					for (const auto& kmer : kmers) {
 						std::string permutedKmer = applyPermutation(kmer, identityPermutation);
 						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
@@ -164,9 +226,12 @@ int main(int argc, char* argv[]) {
 
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
-					 globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-                                               std::make_move_iterator(pair.second.begin()),
-                                               std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+#ifdef DEBUG
+					std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
+#endif
+					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+							std::make_move_iterator(pair.second.begin()),
+							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 
 				}
 			}
@@ -178,6 +243,7 @@ int main(int argc, char* argv[]) {
 			memoryUsed = memoryAfter - memoryBefore;
 			outFile << filename << "," << k << ",Identity," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
 
+			visualizeSuffixDistribution(globalKmerIndex,k,outFile);
 
 
 			/************************    RANDOM    ***********************************/
@@ -215,9 +281,9 @@ int main(int argc, char* argv[]) {
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
 					//globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
-					 globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-                                               std::make_move_iterator(pair.second.begin()),
-                                               std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+							std::make_move_iterator(pair.second.begin()),
+							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 				}
 			}
 #pragma omp barrier
@@ -228,6 +294,26 @@ int main(int argc, char* argv[]) {
 			memoryUsed = memoryAfter - memoryBefore;
 			outFile << filename << "," << k << ",Random," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
 
+			visualizeSuffixDistribution(globalKmerIndex,k,outFile);
+			/*
+			   for (const auto& pair : globalKmerIndex) {
+			   const auto& prefix = pair.first;
+			   const auto& suffixes = pair.second;
+			   std::unordered_map<uint64_t, int> suffixCount; // pour compter les suffixes
+
+			// Compter les occurrences de chaque suffixe
+			for (const auto& suffix : suffixes) {
+			suffixCount[suffix]++;
+			}
+
+			// Écrire les informations sur la répartition des suffixes
+			outFile << "Prefix: " << decode(prefix) << ", Suffix distribution: ";
+			for (const auto& countPair : suffixCount) {
+			outFile << "(" << decode(countPair.first) << ":" << countPair.second << ") ";
+			}
+			outFile << "\n";
+			}
+			*/
 
 
 			/************************    IntHASH    ***********************************/
@@ -254,9 +340,9 @@ int main(int argc, char* argv[]) {
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
 					//globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
-					 globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-                                               std::make_move_iterator(pair.second.begin()),
-                                               std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+							std::make_move_iterator(pair.second.begin()),
+							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
 				}
 			}
 #pragma omp barrier
@@ -267,6 +353,7 @@ int main(int argc, char* argv[]) {
 			memoryUsed = memoryAfter - memoryBefore;
 			outFile << filename << "," << k << ",IntHash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
 
+			visualizeSuffixDistribution(globalKmerIndex,k,outFile);
 
 
 		}
