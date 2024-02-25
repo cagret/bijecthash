@@ -57,6 +57,12 @@ std::string applyPermutation(const std::string& kmer, const std::vector<int>& pe
 	return permuted;
 }
 
+std::vector<int> generateIdentityPermutation(int k) {
+    std::vector<int> p(k);
+    std::iota(p.begin(), p.end(), 0);
+    return p;
+}
+
 std::vector<int> generateRandomPermutation(int k) {
 	std::vector<int> p(k);
 	std::iota(p.begin(), p.end(), 0);
@@ -266,7 +272,7 @@ int main(int argc, char* argv[]) {
 			//std::unordered_map<uint64_t, std::vector<uint64_t>> prefixSuffixMapRandom;
 			//std::unordered_map<uint64_t, std::vector<uint64_t>> prefixSuffixMapIntHash;
 
-			auto identityPermutation = generateRandomPermutation(k); // Reuse this permutation if k does not change often
+			auto identityPermutation = generateIdentityPermutation(k); // Reuse this permutation if k does not change often
 
 			/************************    IDENTITY    ***********************************/
 			globalKmerIndex.clear(); 
