@@ -371,7 +371,7 @@ int main(int argc, char* argv[]) {
 						// Encoder le préfixe et le suffixe
 						uint64_t prefixEncoded = encode(prefixKmer);
 						uint64_t suffixEncoded = encode(suffixKmer);
-						uint64_t prefixEncodHashed = Ga_b(prefixEncoded,17,42,pref_size*2);
+						uint64_t prefixEncodHashed = Ga_b(prefixEncoded,17,42,k*2);
 						// Ajouter le suffixe encodé dans l'index local
 						localKmerIndex[prefixEncodHashed].push_back(suffixEncoded);
 					}
