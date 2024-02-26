@@ -58,9 +58,9 @@ std::string applyPermutation(const std::string& kmer, const std::vector<int>& pe
 }
 
 std::vector<int> generateIdentityPermutation(int k) {
-    std::vector<int> p(k);
-    std::iota(p.begin(), p.end(), 0);
-    return p;
+	std::vector<int> p(k);
+	std::iota(p.begin(), p.end(), 0);
+	return p;
 }
 
 std::vector<int> generateRandomPermutation(int k) {
@@ -80,6 +80,18 @@ std::vector<std::string> extractKmers(const std::string& sequence, int k) {
 	}
 	return kmers;
 }
+
+uint64_t rot(uint64_t s, int width) {
+	const int bitSize = 64; 
+	int halfWidth = width / 2;
+	return (s << halfWidth) | (s >> (bitSize - halfWidth)); 
+}
+
+uint64_t Ga_b(uint64_t s, uint64_t a, uint64_t b, int sigma) {
+	const uint64_t mask = (1ULL << sigma) - 1; 
+	return ((a * (rot(s, sigma) ^ b)) & mask);
+}
+
 
 double calculateVariance(const std::unordered_map<uint64_t, std::vector<uint64_t>>& index) {
 	double mean = 0;
@@ -163,45 +175,6 @@ void writeDataHeatMap(
 
 	outFile.close();
 }
-/*
-   void writeHeatmapData(
-   const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMapIdentity,
-   const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMapRandom,
-   const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMapIntHash,
-   const std::string& outputFileName) {
-
-   std::ofstream outFile(outputFileName);
-
-   outFile << "Prefix,Identity,Random,IntHash\n";
-
-// Pour chaque préfixe dans l'algorithme Identity
-for (const auto& pair : prefixSuffixMapIdentity) {
-uint64_t prefix = pair.first;
-
-outFile << prefix;
-
-outFile << "," << pair.second.size();
-
-auto itRandom = prefixSuffixMapRandom.find(prefix);
-if (itRandom != prefixSuffixMapRandom.end()) {
-outFile << "," << itRandom->second.size();
-} else {
-outFile << ",0";
-}
-
-auto itIntHash = prefixSuffixMapIntHash.find(prefix);
-if (itIntHash != prefixSuffixMapIntHash.end()) {
-outFile << "," << itIntHash->second.size();
-} else {
-outFile << ",0"; 
-}
-
-outFile << "\n";
-}
-
-outFile.close();
-}
-*/
 
 
 std::string determineFileType(const std::string& filename) {
@@ -343,20 +316,16 @@ int main(int argc, char* argv[]) {
 
 					for (const auto& kmer : kmers) {
 						std::string permutedKmer = applyPermutation(kmer, randomPermutation);
-
 						// Découper le k-mer permuté en préfixe et suffixe
 						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
 						std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
-
 						// Encoder le préfixe et le suffixe
 						uint64_t prefixEncoded = encode(prefixKmer);
 						uint64_t suffixEncoded = encode(suffixKmer);
-
 						// Ajouter le suffixe encodé dans l'index local
 						localKmerIndex[prefixEncoded].push_back(suffixEncoded);
 					}
 				}
-
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
 					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
@@ -381,6 +350,50 @@ int main(int argc, char* argv[]) {
 
 			writeDataHeatMap(globalKmerIndex, "random_data.csv");
 
+			/************************    GAB_HASH    ***********************************/
+			globalKmerIndex.clear(); // Nettoyage avant de commencer
+
+			memoryBefore = 0;
+			start = std::chrono::high_resolution_clock::now();
+#pragma omp parallel
+			{
+				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+				//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; 
+#pragma omp for nowait
+				for (size_t i = 0; i < sequences.size(); ++i) {
+					const auto& seq = sequences[i];
+					auto kmers = extractKmers(seq.second, k);
+					int pref_size=k/3+2;
+					for (const auto& kmer : kmers) {
+						std::string prefixKmer = kmer.substr(0,pref_size);
+						std::string suffixKmer = kmer.substr(pref_size);
+
+						// Encoder le préfixe et le suffixe
+						uint64_t prefixEncoded = encode(prefixKmer);
+						uint64_t suffixEncoded = encode(suffixKmer);
+						uint64_t prefixEncodHashed = Ga_b(prefixEncoded,17,42,pref_size*2);
+						// Ajouter le suffixe encodé dans l'index local
+						localKmerIndex[prefixEncodHashed].push_back(suffixEncoded);
+					}
+				}
+#pragma omp critical
+				for (const auto& pair : localKmerIndex) {
+					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+							std::make_move_iterator(pair.second.begin()),
+							std::make_move_iterator(pair.second.end()));
+				}
+			}
+#pragma omp barrier
+			end = std::chrono::high_resolution_clock::now();
+			elapsed = end - start;
+			variance = calculateVariance(globalKmerIndex);
+			memoryAfter = getPeakMemoryUsage();
+			memoryUsed = memoryAfter - memoryBefore;
+			outFile << filename << "," << k << ",GAB_Hash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+			writeDataHeatMap(globalKmerIndex, "GAB_Hash_data.csv");
+
+
+
 			/************************    IntHASH    ***********************************/
 			globalKmerIndex.clear(); // Nettoyage avant de commencer
 
@@ -397,14 +410,14 @@ int main(int argc, char* argv[]) {
 
 					for (const auto& kmer : kmers) {
 						std::string prefixKmer = kmer.substr(0, k / 3 + 2);
-                                                std::string suffixKmer = kmer.substr(k / 3 + 2);
+						std::string suffixKmer = kmer.substr(k / 3 + 2);
 
-                                                // Encoder le préfixe et le suffixe
-                                                uint64_t prefixEncoded = encode(prefixKmer);
-                                                uint64_t suffixEncoded = encode(suffixKmer);
+						// Encoder le préfixe et le suffixe
+						uint64_t prefixEncoded = encode(prefixKmer);
+						uint64_t suffixEncoded = encode(suffixKmer);
 						uint64_t prefixEncodHashed = hash_64(prefixEncoded,mask);
-                                                // Ajouter le suffixe encodé dans l'index local
-                                                localKmerIndex[prefixEncodHashed].push_back(suffixEncoded);
+						// Ajouter le suffixe encodé dans l'index local
+						localKmerIndex[prefixEncodHashed].push_back(suffixEncoded);
 						//uint64_t encoded = encode(kmer);
 						//uint64_t hashed = hash_64(encoded, mask); // Utilisation de la fonction de hachage IntHash
 						//localKmerIndex[hashed].push_back(encoded);
