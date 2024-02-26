@@ -1,7 +1,11 @@
 *.o
 *.fa
+*.fasta
 *.pdf
 *.csv
+*.png
+*.py
+a.out
 benchmark
 benchmark_hash
 BijectHash
