@@ -57,6 +57,8 @@ std::string applyPermutation(const std::string& kmer, const std::vector<int>& pe
 	return permuted;
 }
 
+
+
 std::vector<int> generateIdentityPermutation(int k) {
 	std::vector<int> p(k);
 	std::iota(p.begin(), p.end(), 0);
@@ -86,12 +88,12 @@ std::vector<int> generateCyclicPermutation(int k) {
 
 
 std::vector<int> generateZigzagPermutation(int k) {
-    std::vector<int> permutation(k);
+    std::vector<int> p(k);
     int start = 0, end = k - 1;
     for (int i = 0; i < k; ++i) {
-        permutation[i] = (i % 2 == 0) ? start++ : end--;
+        p[i] = (i % 2 == 0) ? start++ : end--;
     }
-    return permutation;
+    return p;
 }
 
 
