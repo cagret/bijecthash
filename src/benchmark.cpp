@@ -328,7 +328,7 @@ int main(int argc, char* argv[]) {
 				}
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
-					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+				//	globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
 					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
 							std::make_move_iterator(pair.second.begin()),
 							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
