@@ -27,9 +27,9 @@ src/%.o: src/%.c
 src/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Règle pour compiler le fichier de benchmark
-benchmark: src/benchmark.o src/fileReader.o src/inthash.o
-	$(LD) $(LDFLAGS) -o benchmark src/benchmark.o src/fileReader.o src/inthash.o -O3 -fopenmp
+# Règle pour compiler le fichier de benchmark, maintenant avec permutations.o inclus
+benchmark: src/benchmark.o src/fileReader.o src/inthash.o src/permutations.o
+	$(LD) $(LDFLAGS) -o benchmark src/benchmark.o src/fileReader.o src/inthash.o src/permutations.o -O3 -fopenmp
 
 # Règle clean pour nettoyer les fichiers compilés
 clean:
