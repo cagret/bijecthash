@@ -13,6 +13,7 @@
 #include <omp.h>
 #include <sys/resource.h>
 #include <functional>
+#include <optional>
 
 #include "inthash.h"
 #include "fileReader.hpp"
@@ -69,47 +70,16 @@ void writeData(
 	outFile.close();
 }
 /*
-   void processKmersWithSpecificHashing(
-   const std::vector<std::pair<std::string, std::string>>& sequences,
-   size_t k, size_t prefixSize,
-   size_t MAX_PREFIX,
-   std::function<uint64_t(uint64_t)> hashFunction,
-   const std::string& outputFileName,
-   std::ofstream& outFile
-   ) {
-   std::vector<std::vector<uint64_t>> globalKmerIndex(MAX_PREFIX);
-   auto start = std::chrono::high_resolution_clock::now();
-#pragma omp parallel
-{
-std::vector<std::vector<uint64_t>> localKmerIndex(MAX_PREFIX);
-#pragma omp for nowait
-for (size_t i = 0; i < sequences.size(); ++i) {
-const auto& seq = sequences[i];
-auto kmers = extractKmers(seq.second, k);
-for (const auto& kmer : kmers) {
-uint64_t kmerEncoded = encode(kmer); // Encodez votre k-mer ici.
-uint64_t kmerHashed = hashFunction(kmerEncoded); // Appliquez votre fonction de hachage ici.
-uint64_t prefixKmer = kmerHashed >> (64 - 2 * prefixSize); // Ajustez cette opération pour extraire le préfixe correctement.
-localKmerIndex[prefixKmer].push_back(kmerHashed); // Stockez le kmer hashé (ou une partie de celui-ci) dans le vecteur.
-}
-}
-#pragma omp critical
-{
-for (size_t i = 0; i < MAX_PREFIX; ++i) {
-globalKmerIndex[i].insert(
-globalKmerIndex[i].end(),
-std::make_move_iterator(localKmerIndex[i].begin()),
-std::make_move_iterator(localKmerIndex[i].end())
-);
-}
-}
-}
-auto end = std::chrono::high_resolution_clock::now();
-auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-outFile << "Traitement: " << outputFileName << ", Temps écoulé: " << elapsed.count() << "ms\n";
-writeData(globalKmerIndex, outputFileName + "_data.csv");
-}
-*/
+   uint64_t kmerEncoded = encode(kmer); // Encodez votre k-mer ici.
+   uint64_t kmerHashed = hashFunction(kmerEncoded); // Appliquez votre fonction de hachage ici.
+   uint64_t prefixKmer = kmerHashed >> (64 - 2 * prefixSize); // Ajustez cette opération pour extraire le préfixe correctement.
+   localKmerIndex[prefixKmer].push_back(kmerHashed); // Stockez le kmer hashé (ou une partie de celui-ci) dans le vecteur.
+   for (size_t i = 0; i < MAX_PREFIX; ++i) {
+   globalKmerIndex[i].insert(
+   globalKmerIndex[i].end(),
+   std::make_move_iterator(localKmerIndex[i].begin()),
+   std::make_move_iterator(localKmerIndex[i].end())
+   */
 
 std::vector<size_t> calculateDecileSizes(const std::vector<std::vector<uint64_t>>& tables) {
 	std::vector<size_t> decileSizes(10, 0); 
@@ -128,38 +98,17 @@ std::vector<size_t> calculateDecileSizes(const std::vector<std::vector<uint64_t>
 	return decileSizes;
 }
 
-/*
-   std::vector<size_t> calculateDecileSizes(const std::vector<std::vector<uint64_t>>& tables) {
-// Copie des tables pour tri par taille sans modifier l'original
-std::vector<std::vector<uint64_t>> sortedTables = tables;
+void processKmersWithPermutation(
+		const std::vector<std::pair<std::string, std::string>>& sequences, 
+		size_t k, size_t prefixSize,size_t MAX_PREFIX, 
+		const std::vector<size_t>& permutation, 
+		std::optional<std::function<uint64_t(uint64_t)>> hashFunction,
+		const std::string& outputFileName, std::ofstream& outFile) {
 
-// Tri des tables par taille croissante
-std::sort(sortedTables.begin(), sortedTables.end(), 
-[](const std::vector<uint64_t>& a, const std::vector<uint64_t>& b) {
-return a.size() < b.size();
-});
 
-size_t totalTables = sortedTables.size();
-std::vector<size_t> decileSizes(10, 0);
-
-// Calcul de la taille de chaque décile en termes de nombre de tables
-for (size_t decile = 0; decile < 10; ++decile) {
-size_t startIdx = std::ceil(totalTables * decile / 10.0);
-size_t endIdx = std::floor(totalTables * (decile + 1) / 10.0);
-
-for (size_t i = startIdx; i < endIdx; ++i) {
-decileSizes[decile] += sortedTables[i].size();
-}
-}
-
-return decileSizes;
-}
-*/
-void processKmersWithPermutation(const std::vector<std::pair<std::string, std::string>>& sequences, size_t k, size_t prefixSize,size_t MAX_PREFIX, const std::vector<size_t>& permutation, const std::string& outputFileName, std::ofstream& outFile) {
 	std::vector<std::vector<uint64_t>> globalKmerIndex(MAX_PREFIX + 1);
 	size_t totalTables = sequences.size();
 	size_t tablesPerDecile = totalTables / 10;
-
 	auto memoryBefore = getPeakMemoryUsage();
 	auto start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
@@ -169,12 +118,23 @@ void processKmersWithPermutation(const std::vector<std::pair<std::string, std::s
 		for (size_t i = 0; i < sequences.size(); ++i) {
 			const auto& seq = sequences[i];
 			auto kmers = extractKmers(seq.second, k);
+			        uint64_t prefixEncoded, suffixEncoded;
 			for (const auto& kmer : kmers) {
-				std::string permutedKmer = applyPermutation(kmer, permutation);
-				std::string prefixKmer = permutedKmer.substr(0, prefixSize);
-				std::string suffixKmer = permutedKmer.substr(prefixSize);
-				uint64_t prefixEncoded = encode(prefixKmer);
-				uint64_t suffixEncoded = encode(suffixKmer);
+				if (hashFunction) {
+					uint64_t kmerEncoded = encode(kmer); 
+					uint64_t kmerHashed = (*hashFunction)(kmerEncoded); 
+				        uint64_t suffixMask = (1ULL << (2 * prefixSize)) - 1;
+					prefixEncoded = kmerHashed >> (64 - 2 * prefixSize);
+    					suffixEncoded = kmerHashed & suffixMask;
+				} else {	
+					std::string permutedKmer = applyPermutation(kmer, permutation);
+					std::string prefixKmer = permutedKmer.substr(0, prefixSize);
+					std::string suffixKmer = permutedKmer.substr(prefixSize);
+					prefixEncoded = encode(prefixKmer);
+					suffixEncoded = encode(suffixKmer);
+				}
+
+
 				if (prefixEncoded < localKmerIndex.size()) {
 					localKmerIndex[prefixEncoded].push_back(suffixEncoded);
 				}
@@ -207,10 +167,6 @@ void processKmersWithPermutation(const std::vector<std::pair<std::string, std::s
 	//writeData(globalKmerIndex, outputFileName + "_data.csv");
 }
 
-void visualizeSuffixDistribution(const std::unordered_map<uint64_t, std::vector<uint64_t>>& prefixSuffixMap, size_t k, std::ofstream& outFile){
-	//TODO
-}
-
 std::string determineFileType(const std::string& filename) {
 	std::ifstream file(filename);
 	std::string line;
@@ -229,7 +185,7 @@ std::string determineFileType(const std::string& filename) {
 
 int main(int argc, char* argv[]) {
 	if (argc < 3) {
-		std::cerr << "Usage: " << argv[0] << " -f <fichier1;fichier2;...> <k1> <k2> ...\n";
+		std::cerr << "Usage: " << argv[0] << " -f <fichier1;fichier2;...> <k1> \n";
 		return 1;
 	}
 	std::vector<std::string> files;
@@ -274,19 +230,19 @@ int main(int argc, char* argv[]) {
 			std::vector<size_t> zigzagPermutation = generateZigzagPermutation(k);
 			std::vector<size_t> permutation = generateSeedSortPermutation("ATCG");
 
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, identityPermutation, "identity", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, randomPermutation, "random", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, inversePermutation, "inverse", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, cyclicPermutation, "cyclic", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, zigzagPermutation, "zigzag", outFile);
+			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, identityPermutation,std::nullopt, "identity", outFile);
+			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, randomPermutation,std::nullopt, "random", outFile);
+			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, inversePermutation,std::nullopt, "inverse", outFile);
+			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, cyclicPermutation,std::nullopt, "cyclic", outFile);
+			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, zigzagPermutation,std::nullopt, "zigzag", outFile);
 
-			//processKmersWithSpecificHashing(sequences, k, prefixSize, MAX_PREFIX, [](uint64_t kmerEncoded) -> uint64_t {
-			//		return Ga_b(kmerEncoded, 17, 42, k*2); // Pour GAB_HASH
-			//		}, "GAB_Hash", outFile);
+			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX,identityPermutation, [k](uint64_t kmerEncoded) -> uint64_t {
+					return Ga_b(kmerEncoded, 17, 42, k*2); // Pour GAB_HASH
+					}, "GAB_Hash", outFile);
 
-			//processKmersWithSpecificHashing(sequences, k, prefixSize,MAX_PREFIX, [](uint64_t kmerEncoded) -> uint64_t {
-			//		return hash_64(kmerEncoded, mask); // Pour IntHASH
-			//		}, "IntHash", outFile);
+			processKmersWithPermutation(sequences, k, prefixSize,MAX_PREFIX,identityPermutation, [mask](uint64_t kmerEncoded) -> uint64_t {
+					return hash_64(kmerEncoded, mask); // Pour IntHASH
+					}, "IntHash", outFile);
 		} else {
 			std::cerr << "Error: File type unknown or file does not start with '>' or '@'.\n";
 			continue; // Skip this file and continue with the next
