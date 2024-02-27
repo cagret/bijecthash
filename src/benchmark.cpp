@@ -25,6 +25,13 @@ long long getPeakMemoryUsage() {
 }
 
 
+
+void splitEncodedKmer(uint64_t input, uint64_t& prefix, uint64_t& suffix, int prefixSize) {
+	uint64_t suffixMask = (1ULL << (2 * prefixSize)) - 1;
+	prefix = input >> (2 * prefixSize);
+	suffix = input & suffixMask;
+}
+
 long long encode(const std::string& str) {
 	static const std::unordered_map<char, int> charMap = {{'A', 0}, {'C', 1}, {'G', 2}, {'T', 3}};
 	long long encoded = 0;
@@ -67,54 +74,54 @@ std::vector<int> generateIdentityPermutation(int k) {
 
 
 std::vector<int> generateInversePermutation(int k) {
-    std::vector<int> p(k);
-    std::iota(p.begin(), p.end(), 0); 
-    std::reverse(p.begin(), p.end()); 
-    return p;
+	std::vector<int> p(k);
+	std::iota(p.begin(), p.end(), 0); 
+	std::reverse(p.begin(), p.end()); 
+	return p;
 
 
 }
 
 
 std::vector<int> generateSeedSortPermutation(const std::string& sequence) {
-    int k = sequence.length();
-    std::vector<int> p(k);
-    std::iota(p.begin(), p.end(), 0);
+	int k = sequence.length();
+	std::vector<int> p(k);
+	std::iota(p.begin(), p.end(), 0);
 
-    unsigned long long seed = 0;
-    for (char c : sequence) {
-        seed += c;
-    }
+	unsigned long long seed = 0;
+	for (char c : sequence) {
+		seed += c;
+	}
 
-    std::mt19937 generator(seed); 
-    std::shuffle(p.begin(), p.end(), generator);
+	std::mt19937 generator(seed); 
+	std::shuffle(p.begin(), p.end(), generator);
 
-    return p;
+	return p;
 }
 
 
 
 std::vector<int> generateCyclicPermutation(int k) {
-    std::vector<int> p(k);
-    std::iota(p.begin(), p.end(), 0); 
-    if (k > 0) { 
-        int temp = p.back(); 
-        for (int i = k - 1; i > 0; --i) {
-            p[i] = p[i - 1]; 
-        }
-        p[0] = temp; 
-    }
-    return p;
+	std::vector<int> p(k);
+	std::iota(p.begin(), p.end(), 0); 
+	if (k > 0) { 
+		int temp = p.back(); 
+		for (int i = k - 1; i > 0; --i) {
+			p[i] = p[i - 1]; 
+		}
+		p[0] = temp; 
+	}
+	return p;
 }
 
 
 std::vector<int> generateZigzagPermutation(int k) {
-    std::vector<int> p(k);
-    int start = 0, end = k - 1;
-    for (int i = 0; i < k; ++i) {
-        p[i] = (i % 2 == 0) ? start++ : end--;
-    }
-    return p;
+	std::vector<int> p(k);
+	int start = 0, end = k - 1;
+	for (int i = 0; i < k; ++i) {
+		p[i] = (i % 2 == 0) ? start++ : end--;
+	}
+	return p;
 }
 
 
@@ -188,12 +195,10 @@ void visualizeSuffixDistribution(const std::unordered_map<uint64_t, std::vector<
 		const auto& suffixes = pair.second;
 		std::unordered_map<uint64_t, int> suffixCount;
 
-		// Compter les occurrences de chaque suffixe
 		for (const auto& suffix : suffixes) {
 			suffixCount[suffix]++;
 		}
 
-		// Écrire le préfixe et le nombre d'occurrences de chaque suffixe
 #ifdef DEBUG
 		std::cout << "Writing to file..." << std::endl;
 #endif
@@ -292,6 +297,8 @@ int main(int argc, char* argv[]) {
 			std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
 			std::chrono::duration<double, std::milli> elapsed;
 			double variance;
+			uint64_t prefixKmer, suffixKmer;
+			int prefixSize = 11;
 			long memoryBefore, memoryAfter, memoryUsed;
 			uint64_t mask = (1ULL << (2 * k)) - 1;
 
@@ -300,15 +307,15 @@ int main(int argc, char* argv[]) {
 			//std::unordered_map<uint64_t, std::vector<uint64_t>> prefixSuffixMapRandom;
 			//std::unordered_map<uint64_t, std::vector<uint64_t>> prefixSuffixMapIntHash;
 
-	 		std::vector<int> identityPermutation = generateIdentityPermutation(k); 
+			std::vector<int> identityPermutation = generateIdentityPermutation(k); 
 			std::vector<int> randomPermutation = generateRandomPermutation(k); 
-		 	std::vector<int> inversePermutation = generateInversePermutation(k);
+			std::vector<int> inversePermutation = generateInversePermutation(k);
 			std::vector<int> cyclicPermutation = generateCyclicPermutation(k);
 			std::vector<int> zigzagPermutation = generateZigzagPermutation(k);
 			std::vector<int> permutation = generateSeedSortPermutation("ATCG");
-			
-			
-/*********************************************    IDENTITY    ***********************************/
+
+
+			/*********************************************    IDENTITY    ***********************************/
 			globalKmerIndex.clear(); 
 			memoryBefore = 0;// getPeakMemoryUsage();
 			start = std::chrono::high_resolution_clock::now();
@@ -325,8 +332,8 @@ int main(int argc, char* argv[]) {
 #endif
 					for (const auto& kmer : kmers) {
 						std::string permutedKmer = applyPermutation(kmer, identityPermutation);
-						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
-						std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
+						std::string prefixKmer = permutedKmer.substr(0, prefixSize);
+						std::string suffixKmer = permutedKmer.substr(prefixSize);
 
 						uint64_t prefixEncoded = encode(prefixKmer);
 						uint64_t suffixEncoded = encode(suffixKmer);
@@ -354,267 +361,39 @@ int main(int argc, char* argv[]) {
 			outFile << filename << "," << k << ",Identity," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
 			writeDataHeatMap(globalKmerIndex, "identity_data.csv");
 			//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
-			
-/***************************************************************    ZIGZAG    ***********************************/
-                        globalKmerIndex.clear();
-                        memoryBefore = 0;// getPeakMemoryUsage();
-                        start = std::chrono::high_resolution_clock::now();
-#pragma omp parallel
-                        {
-                                std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-                                //std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
-#pragma omp for nowait
-                                for (size_t i = 0; i < sequences.size(); ++i) {
-                                        const auto& seq = sequences[i];
-                                        auto kmers = extractKmers(seq.second, k);
-#ifdef DEBUG
-                                        std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
-#endif
-                                        for (const auto& kmer : kmers) {
-                                                std::string permutedKmer = applyPermutation(kmer, zigzagPermutation);
-                                                std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
-                                                std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
 
-                                                uint64_t prefixEncoded = encode(prefixKmer);
-                                                uint64_t suffixEncoded = encode(suffixKmer);
-
-                                                localKmerIndex[prefixEncoded].push_back(suffixEncoded);
-                                        }
-                                }
-
-#pragma omp critical
-                                for (const auto& pair : localKmerIndex) {
-#ifdef DEBUG
-                                        std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
-#endif
-                                        globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-                                                        std::make_move_iterator(pair.second.begin()),
-                                                        std::make_move_iterator(pair.second.end()));
-                                }
-                        }
-#pragma omp barrier
-                        end = std::chrono::high_resolution_clock::now();
-                        elapsed = end - start;
-                        variance = calculateVariance(globalKmerIndex);
-                        memoryAfter = getPeakMemoryUsage();
-                        memoryUsed = memoryAfter - memoryBefore;
-                        outFile << filename << "," << k << ",Zigzag," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-                        writeDataHeatMap(globalKmerIndex, "zigzag_data.csv");
-                        //visualizeSuffixDistribution(globalKmerIndex,k,outFile);
-                                                           
-/************************************************************************************    SeedSort    **********************************
-                        globalKmerIndex.clear();
-                        memoryBefore = 0;// getPeakMemoryUsage();
-                        start = std::chrono::high_resolution_clock::now();
-#pragma omp parallel
-                        {
-                                std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-                                //std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
-#pragma omp for nowait
-                                for (size_t i = 0; i < sequences.size(); ++i) {
-                                        const auto& seq = sequences[i];
-                                        auto kmers = extractKmers(seq.second, k);
-#ifdef DEBUG
-                                        std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
-#endif
-                                        for (const auto& kmer : kmers) {
-						permutation = generateSeedSortPermutation(kmer);
-                                                std::string permutedKmer = applyPermutation(kmer, permutation);
-                                                std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
-                                                std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
-
-                                                uint64_t prefixEncoded = encode(prefixKmer);
-                                                uint64_t suffixEncoded = encode(suffixKmer);
-
-                                                localKmerIndex[prefixEncoded].push_back(suffixEncoded);
-                                        }
-                                }
-
-#pragma omp critical
-                                for (const auto& pair : localKmerIndex) {
-#ifdef DEBUG
-                                        std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
-#endif
-                                        globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-                                                        std::make_move_iterator(pair.second.begin()),
-                                                        std::make_move_iterator(pair.second.end()));
-                                }
-                        }
-#pragma omp barrier
-                        end = std::chrono::high_resolution_clock::now();
-                        elapsed = end - start;
-                        variance = calculateVariance(globalKmerIndex);
-                        memoryAfter = getPeakMemoryUsage();
-                        memoryUsed = memoryAfter - memoryBefore;
-                        outFile << filename << "," << k << ",SeedSort," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-                        writeDataHeatMap(globalKmerIndex, "seedsort_data.csv");
-                        //visualizeSuffixDistribution(globalKmerIndex,k,outFile);
-			//
-			//
-*/
-                        
-/***************************************************************************************************    Cyclic    ***********************************/
-                        globalKmerIndex.clear();
-                        memoryBefore = 0;// getPeakMemoryUsage();
-                        start = std::chrono::high_resolution_clock::now();
-#pragma omp parallel
-                        {
-                                std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-                                //std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
-#pragma omp for nowait
-                                for (size_t i = 0; i < sequences.size(); ++i) {
-                                        const auto& seq = sequences[i];
-                                        auto kmers = extractKmers(seq.second, k);
-#ifdef DEBUG
-                                        std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
-#endif
-                                        for (const auto& kmer : kmers) {
-						std::string permutedKmer = applyPermutation(kmer, cyclicPermutation);
-                                                std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
-                                                std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
-
-                                                uint64_t prefixEncoded = encode(prefixKmer);
-                                                uint64_t suffixEncoded = encode(suffixKmer);
-
-                                                localKmerIndex[prefixEncoded].push_back(suffixEncoded);
-                                        }
-                                }
-
-#pragma omp critical
-                                for (const auto& pair : localKmerIndex) {
-#ifdef DEBUG
-                                        std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
-#endif
-                                        globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-                                                        std::make_move_iterator(pair.second.begin()),
-                                                        std::make_move_iterator(pair.second.end()));
-                                }
-                        }
-#pragma omp barrier
-                        end = std::chrono::high_resolution_clock::now();
-                        elapsed = end - start;
-                        variance = calculateVariance(globalKmerIndex);
-                        memoryAfter = getPeakMemoryUsage();
-                        memoryUsed = memoryAfter - memoryBefore;
-                        outFile << filename << "," << k << ",Cyclic," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-                        writeDataHeatMap(globalKmerIndex, "cyclic_data.csv");
-
-
-/*********************************************************************    Inverse    ********************************************************/
-                        globalKmerIndex.clear();
-                        memoryBefore = 0;// getPeakMemoryUsage();
-                        start = std::chrono::high_resolution_clock::now();
-#pragma omp parallel
-                        {
-                                std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-                                //std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
-#pragma omp for nowait
-                                for (size_t i = 0; i < sequences.size(); ++i) {
-                                        const auto& seq = sequences[i];
-                                        auto kmers = extractKmers(seq.second, k);
-#ifdef DEBUG
-                                        std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
-#endif
-                                        for (const auto& kmer : kmers) {
-						std::string permutedKmer = applyPermutation(kmer, inversePermutation);
-                                                std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
-                                                std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
-
-                                                uint64_t prefixEncoded = encode(prefixKmer);
-                                                uint64_t suffixEncoded = encode(suffixKmer);
-
-                                                localKmerIndex[prefixEncoded].push_back(suffixEncoded);
-                                        }
-                                }
-
-#pragma omp critical
-                                for (const auto& pair : localKmerIndex) {
-#ifdef DEBUG
-                                        std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
-#endif
-                                        globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-                                                        std::make_move_iterator(pair.second.begin()),
-                                                        std::make_move_iterator(pair.second.end()));
-                                }
-                        }
-#pragma omp barrier
-                        end = std::chrono::high_resolution_clock::now();
-                        elapsed = end - start;
-                        variance = calculateVariance(globalKmerIndex);
-                        memoryAfter = getPeakMemoryUsage();
-                        memoryUsed = memoryAfter - memoryBefore;
-                        outFile << filename << "," << k << ",Inverse," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-                        writeDataHeatMap(globalKmerIndex, "inverse_data.csv");
-			//
-			//
-			//
-			
-/**********************************************************    RANDOM    ***********************************************************************/
-			globalKmerIndex.clear(); // Nettoyage avant de commencer
-
-			memoryBefore =0;// getPeakMemoryUsage();
+			/***************************************************************    ZIGZAG    ***********************************/
+			globalKmerIndex.clear();
+			memoryBefore = 0;// getPeakMemoryUsage();
 			start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
 			{
 				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
 				//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
-
 #pragma omp for nowait
 				for (size_t i = 0; i < sequences.size(); ++i) {
 					const auto& seq = sequences[i];
 					auto kmers = extractKmers(seq.second, k);
-
+#ifdef DEBUG
+					std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
+#endif
 					for (const auto& kmer : kmers) {
-						std::string permutedKmer = applyPermutation(kmer, randomPermutation);
-						std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
-						std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
+						std::string permutedKmer = applyPermutation(kmer, zigzagPermutation);
+						std::string prefixKmer = permutedKmer.substr(0, prefixSize);
+						std::string suffixKmer = permutedKmer.substr(prefixSize);
+
 						uint64_t prefixEncoded = encode(prefixKmer);
 						uint64_t suffixEncoded = encode(suffixKmer);
+
 						localKmerIndex[prefixEncoded].push_back(suffixEncoded);
 					}
 				}
+
 #pragma omp critical
 				for (const auto& pair : localKmerIndex) {
-					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-							std::make_move_iterator(pair.second.begin()),
-							std::make_move_iterator(pair.second.end())); 
-				}
-			}
-#pragma omp barrier
-			end = std::chrono::high_resolution_clock::now();
-			elapsed = end - start;
-			variance = calculateVariance(globalKmerIndex);
-			memoryAfter = getPeakMemoryUsage();
-			memoryUsed = memoryAfter - memoryBefore;
-			outFile << filename << "," << k << ",Random," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-			writeDataHeatMap(globalKmerIndex, "random_data.csv");
-
-/*********************************************************************    GAB_HASH    ***********************************************************/
-			globalKmerIndex.clear(); // Nettoyage avant de commencer
-
-			memoryBefore = 0;
-			start = std::chrono::high_resolution_clock::now();
-			int pref_size=k/3+2;
-#pragma omp parallel
-			{
-				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-				//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; 
-#pragma omp for nowait
-				for (size_t i = 0; i < sequences.size(); ++i) {
-					const auto& seq = sequences[i];
-					auto kmers = extractKmers(seq.second, k);
-					for (const auto& kmer : kmers) {
-						std::string prefixKmer = kmer.substr(0,pref_size);
-						std::string suffixKmer = kmer.substr(pref_size);
-
-						uint64_t prefixEncoded = encode(prefixKmer);
-						uint64_t suffixEncoded = encode(suffixKmer);
-						uint64_t prefixEncodHashed = Ga_b(prefixEncoded,17,42,k*2);
-						localKmerIndex[prefixEncodHashed].push_back(suffixEncoded);
-					}
-				}
-#pragma omp critical
-				for (const auto& pair : localKmerIndex) {
+#ifdef DEBUG
+					std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
+#endif
 					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
 							std::make_move_iterator(pair.second.begin()),
 							std::make_move_iterator(pair.second.end()));
@@ -626,65 +405,283 @@ int main(int argc, char* argv[]) {
 			variance = calculateVariance(globalKmerIndex);
 			memoryAfter = getPeakMemoryUsage();
 			memoryUsed = memoryAfter - memoryBefore;
-			outFile << filename << "," << k << ",GAB_Hash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-			writeDataHeatMap(globalKmerIndex, "GAB_Hash_data.csv");
+			outFile << filename << "," << k << ",Zigzag," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+			writeDataHeatMap(globalKmerIndex, "zigzag_data.csv");
+			//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
+
+			/************************************************************************************    SeedSort    **********************************
+			  globalKmerIndex.clear();
+			  memoryBefore = 0;// getPeakMemoryUsage();
+			  start = std::chrono::high_resolution_clock::now();
+#pragma omp parallel
+{
+std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+			//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+#pragma omp for nowait
+for (size_t i = 0; i < sequences.size(); ++i) {
+const auto& seq = sequences[i];
+auto kmers = extractKmers(seq.second, k);
+#ifdef DEBUG
+std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
+#endif
+for (const auto& kmer : kmers) {
+permutation = generateSeedSortPermutation(kmer);
+std::string permutedKmer = applyPermutation(kmer, permutation);
+std::string prefixKmer = permutedKmer.substr(0, k / 3 + 2);
+std::string suffixKmer = permutedKmer.substr(k / 3 + 2);
+
+uint64_t prefixEncoded = encode(prefixKmer);
+uint64_t suffixEncoded = encode(suffixKmer);
+
+localKmerIndex[prefixEncoded].push_back(suffixEncoded);
+}
+}
+
+#pragma omp critical
+for (const auto& pair : localKmerIndex) {
+#ifdef DEBUG
+std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
+#endif
+globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+std::make_move_iterator(pair.second.begin()),
+std::make_move_iterator(pair.second.end()));
+}
+}
+#pragma omp barrier
+end = std::chrono::high_resolution_clock::now();
+elapsed = end - start;
+variance = calculateVariance(globalKmerIndex);
+memoryAfter = getPeakMemoryUsage();
+memoryUsed = memoryAfter - memoryBefore;
+outFile << filename << "," << k << ",SeedSort," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+writeDataHeatMap(globalKmerIndex, "seedsort_data.csv");
+			//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
+			//
+			//
+			*/
+
+			/***************************************************************************************************    Cyclic    ***********************************/
+			globalKmerIndex.clear();
+			memoryBefore = 0;// getPeakMemoryUsage();
+			start = std::chrono::high_resolution_clock::now();
+#pragma omp parallel
+{
+	std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+	//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+#pragma omp for nowait
+	for (size_t i = 0; i < sequences.size(); ++i) {
+		const auto& seq = sequences[i];
+		auto kmers = extractKmers(seq.second, k);
+#ifdef DEBUG
+		std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
+#endif
+		for (const auto& kmer : kmers) {
+			std::string permutedKmer = applyPermutation(kmer, cyclicPermutation);
+			std::string prefixKmer = permutedKmer.substr(0, prefixSize);
+			std::string suffixKmer = permutedKmer.substr(prefixSize);
+
+			uint64_t prefixEncoded = encode(prefixKmer);
+			uint64_t suffixEncoded = encode(suffixKmer);
+
+			localKmerIndex[prefixEncoded].push_back(suffixEncoded);
+		}
+	}
+
+#pragma omp critical
+	for (const auto& pair : localKmerIndex) {
+#ifdef DEBUG
+		std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
+#endif
+		globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+				std::make_move_iterator(pair.second.begin()),
+				std::make_move_iterator(pair.second.end()));
+	}
+}
+#pragma omp barrier
+end = std::chrono::high_resolution_clock::now();
+elapsed = end - start;
+variance = calculateVariance(globalKmerIndex);
+memoryAfter = getPeakMemoryUsage();
+memoryUsed = memoryAfter - memoryBefore;
+outFile << filename << "," << k << ",Cyclic," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+writeDataHeatMap(globalKmerIndex, "cyclic_data.csv");
+
+
+/*********************************************************************    Inverse    ********************************************************/
+globalKmerIndex.clear();
+memoryBefore = 0;// getPeakMemoryUsage();
+start = std::chrono::high_resolution_clock::now();
+#pragma omp parallel
+{
+	std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+	//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+#pragma omp for nowait
+	for (size_t i = 0; i < sequences.size(); ++i) {
+		const auto& seq = sequences[i];
+		auto kmers = extractKmers(seq.second, k);
+#ifdef DEBUG
+		std::cout << "Extracted " << kmers.size() << " kmers from sequence " << i << std::endl;
+#endif
+		for (const auto& kmer : kmers) {
+			std::string permutedKmer = applyPermutation(kmer, inversePermutation);
+			std::string prefixKmer = permutedKmer.substr(0, prefixSize);
+			std::string suffixKmer = permutedKmer.substr(prefixSize);
+
+			uint64_t prefixEncoded = encode(prefixKmer);
+			uint64_t suffixEncoded = encode(suffixKmer);
+
+			localKmerIndex[prefixEncoded].push_back(suffixEncoded);
+		}
+	}
+
+#pragma omp critical
+	for (const auto& pair : localKmerIndex) {
+#ifdef DEBUG
+		std::cout << "Merging " << pair.second.size() << " suffixes for prefix " << pair.first << std::endl;
+#endif
+		globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+				std::make_move_iterator(pair.second.begin()),
+				std::make_move_iterator(pair.second.end()));
+	}
+}
+#pragma omp barrier
+end = std::chrono::high_resolution_clock::now();
+elapsed = end - start;
+variance = calculateVariance(globalKmerIndex);
+memoryAfter = getPeakMemoryUsage();
+memoryUsed = memoryAfter - memoryBefore;
+outFile << filename << "," << k << ",Inverse," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+writeDataHeatMap(globalKmerIndex, "inverse_data.csv");
+//
+//
+//
+
+/**********************************************************    RANDOM    ***********************************************************************/
+globalKmerIndex.clear(); // Nettoyage avant de commencer
+
+memoryBefore =0;// getPeakMemoryUsage();
+start = std::chrono::high_resolution_clock::now();
+#pragma omp parallel
+{
+	std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+	//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; // Index local pour chaque thread
+
+#pragma omp for nowait
+	for (size_t i = 0; i < sequences.size(); ++i) {
+		const auto& seq = sequences[i];
+		auto kmers = extractKmers(seq.second, k);
+
+		for (const auto& kmer : kmers) {
+			std::string permutedKmer = applyPermutation(kmer, randomPermutation);
+			std::string prefixKmer = permutedKmer.substr(0, prefixSize);
+			std::string suffixKmer = permutedKmer.substr(prefixSize);
+			uint64_t prefixEncoded = encode(prefixKmer);
+			uint64_t suffixEncoded = encode(suffixKmer);
+			localKmerIndex[prefixEncoded].push_back(suffixEncoded);
+		}
+	}
+#pragma omp critical
+	for (const auto& pair : localKmerIndex) {
+		globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+				std::make_move_iterator(pair.second.begin()),
+				std::make_move_iterator(pair.second.end())); 
+	}
+}
+#pragma omp barrier
+end = std::chrono::high_resolution_clock::now();
+elapsed = end - start;
+variance = calculateVariance(globalKmerIndex);
+memoryAfter = getPeakMemoryUsage();
+memoryUsed = memoryAfter - memoryBefore;
+outFile << filename << "," << k << ",Random," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+writeDataHeatMap(globalKmerIndex, "random_data.csv");
+
+/*********************************************************************    GAB_HASH    ***********************************************************/
+globalKmerIndex.clear(); // Nettoyage avant de commencer
+
+memoryBefore = 0;
+start = std::chrono::high_resolution_clock::now();
+#pragma omp parallel
+{
+	std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+	//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; 
+#pragma omp for nowait
+	for (size_t i = 0; i < sequences.size(); ++i) {
+		const auto& seq = sequences[i];
+		auto kmers = extractKmers(seq.second, k);
+		for (const auto& kmer : kmers) {
+			uint64_t kmerEncoded = encode(kmer);
+			uint64_t kmerEncodedHashed = Ga_b(kmerEncoded,17,42,k*2);
+			splitEncodedKmer(kmerEncodedHashed, prefixKmer, suffixKmer, prefixSize);
+			localKmerIndex[prefixKmer].push_back(suffixKmer);
+		}
+	}
+#pragma omp critical
+	for (const auto& pair : localKmerIndex) {
+		globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+				std::make_move_iterator(pair.second.begin()),
+				std::make_move_iterator(pair.second.end()));
+	}
+}
+#pragma omp barrier
+end = std::chrono::high_resolution_clock::now();
+elapsed = end - start;
+variance = calculateVariance(globalKmerIndex);
+memoryAfter = getPeakMemoryUsage();
+memoryUsed = memoryAfter - memoryBefore;
+outFile << filename << "," << k << ",GAB_Hash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+writeDataHeatMap(globalKmerIndex, "GAB_Hash_data.csv");
 
 
 
 /******************************************************************************    IntHASH    *****************************************************************/
-			globalKmerIndex.clear(); // Nettoyage avant de commencer
-
-			memoryBefore = 0;
-			start = std::chrono::high_resolution_clock::now();
+globalKmerIndex.clear(); // Nettoyage avant de commencer
+memoryBefore = 0;
+start = std::chrono::high_resolution_clock::now();
 #pragma omp parallel
-			{
-				std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
-				//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; 
+{
+	std::unordered_map<uint64_t, std::vector<uint64_t>> localKmerIndex;
+	//std::map<uint64_t, std::vector<uint64_t>> localKmerIndex; 
 #pragma omp for nowait
-				for (size_t i = 0; i < sequences.size(); ++i) {
-					const auto& seq = sequences[i];
-					auto kmers = extractKmers(seq.second, k);
+	for (size_t i = 0; i < sequences.size(); ++i) {
+		const auto& seq = sequences[i];
+		auto kmers = extractKmers(seq.second, k);
 
-					for (const auto& kmer : kmers) {
-						std::string prefixKmer = kmer.substr(0, k / 3 + 2);
-						std::string suffixKmer = kmer.substr(k / 3 + 2);
-
-						// Encoder le préfixe et le suffixe
-						uint64_t prefixEncoded = encode(prefixKmer);
-						uint64_t suffixEncoded = encode(suffixKmer);
-						uint64_t prefixEncodHashed = hash_64(prefixEncoded,mask);
-						// Ajouter le suffixe encodé dans l'index local
-						localKmerIndex[prefixEncodHashed].push_back(suffixEncoded);
-						//uint64_t encoded = encode(kmer);
-						//uint64_t hashed = hash_64(encoded, mask); // Utilisation de la fonction de hachage IntHash
-						//localKmerIndex[hashed].push_back(encoded);
-					}
-				}
-
-#pragma omp critical
-				for (const auto& pair : localKmerIndex) {
-					//globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
-					globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
-							std::make_move_iterator(pair.second.begin()),
-							std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
-												     //prefixSuffixMapIntHash[pair.first].insert(prefixSuffixMapIntHash[pair.first].end(),
-												     //		std::make_move_iterator(pair.second.begin()),
-												     //		std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
-				}
-			}
-#pragma omp barrier
-			end = std::chrono::high_resolution_clock::now();
-			elapsed = end - start;
-			variance = calculateVariance(globalKmerIndex);
-			memoryAfter = getPeakMemoryUsage();
-			memoryUsed = memoryAfter - memoryBefore;
-			outFile << filename << "," << k << ",IntHash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
-			//writeHeatmapData(prefixSuffixMapIdentity, prefixSuffixMapRandom, prefixSuffixMapIntHash, "heatmap_data.csv");
-			//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
-			writeDataHeatMap(globalKmerIndex, "IntHash_data.csv");
+		for (const auto& kmer : kmers) {
+			uint64_t kmerEncoded = encode(kmer);
+			uint64_t kmerEncodedHashed = hash_64(kmerEncoded,mask);
+			splitEncodedKmer(kmerEncodedHashed, prefixKmer, suffixKmer, prefixSize);
+			localKmerIndex[prefixKmer].push_back(suffixKmer);
+			//uint64_t encoded = encode(kmer);
+			//uint64_t hashed = hash_64(encoded, mask); // Utilisation de la fonction de hachage IntHash
+			//localKmerIndex[hashed].push_back(encoded);
 		}
 	}
-	outFile.close();
-	return 0;
+
+#pragma omp critical
+	for (const auto& pair : localKmerIndex) {
+		//globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(), pair.second.begin(), pair.second.end());
+		globalKmerIndex[pair.first].insert(globalKmerIndex[pair.first].end(),
+				std::make_move_iterator(pair.second.begin()),
+				std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+									     //prefixSuffixMapIntHash[pair.first].insert(prefixSuffixMapIntHash[pair.first].end(),
+									     //		std::make_move_iterator(pair.second.begin()),
+									     //		std::make_move_iterator(pair.second.end())); // Utiliser move pour réduire la duplication
+	}
+}
+#pragma omp barrier
+end = std::chrono::high_resolution_clock::now();
+elapsed = end - start;
+variance = calculateVariance(globalKmerIndex);
+memoryAfter = getPeakMemoryUsage();
+memoryUsed = memoryAfter - memoryBefore;
+outFile << filename << "," << k << ",IntHash," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
+//writeHeatmapData(prefixSuffixMapIdentity, prefixSuffixMapRandom, prefixSuffixMapIntHash, "heatmap_data.csv");
+//visualizeSuffixDistribution(globalKmerIndex,k,outFile);
+writeDataHeatMap(globalKmerIndex, "IntHash_data.csv");
+}
+}
+outFile.close();
+return 0;
 }
 
