@@ -12,7 +12,14 @@ LDFLAGS= # Options du linker, si nécessaire
 TARGET=BijectHash
 
 # Définir tous les fichiers objet nécessaires pour le lien final
-OBJ_FILES=src/inthash.o src/main.o src/fileReader.o
+OBJ_FILES = \
+  src/inthash.o \
+  src/main.o \
+  src/fileReader.o \
+  src/transformer.o \
+  src/identity_transformer.o \
+  src/inthash_transformer.o \
+  src/permutation_transformer.o
 
 # La première règle est celle exécutée par défaut ("make")
 # Elle dépend de l'exécutable final

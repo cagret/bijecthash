@@ -1,188 +1,152 @@
 #include "fileReader.hpp"
+#include "transformer.hpp"
+#include "identity_transformer.hpp"
+#include "inthash_transformer.hpp"
+#include "permutation_transformer.hpp"
+
+#include <cassert>
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <map>
-#include <cmath>
-#include <random>
-#include <algorithm>
+#include <set>
 #include <string>
-#include <unordered_map>
-#include "inthash.h"
+#include <chrono>
+#include <sys/resource.h>
 //#define DEBUG 
 
-long long encode(const std::string& str) {
-	long long encoded = 0;
-	for (char c : str) {
-		int val = 0; 
-		switch (c) {
-			case 'A': val = 0; break; 
-			case 'C': val = 1; break;
-			case 'G': val = 2; break;
-			case 'T': val = 3; break;
-		}
-		encoded = encoded * 4 + val;
-	}
-	return encoded;
+using namespace std;
+
+double calculateVariance(const vector<set<uint64_t>> &index) {
+  double mean = 0;
+  double variance = 0;
+  for (const auto &s : index) {
+    mean += s.size();
+    variance += s.size() * s.size();
+  }
+  mean /= index.size();
+  variance /= index.size();
+  variance -= mean * mean;
+  return variance;
 }
 
+vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &transformer) {
+  size_t k = transformer.getKmerLength();
+  size_t k1 = transformer.getKmerPrefixLength();
 
-std::string decode(long long encoded, int k) {
-	std::string decoded;
-	while (k--) {
-		decoded += "ACGT"[encoded % 4];
-		encoded /= 4;
-	}
-	std::reverse(decoded.begin(), decoded.end());
-	return decoded;
-}
+  FileReader reader(k, filename);
 
+  if (!reader.isOpen()) {
+    cerr << "Error: Unable to open fasta/fastq file '" << filename << "'" << endl;
+    terminate();
+  }
 
-std::string permute(const std::string& s, const std::vector<int>& p) {
-	std::string permuted(s.size(), 'A');
-	for (size_t i = 0; i < s.size(); ++i) {
-		permuted[i] = s[p[i]];
-	}
-	return permuted;
-}
+  size_t nb_subtrees = (1ul << (2 * k1));
+  vector<set<uint64_t>> kmerIndex(nb_subtrees);
 
+  struct rusage rusage_start;
+  getrusage(RUSAGE_SELF, &rusage_start);
+  auto start = std::chrono::high_resolution_clock::now();
+  // Process each kmer
+  while (reader.nextKmer()) {
 
-std::string applyPermutation(const std::string& kmer, const std::vector<int>& permutation) {
-	std::string permuted;
-	for (int i : permutation) {
-		permuted += kmer[i];
-	}
-	return permuted;
-}
+    const string &kmer = reader.getCurrentKmer();
 
-std::vector<int> generateRandomPermutation(int k) {
-	std::vector<int> p(k);
-	std::iota(p.begin(), p.end(), 0); 
-	std::random_device rd;
-	std::mt19937 g(rd());
-	std::shuffle(p.begin(), p.end(), g);
-	return p;
-}
+#ifdef DEBUG
+    if (reader.getCurrentKmerID(false) == 1) {
+      cout << "New sequence: '" << reader.getCurrentSequenceDescription() << "'" << endl;
+    }
+    cout << "k-mer '" << reader.getCurrentKmer()
+         << " (abs_ID: " << reader.getCurrentKmerID()
+         << ",  rel_ID: " << reader.getCurrentKmerID(false)
+         << ")" << endl;
+#endif
 
+    Transformer::EncodedKmer encoded = transformer(kmer);
+    string decoded = transformer(encoded);
 
-std::vector<std::string> extractKmers(const std::string& sequence, int k) {
-	std::vector<std::string> kmers;
-	for (size_t i = 0; i + k <= sequence.length(); i++) {
-		kmers.push_back(sequence.substr(i, k));
-	}
-	return kmers;
-}
+#ifdef DEBUG
+    cout << "original kmer: '" << kmer << "'" << endl;
+    cout << "decoded kmer:  '" << decoded << "'" << endl;
+#endif
+    assert(decoded == kmer);
 
+    kmerIndex[encoded.prefix].insert(encoded.suffix);
 
-std::string permuteKmers(const std::vector<std::string>& kmers, const std::vector<int>& permutation) {
-	std::vector<std::string> permutedKmers(kmers.size());
-	for (size_t i = 0; i < kmers.size(); i++) {
-		permutedKmers[i] = kmers[permutation[i]];
-	}
+  }
+  auto end = std::chrono::high_resolution_clock::now();
+  struct rusage rusage_end;
+  getrusage(RUSAGE_SELF, &rusage_end);
+  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+  auto memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
+  cout << "# Method\tFile\ttime(ms)\tmemory(KB)\n"
+       << transformer.description()
+       << "\t" << filename
+       << "\t" << elapsed.count()
+       << "\t"<< memory
+       << endl;
 
-	std::string permutedSequence;
-	for (const auto& kmer : permutedKmers) {
-		permutedSequence += kmer;
-	}
-	return permutedSequence;
-}
+  return kmerIndex;
 
-
-double calculateVariance(const std::map<uint64_t, std::vector<uint64_t>>& index) {
-	double mean = 0;
-	for (const auto& pair : index) {
-		mean += pair.second.size();
-	}
-	mean /= index.size();
-
-	double variance = 0;
-	for (const auto& pair : index) {
-		double diff = pair.second.size() - mean;
-		variance += diff * diff;
-	}
-	variance /= index.size();
-	return variance;
 }
 
 
 int main(int argc, char* argv[]) {
-	// Check if the correct number of arguments are provided
-	if (argc != 4 || std::string(argv[1]) != "-f") {
-		std::cerr << "Error: Invalid arguments. Usage: " << argv[0] << " -f <filename> <k>" << std::endl;
-		return 1;
-	}
+  // Check if the correct number of arguments are provided
+  if (argc != 4) {
+    cerr << "Error: Invalid arguments. Usage: " << argv[0] << " <filename> <k> <method>" << endl
+         << "where method is one of:" << endl
+         << "  - identity" << endl
+         << "  - random" << endl
+         << "  - cyclic" << endl
+         << "  - inverse" << endl
+         << "  - zigzag" << endl
+         << "  - inthash" << endl
+         << "  - GAB" << endl
+         << endl;
+    return 1;
+  }
 
-	// Parse command-line arguments
-	std::string filename = argv[2];
-	int k = std::stoi(argv[3]); // Size of k-mers
-				    // Validate k
-	if (k <= 0) {
-		std::cerr << "Error: Invalid value for k. Please provide a positive integer." << std::endl;
-		return 1;
-	}
-	int k1 = k / 3 + 2;
+  // Parse command-line arguments
+  string filename = argv[1];
+  int k = stoi(argv[2]); // Size of k-mers
+  string method = argv[3];
 
-	uint64_t mask = (1ULL << (2 * k)) - 1;
+  // Validate k
+  if (k <= 0) {
+    cerr << "Error: Invalid value for k. Please provide a positive integer." << endl;
+    return 1;
+  }
 
-	// Read sequences from the FASTA file
-	auto sequences = FileReader::readFastaFile(filename);
-	std::map<uint64_t, std::vector<uint64_t>> kmerIndex;
-	// Process each sequence
-	for (const auto& seq : sequences) {
-#ifdef DEBUG
-		std::cout << "ID: " << seq.first << std::endl;
-#endif
-		// Extract k-mers from the sequence
-		auto kmers = extractKmers(seq.second, k);
-		for (const auto& kmer : kmers) {
-			uint64_t encoded = encode(kmer); 
-			uint64_t hashed = hash_64(encoded, mask);
-			uint64_t unhashed = hash_64i(hashed, mask);
+  size_t k1 = k / 3 + 2;
 
-			std::string decoded = decode(unhashed, k);
+  vector<set<uint64_t>> index;
 
-			// Print results
-#ifdef DEBUG
-			std::cout << "k = " << k << std::endl;
-			std::cout << "K-mer original: " << kmer << std::endl;
-			std::cout << "Encoded: " << encoded << std::endl;
-			std::cout << "Hashed: " << hashed << ", Unhashed (encoded value): " << unhashed << std::endl;
-			std::cout << "Decoded from unhashed: " << decoded << std::endl; // Ceci devrait correspondre au k-mer original si tout est correct
-#endif
-		}
-	}
+  if (method == "identity") {
+    index = makeIndex(filename, IdentityTransformer(k, k1));
+  } else if (method == "inthash") {
+    index = makeIndex(filename, IntHashTransformer(k, k1));
+  } else if (method == "GAB") {
+    // TODO
+  } else if (method == "random") {
+    index = makeIndex(filename, PermutationTransformer(k, k1));
+  } else if (method == "cyclic") {
+    vector<size_t> p(k);
+    for (size_t i = 0; i < k; ++i) {
+      p[i] = (i + 1) % k;
+    }
+    index = makeIndex(filename, PermutationTransformer(k, k1, p, "Cyclic"));
+  } else if (method == "zigzag") {
+    vector<size_t> p(k);
+    for (size_t i = 0; i < k; ++i) {
+      p[i] = ((i & 1) ? (k - i - (k & 1)) : i);
+    }
+    index = makeIndex(filename, PermutationTransformer(k, k1, p, "ZigZag"));
+  } else {
+    cerr << "Error: Unknown method '" << method << "'" << endl;
+    return 1;
+  }
+  
+  double variance = calculateVariance(index);
+  cout << "Variance des tailles des listes de suffixes: " << variance << endl;
 
-	for (const auto& seq : sequences) {
-#ifdef DEBUG
-		std::cout << "ID: " << seq.first << std::endl;
-#endif
-		// Extraction des k-mers
-		auto kmers = extractKmers(seq.second, k);
-
-		for (const auto& kmer : kmers) {
-			auto permutedKmer = applyPermutation(kmer, generateRandomPermutation(kmer.size()));
-
-			// Ajout du débogage pour afficher le k-mer permué
-#ifdef DEBUG
-			std::cout << "Permuted k-mer: " << permutedKmer << std::endl;
-#endif
-			// Calcul des parties encodées du k-mer permué
-			std::string prefixKmer = permutedKmer.substr(0, k1);
-			std::string suffixKmer = permutedKmer.substr(k1, k - k1);
-
-			// Ajout du débogage pour afficher les parties encodées
-#ifdef DEBUG
-			std::cout << "Prefix encoded: " << prefixKmer << std::endl;
-			std::cout << "Suffix encoded: " << suffixKmer << std::endl;
-#endif
-			uint64_t prefixEncoded = encode(prefixKmer);
-			uint64_t suffixEncoded = encode(suffixKmer);
-			kmerIndex[prefixEncoded].push_back(suffixEncoded);
-		}
-	}
-
-	double variance = calculateVariance(kmerIndex);
-	std::cout << "Variance des tailles des listes de suffixes: " << variance << std::endl;
-
-	return 0;
+  return 0;
 }

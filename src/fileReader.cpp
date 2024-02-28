@@ -1,60 +1,164 @@
 #include "fileReader.hpp"
-#include <fstream>
-#include <vector>
-#include <string>
-#include <stdexcept>
+#include <cassert>
+#include <iostream>
 
-std::vector<std::pair<std::string, std::string>>  FileReader::readFastaFile(const std::string& filename) {
-	std::vector<std::pair<std::string, std::string>> sequences;
-	std::ifstream file(filename);
+using namespace std;
 
-	if (!file.is_open()) {
-		throw std::runtime_error("Error: Cannot open file.");
-	}
-
-	std::string line, id, sequence;
-	while (std::getline(file, line)) {
-		if (line.empty()) continue;
-
-		if (line[0] == '>') {
-			if (!id.empty()) {
-				sequences.push_back(std::make_pair(id, sequence));
-				sequence.clear();
-			}
-			id = line.substr(1); // Remove '>' and save ID
-		} else {
-			sequence += line;
-		}
-	}
-
-	if (!id.empty()) {
-		sequences.push_back(std::make_pair(id, sequence));
-	}
-
-	file.close();
-	return sequences;
+FileReader::FileReader(size_t k, const string &filename): _k(k) {
+  open(filename);
 }
 
+void FileReader::_reset() {
+  _filename.clear();
+  _is.clear();
+  _line = 0;
+  _column = 0;
+  _format = UNDEFINED;
+  _current_sequence_description.clear();
+  _current_sequence_length = 0;
+  _current_kmer.clear();
+  _current_kmer.reserve(_k);
+  _kmer_id_offset = 0;
+  _current_kmer_id = 0;
+}
 
-std::vector<std::pair<std::string, std::string>>  FileReader::readFastqFile(const std::string& filename) {
-	std::vector<std::pair<std::string, std::string>> sequences;
-	std::ifstream file(filename);
+bool FileReader::open(const string &filename) {
+  close();
+  if (!filename.empty()) {
+    _is.open(filename);
+    if (_is.is_open()) {
+      _filename = filename;
+      _line = 1;
+      char c = _is.peek();
+      switch (c) {
+      case '>': _format = FASTA; break;
+      case '@': _format = FASTQ; break;
+      default: close();
+      }
+    } else {
+      _reset();
+    }
+  }
+  return (_format != UNDEFINED);
+}
 
-	if (!file.is_open()) {
-		throw std::runtime_error("Error: Cannot open file.");
-	}
+void FileReader::close() {
+  if (_is.is_open()) {
+    _is.close();
+  }
+  _reset();
+}
 
-	std::string line, id, seq, plus, qual;
-	while (std::getline(file, id)) {
-		if (id.empty() || id[0] != '@') continue; // Skip empty lines or malformed headers
+bool FileReader::_nextKmerFromFasta() {
+  assert(_format == FASTA);
+  assert(isOpen());
+  size_t k = _current_kmer.length();
+  if (k >= _k) {
+    _current_kmer.erase(0, k -_k + 1);
+    k = _current_kmer.length();    
+    assert(k == _k - 1);
+  }
+  while (_is && (k < _k)) {
+    char c = _is.get();
+    bool warn = true;
+    // cerr << "Processing char '" << c << "'" << endl;
+    ++_column;
+    if (_current_sequence_description.empty()) {
+      // Expects a new sequence description header
+      assert(c == '>');
+      assert(_column == 1);
+      getline(_is, _current_sequence_description);
+      _kmer_id_offset = _current_kmer_id;
+      _current_kmer.clear();
+      k = 0;
+      _current_sequence_length = 0;
+      ++_line;
+      _column = 0;
+    } else {
+      switch (c) {
+      case '\n':
+        ++_line;
+        _column = 0;
+        if (_is.peek() == '>') {
+          _current_sequence_description.clear();
+        }
+      case ' ':
+      case '.':
+      case '-':
+      case -1:
+        warn = false;
+        break;
+      case 'a':
+      case 'A':
+      case 'c':
+      case 'C':
+      case 'g':
+      case 'G':
+      case 't':
+      case 'T':
+        _current_kmer += toupper(c);
+        ++k;
+        if (++_current_sequence_length >= _k) {
+          ++_current_kmer_id;
+        }
+        break;
+      case 'w':
+      case 'W':
+      case 's':
+      case 'S':
+      case 'p':
+      case 'P':
+      case 'y':
+      case 'Y':
+      case 'k':
+      case 'K':
+      case 'm':
+      case 'M':
+      case 'b':
+      case 'B':
+      case 'd':
+      case 'D':
+      case 'h':
+      case 'H':
+      case 'v':
+      case 'V':
+      case 'n':
+      case 'N':
+        _current_kmer.clear();
+        k = 0;
+        cerr << "Warning: "
+             << "file '" << _filename
+             << "' (line " << _line << ", column " << _column << "):"
+             << " degeneracy symbol '" << c << "'"
+             << " found in sequence '" << _current_sequence_description << "'."
+             << endl;
+        if (++_current_sequence_length >= _k) {
+          ++_current_kmer_id;
+        }
+        break;
+      default:
+        cerr << "Warning: "
+             << "file '" << _filename
+             << "' (line " << _line << ", column " << _column << "):"
+             << " unexpected symbol '" << c << "'"
+             << " for sequence '" << _current_sequence_description << "'."
+             << endl;
+        warn = false;
+      }
+    }
+    warn &= (k < _k);
+    warn &= (_current_sequence_length >= _k);
+    if (warn) {
+      cerr << "The k-mer with absolute ID " << getCurrentKmerID()
+           << " and relative ID " << getCurrentKmerID(false)
+           << " is ignored since it contains some degeneracy symbols."
+           << endl;
+    }
+  }
+  return (k == _k);
+}
 
-		if (!std::getline(file, seq) || !std::getline(file, plus) || !std::getline(file, qual)) {
-			throw std::runtime_error("Error: Unexpected end of file or malformed FASTQ record.");
-		}
-
-		sequences.push_back(std::make_pair(id.substr(1), seq)); // Use id.substr(1) to remove '@'
-	}
-
-	file.close();
-	return sequences;
+bool FileReader::_nextKmerFromFastq() {
+  assert(_format == FASTQ);
+  return false;
 }
