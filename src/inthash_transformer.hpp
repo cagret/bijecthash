@@ -3,6 +3,10 @@
 
 #include <transformer.hpp>
 
+/**
+ * The transformer that encodes k-mer using the hash64 function
+ * (limited to k <= 32).
+ */
 class IntHashTransformer: public Transformer {
 
 private:

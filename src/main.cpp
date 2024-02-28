@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
 
   // Parse command-line arguments
   string filename = argv[1];
-  int k = stoi(argv[2]); // Size of k-mers
+  size_t k = strtoul(argv[2], NULL, 10); // Size of k-mers
   string method = argv[3];
 
   // Validate k

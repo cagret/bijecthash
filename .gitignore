@@ -9,3 +9,5 @@ a.out
 benchmark
 benchmark_hash
 BijectHash
+doc/docs
+src/.dep

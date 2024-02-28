@@ -3,6 +3,10 @@
 
 #include <transformer.hpp>
 
+/**
+ * The "no-op" transformer that just encodes k-mer without any
+ * transformation.
+ */
 class IdentityTransformer: public Transformer {
 
 public:

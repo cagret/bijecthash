@@ -15,11 +15,49 @@ class Transformer {
 
 protected:
 
+  /**
+   * The k-mer prefix length.
+   */
   const size_t _prefix_length;
+
+  /**
+   * The k-mer suffix length.
+   */
   const size_t _suffix_length;
+
+  /**
+   * The tranformer description.
+   */
   const std::string _description;
 
+  /**
+   * Encodes a DNA string of length n into a 64 bits integer.
+   *
+   * \param dna_str The C string containing only A, C, G or T symbols.
+   *
+   * \param n The length of the DNA string to encode (the given string
+   * must have at least n characters). The value n is limited to 32
+   * since each nucleotide is encoded on 2 bits).
+   *
+   * \return Returns the binary encoded string such that each
+   * nucleotide is encoded using two bits with A <=> 00, C <=> 01, G
+   * <=> 10 and T <=> 11. The bits are right aligned.
+   */
   static uint64_t _encode(const char *dna_str, size_t n);
+
+  /**
+   * Deodes a DNA string of length n from a 64 bits integer.
+   *
+   * \param v The encoded value to decode.
+   *
+   * \param n The length of the DNA string to decode (this length is
+   * imited to 32 characters since each nucleotide encoding uses 2
+   * bits).
+   *
+   * \return Returns the DNA string such that each 2 bits of the value
+   * (right aligned) represent some nucleotide using A <=> 00, C <=>
+   * 01, G <=> 10 and T <=> 11.
+   */
   static std::string _decode(uint64_t v, size_t n);
 
 public:
@@ -92,7 +130,7 @@ public:
   inline std::string description() const {
     return _description;
   }
-  
+
 };
 
 #endif

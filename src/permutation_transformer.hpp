@@ -5,15 +5,52 @@
 #include <vector>
 #include <string>
 
+/**
+ * The permutation transformer encodes k-mer after applying some given
+ * permutation.
+ */
 class PermutationTransformer: public Transformer {
 
 protected:
 
+  /**
+   * The permutation to apply to some k-mer before encoding it.
+   */
   const std::vector<size_t> _permutation;
+
+  /**
+   * The reverse permutation wich allow to retrieve the original k-mer
+   * from the permuted one.
+   */
   const std::vector<size_t> _reverse_permutation;
 
+  /**
+   * This method generates a random permutation of the range [0; k[.
+   *
+   * \param k The length of the range.
+   *
+   * \return Return a random permutation of the range [0; k[.
+   */
   static std::vector<size_t> _generateRandomPermutation(size_t k);
+
+  /**
+   * This method computes the reverse permutation of the given one.
+   *
+   * \param p Some permutation of the range [0; |p|[
+   *
+   * \return Returns the reverse permutation of the given one.
+   */
   static std::vector<size_t> _computeReversePermutation(const std::vector<size_t> &p);
+
+  /**
+   * This applies the given permutation to the given string.
+   *
+   * \param s The string to permute.
+   *
+   * \param p The permutation of [0; |s|[ to apply.
+   *
+   * \return Returns the permuted string.
+   */
   static std::string _applyPermutation(const std::string &s, const std::vector<size_t> &p);
 
 public:

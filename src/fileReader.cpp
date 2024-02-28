@@ -82,6 +82,7 @@ bool FileReader::_nextKmerFromFasta() {
         if (_is.peek() == '>') {
           _current_sequence_description.clear();
         }
+        /* FALLTHROUGH */
       case ' ':
       case '.':
       case '-':

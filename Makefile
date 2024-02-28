@@ -1,44 +1,26 @@
-# Compiler et linker
-CC=gcc
-CXX=g++
-LD=g++
+# Subdirs on which to run make recursively
+SUBDIRS = src doc resources
 
-# Options de compilation
-CFLAGS=-Isrc -O3 # Utilisé pour la compilation C
-CXXFLAGS=-Isrc -fopenmp -O3 -std=c++17 # Utilisé pour la compilation C++
-LDFLAGS= # Options du linker, si nécessaire
+# Hide compilation commands
+MSQ = @
 
-# Nom de l'exécutable à créer
-TARGET=BijectHash
+###########
+# Targets #
+###########
 
-# Définir tous les fichiers objet nécessaires pour le lien final
-OBJ_FILES = \
-  src/inthash.o \
-  src/main.o \
-  src/fileReader.o \
-  src/transformer.o \
-  src/identity_transformer.o \
-  src/inthash_transformer.o \
-  src/permutation_transformer.o
+# Fake targets
+.PHONY: all clean
 
-# La première règle est celle exécutée par défaut ("make")
-# Elle dépend de l'exécutable final
-$(TARGET): $(OBJ_FILES)
-	$(LD) $(LDFLAGS) -o $(TARGET) $(OBJ_FILES)
+all:
+	$(MSQ)for dir in $(SUBDIRS); do \
+	  $(MAKE) -C "$${dir}" MSQ=$(MSQ) || exit $?; \
+	done
 
-# Règle pour compiler les fichiers source C
-src/%.o: src/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-# Règle pour compiler les fichiers source C++
-src/%.o: src/%.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# Règle pour compiler le fichier de benchmark, maintenant avec permutations.o inclus
-benchmark: src/benchmark.o src/fileReader.o src/inthash.o src/permutations.o
-	$(LD) $(LDFLAGS) -o benchmark src/benchmark.o src/fileReader.o src/inthash.o src/permutations.o -O3 -fopenmp
-
-# Règle clean pour nettoyer les fichiers compilés
 clean:
-	rm -f $(TARGET) benchmark src/*.o *~
-
+	@echo "Cleaning files for all subdirs ($(SUBDIRS))"
+	$(MSQ)for dir in $(SUBDIRS); do \
+	  $(MAKE) -C "$${dir}" clean MSQ=$(MSQ) || exit $$?; \
+	done
+	@echo "Remove backup files"
+	$(MSQ)rm -f *~
+	@echo
