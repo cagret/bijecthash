@@ -19,7 +19,7 @@
 #include "fileReader.hpp"
 #include "permutations.hpp"
 
-//#define DEBUG
+#define DEBUG
 
 long long getPeakMemoryUsage() {
 	struct rusage rusage;
@@ -69,17 +69,6 @@ void writeData(
 	}
 	outFile.close();
 }
-/*
-   uint64_t kmerEncoded = encode(kmer); // Encodez votre k-mer ici.
-   uint64_t kmerHashed = hashFunction(kmerEncoded); // Appliquez votre fonction de hachage ici.
-   uint64_t prefixKmer = kmerHashed >> (64 - 2 * prefixSize); // Ajustez cette opération pour extraire le préfixe correctement.
-   localKmerIndex[prefixKmer].push_back(kmerHashed); // Stockez le kmer hashé (ou une partie de celui-ci) dans le vecteur.
-   for (size_t i = 0; i < MAX_PREFIX; ++i) {
-   globalKmerIndex[i].insert(
-   globalKmerIndex[i].end(),
-   std::make_move_iterator(localKmerIndex[i].begin()),
-   std::make_move_iterator(localKmerIndex[i].end())
-   */
 
 std::vector<size_t> calculateDecileSizes(const std::vector<std::vector<uint64_t>>& tables) {
 	std::vector<size_t> decileSizes(10, 0); 
@@ -107,6 +96,8 @@ void processKmersWithPermutation(
 
 
 	std::vector<std::vector<uint64_t>> globalKmerIndex(MAX_PREFIX + 1);
+	static std::map<uint64_t, int> distributionCounter;
+	std::map<uint64_t, int> localDistributionCounter;
 	size_t totalTables = sequences.size();
 	size_t tablesPerDecile = totalTables / 10;
 	auto memoryBefore = getPeakMemoryUsage();
@@ -118,14 +109,15 @@ void processKmersWithPermutation(
 		for (size_t i = 0; i < sequences.size(); ++i) {
 			const auto& seq = sequences[i];
 			auto kmers = extractKmers(seq.second, k);
-			        uint64_t prefixEncoded, suffixEncoded;
+			uint64_t prefixEncoded, suffixEncoded;
 			for (const auto& kmer : kmers) {
 				if (hashFunction) {
 					uint64_t kmerEncoded = encode(kmer); 
 					uint64_t kmerHashed = (*hashFunction)(kmerEncoded); 
-				        uint64_t suffixMask = (1ULL << (2 * prefixSize)) - 1;
+					uint64_t suffixMask = (1ULL << (2 * prefixSize)) - 1;
 					prefixEncoded = kmerHashed >> (64 - 2 * prefixSize);
-    					suffixEncoded = kmerHashed & suffixMask;
+					suffixEncoded = kmerHashed & suffixMask;
+
 				} else {	
 					std::string permutedKmer = applyPermutation(kmer, permutation);
 					std::string prefixKmer = permutedKmer.substr(0, prefixSize);
@@ -134,6 +126,10 @@ void processKmersWithPermutation(
 					suffixEncoded = encode(suffixKmer);
 				}
 
+#ifdef DEBUG
+				//std::cout << "prefixEncoded: " << prefixEncoded << ", suffixEncoded: " << suffixEncoded << std::endl;
+				localDistributionCounter[prefixEncoded]++;
+#endif
 
 				if (prefixEncoded < localKmerIndex.size()) {
 					localKmerIndex[prefixEncoded].push_back(suffixEncoded);
@@ -149,8 +145,14 @@ void processKmersWithPermutation(
 							std::make_move_iterator(localKmerIndex[i].end()));
 				}
 			}
+#ifdef DEBUG
+			for (const auto& pair : localDistributionCounter) {
+				distributionCounter[pair.first] += pair.second;
+			}
+#endif
 		}
 	}
+
 	auto end = std::chrono::high_resolution_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 	//auto variance = calculateVariance(globalKmerIndex); 
@@ -158,12 +160,19 @@ void processKmersWithPermutation(
 	auto memoryUsed = memoryAfter - memoryBefore;
 	//outFile << outputFileName << "," << k << "," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
 	std::vector<size_t> decileSizes = calculateDecileSizes(globalKmerIndex);
+
 	//outFile << outputFileName << "," << k << "," << elapsed.count() << "," << memoryUsed << "\n";
 	outFile << outputFileName << ",";
 	for (size_t decile : decileSizes) {
 		outFile << decile << ",";
 	}
 	outFile << "\n";
+#ifdef DEBUG
+	std::cout << "Distribution of prefixEncoded values:" << std::endl;
+	for (const auto& pair : distributionCounter) {
+		std::cout << "Prefix: " << pair.first << ", Count: " << pair.second << std::endl;
+	}
+#endif
 	//writeData(globalKmerIndex, outputFileName + "_data.csv");
 }
 
@@ -224,18 +233,19 @@ int main(int argc, char* argv[]) {
 
 			std::vector<std::vector<uint64_t>> globalKmerIndex;
 			std::vector<size_t> identityPermutation = generateIdentityPermutation(k); 
-			std::vector<size_t> randomPermutation = generateRandomPermutation(k); 
-			std::vector<size_t> inversePermutation = generateInversePermutation(k);
-			std::vector<size_t> cyclicPermutation = generateCyclicPermutation(k);
-			std::vector<size_t> zigzagPermutation = generateZigzagPermutation(k);
-			std::vector<size_t> permutation = generateSeedSortPermutation("ATCG");
+			/*
+			   std::vector<size_t> randomPermutation = generateRandomPermutation(k); 
+			   std::vector<size_t> inversePermutation = generateInversePermutation(k);
+			   std::vector<size_t> cyclicPermutation = generateCyclicPermutation(k);
+			   std::vector<size_t> zigzagPermutation = generateZigzagPermutation(k);
+			   std::vector<size_t> permutation = generateSeedSortPermutation("ATCG");
 
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, identityPermutation,std::nullopt, "identity", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, randomPermutation,std::nullopt, "random", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, inversePermutation,std::nullopt, "inverse", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, cyclicPermutation,std::nullopt, "cyclic", outFile);
-			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, zigzagPermutation,std::nullopt, "zigzag", outFile);
-
+			   processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, identityPermutation,std::nullopt, "identity", outFile);
+			   processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, randomPermutation,std::nullopt, "random", outFile);
+			   processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, inversePermutation,std::nullopt, "inverse", outFile);
+			   processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, cyclicPermutation,std::nullopt, "cyclic", outFile);
+			   processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX, zigzagPermutation,std::nullopt, "zigzag", outFile);
+			   */
 			processKmersWithPermutation(sequences, k, prefixSize, MAX_PREFIX,identityPermutation, [k](uint64_t kmerEncoded) -> uint64_t {
 					return Ga_b(kmerEncoded, 17, 42, k*2); // Pour GAB_HASH
 					}, "GAB_Hash", outFile);
