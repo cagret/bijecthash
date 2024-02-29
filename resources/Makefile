@@ -18,7 +18,7 @@ all: $(GENERATED_FASTA_FILES)
 $(GENERATED_FASTA_FILES):
 	@echo "Generating fasta sample files"
 	@echo "This will take a while... May be the time for you to take a coffee break ^-^"
-	$(MSQ)python seq.py
+	$(MSQ)python3 seq.py
 
 # Nettoyage
 clean:
