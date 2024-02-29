@@ -19,7 +19,7 @@ public:
         FASTQ,     /**< File is fastq formatted */
         UNDEFINED, /**< File format is not detected */
   };
-  
+
 private:
 
   std::string _filename;
@@ -28,7 +28,7 @@ private:
   size_t _column;
   size_t _k;
   Format _format;
-  
+
   std::string _current_sequence_description;
   size_t _current_sequence_length;
   std::string _current_kmer;
@@ -38,7 +38,7 @@ private:
   void _reset();
   bool _nextKmerFromFasta();
   bool _nextKmerFromFastq();
-  
+
 public:
 
   /**
@@ -75,7 +75,7 @@ public:
   inline bool isOpen() const {
     return _is.is_open();
   }
-  
+
   /**
    * Retrieve the name of the currently opened file.
    *
@@ -172,7 +172,7 @@ public:
     case FASTA: return _nextKmerFromFasta();
     case FASTQ: return _nextKmerFromFastq();
     default: return false;
-    }      
+    }
   }
 
 };

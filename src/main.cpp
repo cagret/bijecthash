@@ -8,27 +8,63 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <map>
+#include <algorithm>
 #include <string>
 #include <chrono>
 #include <sys/resource.h>
-//#define DEBUG 
+
+//#define DEBUG
 
 using namespace std;
 
-double calculateVariance(const vector<set<uint64_t>> &index) {
+map<string, double> computeStatistics(const vector<set<uint64_t>> &index) {
+
+  map<string, double> stats;
+
+  vector<size_t> sizes;
+  size_t n = index.size();
+  sizes.reserve(n);
+
   double mean = 0;
   double variance = 0;
+
   for (const auto &s : index) {
+    sizes.push_back(s.size());
     mean += s.size();
     variance += s.size() * s.size();
   }
-  mean /= index.size();
-  variance /= index.size();
+
+  mean /= n;
+  stats["04 mean"] = mean;
+
+  variance /= n;
   variance -= mean * mean;
-  return variance;
+  stats["05 var"] = variance;
+
+  sort(sizes.begin(), sizes.end());
+  stats["01 min"] = sizes.front();
+  stats["02 med"] = sizes[n / 2];
+  stats["03 max"] = sizes.back();
+
+  vector<size_t> bins(10, 0);
+  size_t bin_size = n / bins.size();
+  for (size_t i = 0; i < n; ++i) {
+    bins[i / bin_size] += sizes[i];
+  }
+  sizes.clear();
+
+  n = bins.size();
+  for (size_t i = 0; i < n; ++i) {
+    stats[to_string(i+10) + " dec_" + to_string(i+1)] = bins[i];
+  }
+
+  return stats;
+
 }
 
 vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &transformer) {
+
   size_t k = transformer.getKmerLength();
   size_t k1 = transformer.getKmerPrefixLength();
 
@@ -45,6 +81,7 @@ vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &trans
   struct rusage rusage_start;
   getrusage(RUSAGE_SELF, &rusage_start);
   auto start = std::chrono::high_resolution_clock::now();
+
   // Process each kmer
   while (reader.nextKmer()) {
 
@@ -72,11 +109,13 @@ vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &trans
     kmerIndex[encoded.prefix].insert(encoded.suffix);
 
   }
+
   auto end = std::chrono::high_resolution_clock::now();
   struct rusage rusage_end;
   getrusage(RUSAGE_SELF, &rusage_end);
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
   auto memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
+
   cout << "# Method\tFile\ttime(ms)\tmemory(KB)\n"
        << transformer.description()
        << "\t" << filename
@@ -117,6 +156,8 @@ int main(int argc, char* argv[]) {
   }
 
   size_t k1 = k / 3 + 2;
+  // Don't allow a prefix length greater than 13 (since 4^13 > 67M subtrees, which is already enormeous)
+  if (k1 > 13) k1 = 13;
 
   vector<set<uint64_t>> index;
 
@@ -144,9 +185,19 @@ int main(int argc, char* argv[]) {
     cerr << "Error: Unknown method '" << method << "'" << endl;
     return 1;
   }
-  
-  double variance = calculateVariance(index);
-  cout << "Variance des tailles des listes de suffixes: " << variance << endl;
+
+  map<string, double> stats = computeStatistics(index);
+  char c = '#';
+  for (auto info: stats) {
+    cout << c << (info.first.c_str() + 3);
+    c = '\t';
+  }
+  c = '\n';
+  for (auto info: stats) {
+    cout << c << info.second;
+    c = '\t';
+  }
+  cout << endl;
 
   return 0;
 }

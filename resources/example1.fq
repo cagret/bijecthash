@@ -1,0 +1,59 @@
+@ read 1 with 40 nucl. and a single '+' as separator
+ACGTTCAGCATCGACTACGACTACGACTACGACATCGACT
++
+000111222333444@@@111@@222@@@333@@444@@5
+
+@ read 2 with 40 nucl. and a '+' followed by this repeated header as separator
+ACGTTCAGCATCGACTACGACTACGACTACGACATCGACT
++ read 2 with 40 nucl. and a '+' followed by this repeated header as separator
+000111222333444@@@111@@222@@@333@@444@@5
+
+@ read 3 with 40 nucl. and a single '+' as separator but with spaces in both the sequence and the quality string
+ACGTTCAGCA TCGACTACGA CTACGACTAC GACATCGACT
++
+0001112223 33444@@@11 1@@222@@@3 33@@444@@5
+
+@ read 4 with 40 nucl. and a single '+' as separator but with newlines and spaces in both the sequence and the quality string (but no quality line starting by an '@')
+ACGTT CAGCA
+     
+ TCGAC TACGA
+
+  CTACG ACTAC
+
+   GACAT CGACT
+  
++
+00011 12223
+
+ 33444 @@@11
+
+  1@@22 2@@@3    
+
+   33@@4 44@@5
+
+@ read 5 with 40 nucl. and a single '+' as separator but with newlines and spaces in both the sequence and the quality string AND some quality line starting by an '@'
+
+ACGTT CAGCA
+     
+ TCGAC TACGA
+
+  CTACG ACTAC
+
+   GACAT CGACT
+  
++
+00011 12223
+
+ 33444
+
+@@@11
+
+  1@@22 2@@@3    
+
+   33@
+@4 44@@5
+
+@ read 6 with 40 nucl. and a single '+' as separator
+ACGTTCAGCATCGACTACGACTACGACTACGACATCGACT
++
+000111222333444@@@111@@222@@@333@@444@@5

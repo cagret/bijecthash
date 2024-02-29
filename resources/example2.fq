@@ -1,0 +1,23 @@
+@ read 1 with 40 nucl. and a '+' followed by a wrongly repeated header as separator
+ACGTTCAGCATCGACTACGACTACGACTACGACATCGACT
++ Here the '+' is followed by this wrong header
+000111222333444@@@111@@222@@@333@@444@@5
+
+@ read 2 with 40 nucl (including degeneracy symbols at pos 1, 11 and 35)
+SCGTA CGACT BCGAC TACGA CATCA GCATC AGCAN TGACA
++
+@ this is not a read but a good quality string ^-^ !
+
+@ read 3 with 40 nucl (including degeneracy symbols at positions 1, 12 and 37 but also spurious symbols to ignore at positions 5, 25 and 40)
+SCGTZ ACGAC TBCGA CTACG ACAT! CAGCA TCAGC ANTG@ ACA
++
+@ this is not a read but a good quality string ^-^ !
+
+@ read 4 (the last) with 40 nucl. and a single '+' as separator and spaces and newlines after the quality string. The last kmer should end with ...ACT
+ACGTTCAGCATCGACTACGACTACGACTACGACATCGACT
++
+000111222333444@@@111@@222@@@333@@444@@5
+
+
+
+ 

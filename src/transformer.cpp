@@ -8,9 +8,9 @@ uint64_t Transformer::_encode(const char *dna_str, size_t n) {
   assert(n <= (4 * sizeof(uint64_t)));
   uint64_t encoded = 0;
   for (size_t i = 0; i < n; ++i) {
-    int val = 0; 
+    int val = 0;
     switch (dna_str[i]) {
-    case 'A': val = 0; break; 
+    case 'A': val = 0; break;
     case 'C': val = 1; break;
     case 'G': val = 2; break;
     case 'T': val = 3; break;
