@@ -28,6 +28,7 @@ BijectHash_SOURCES = \
   identity_transformer.hpp identity_transformer.cpp		\
   inthash.h inthash.c						\
   inthash_transformer.hpp inthash_transformer.cpp		\
+  gab_transformer.hpp gab_transformer.cpp			\
   main.cpp							\
   permutations.hpp permutations.cpp				\
   permutation_transformer.hpp permutation_transformer.cpp	\

@@ -135,33 +135,39 @@ bool FileReader::_nextKmerFromFasta() {
       case 'N':
         _current_kmer.clear();
         k = 0;
+#ifdef DEBUG
         cerr << "Warning: "
              << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " degeneracy symbol '" << c << "'"
              << " found in sequence '" << _current_sequence_description << "'."
              << endl;
+#endif
         if (++_current_sequence_length >= _k) {
           ++_current_kmer_id;
         }
         break;
       default:
+#ifdef DEBUG
         cerr << "Warning: "
              << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " unexpected symbol '" << c << "'"
              << " for sequence '" << _current_sequence_description << "'."
              << endl;
+#endif
         warn = false;
-      }
+      } 
     }
     warn &= (k < _k);
     warn &= (_current_sequence_length >= _k);
     if (warn) {
+#ifdef DEBUG
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
            << " and relative ID " << getCurrentKmerID(false)
            << " is ignored since it contains some degeneracy symbols."
            << endl;
+#endif
     }
   }
 
@@ -285,23 +291,27 @@ bool FileReader::_nextKmerFromFastq() {
       case 'N':
         _current_kmer.clear();
         k = 0;
+#ifdef DEBUG
         cerr << "Warning: "
              << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " degeneracy symbol '" << c << "'"
              << " found in sequence '" << _current_sequence_description << "'."
              << endl;
+#endif
         if (++_current_sequence_length >= _k) {
           ++_current_kmer_id;
         }
         break;
       default:
+#ifdef DEBUG
         cerr << "Warning: "
              << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " unexpected symbol '" << c << "'"
              << " for sequence '" << _current_sequence_description << "'."
              << endl;
+#endif
         warn = false;
       }
       break;
@@ -316,6 +326,7 @@ bool FileReader::_nextKmerFromFastq() {
       string desc;
       getline(_is, desc);
       _column += desc.length();
+#ifdef DEBUG
       if (!(desc.empty() || (desc == _current_sequence_description))) {
         cerr << "Warning: "
              << "file '" << _filename
@@ -324,6 +335,7 @@ bool FileReader::_nextKmerFromFastq() {
              << " doesn't match with '" << _current_sequence_description << "'."
              << endl;
       }
+#endif
       state = 3;
       break;
     }
@@ -343,17 +355,20 @@ bool FileReader::_nextKmerFromFastq() {
         assert(nb);
           --nb;
       } else if ((c != ' ') && (c != -1)) {
+#ifdef DEBUG
         cerr << "Warning: "
              << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " unexpected symbol with ASCII code " << hex << (int) c << dec
              << " for sequence '" << _current_sequence_description << "'."
              << endl;
+#endif
       }
       break;
     }
 
     default:
+#ifdef DEBUG
       cerr << "BUG: this situation should never occur!!! "
            << "     "
            << "file '" << _filename
@@ -361,6 +376,7 @@ bool FileReader::_nextKmerFromFastq() {
            << " character '" << c << "'"
            << " for sequence '" << _current_sequence_description << "'."
            << endl;
+#endif
       terminate();
     }
 
@@ -368,10 +384,12 @@ bool FileReader::_nextKmerFromFastq() {
     warn &= (k < _k);
     warn &= (_current_sequence_length >= _k);
     if (warn) {
+#ifdef DEBUG
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
            << " and relative ID " << getCurrentKmerID(false)
            << " is ignored since it contains some degeneracy symbols."
            << endl;
+#endif
     }
   }
 

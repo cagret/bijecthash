@@ -19,7 +19,7 @@
 #include "fileReader.hpp"
 #include "permutations.hpp"
 
-#define DEBUG
+//#define DEBUG
 
 long long getPeakMemoryUsage() {
 	struct rusage rusage;

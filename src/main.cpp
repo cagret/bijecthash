@@ -2,6 +2,7 @@
 #include "transformer.hpp"
 #include "identity_transformer.hpp"
 #include "inthash_transformer.hpp"
+#include "gab_transformer.hpp"
 #include "permutation_transformer.hpp"
 
 #include <cassert>
@@ -166,9 +167,15 @@ int main(int argc, char* argv[]) {
   } else if (method == "inthash") {
     index = makeIndex(filename, IntHashTransformer(k, k1));
   } else if (method == "GAB") {
-    // TODO
+    index = makeIndex(filename, GaBTransformer(k, k1, 17, 42, k*2));
   } else if (method == "random") {
     index = makeIndex(filename, PermutationTransformer(k, k1));
+  } else if (method == "inverse") {
+    vector<size_t> p(k);
+    for (size_t i = 0; i < k; ++i) {
+      p[i] = k - i - 1;
+    }
+    index = makeIndex(filename, PermutationTransformer(k, k1, p, "Inverse"));
   } else if (method == "cyclic") {
     vector<size_t> p(k);
     for (size_t i = 0; i < k; ++i) {

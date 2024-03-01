@@ -11,7 +11,7 @@ def generate_random_sequence(length):
 sequence_length = 50
 
 # Générer les fichiers FASTA pour différents nombres de séquences
-for num_sequences in range(1000000, 100000001, 1000000):
+for num_sequences in range(10000, 100001, 10000):
     # Nom du fichier basé sur le nombre de séquences
     filename = f'sequences_{num_sequences}.fa'
 
