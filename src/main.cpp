@@ -16,16 +16,36 @@
 #include <sys/resource.h>
 
 //#define DEBUG
+#if (NB_BINS+0) < 1
+#  undef NB_BINS
+#endif
+#ifndef NB_BINS
+#  define NB_BINS 10
+#endif
 
 using namespace std;
 
-map<string, double> computeStatistics(const vector<set<uint64_t>> &index) {
+string fmt(string w, size_t i, size_t max) {
+  string m = to_string(max);
+  string s = to_string(i);
+  if (s.length() < m.length()) {
+    string p(m.length() - s.length(), '0');
+    s = p + s;
+  }
+  return s + " " + w;
+}
+
+map<string, double> computeStatistics(const vector<set<uint64_t>> &index, size_t nb_bins) {
 
   map<string, double> stats;
 
   vector<size_t> sizes;
   size_t n = index.size();
   sizes.reserve(n);
+  if (nb_bins > index.size()) {
+    nb_bins = index.size();
+  }
+  size_t m = nb_bins + 6;
 
   double mean = 0;
   double variance = 0;
@@ -36,20 +56,23 @@ map<string, double> computeStatistics(const vector<set<uint64_t>> &index) {
     variance += s.size() * s.size();
   }
 
+  sort(sizes.begin(), sizes.end());
+  stats[fmt("min", 1, m)] = sizes.front();
+  stats[fmt("med", 2, m)] = sizes[n / 2];
+  stats[fmt("max", 3, m)] = sizes.back();
+
   mean /= n;
-  stats["04 mean"] = mean;
+
+  stats[fmt("mean", 4, m)] = mean;
 
   variance /= n;
   variance -= mean * mean;
-  stats["05 var"] = variance;
+  stats[fmt("var", 5, m)] = variance;
 
-  sort(sizes.begin(), sizes.end());
-  stats["01 min"] = sizes.front();
-  stats["02 med"] = sizes[n / 2];
-  stats["03 max"] = sizes.back();
+  vector<size_t> bins(nb_bins, 0);
+  size_t bin_size = n / bins.size() + (n % bins.size() > 0);
+  stats[fmt("bin_size", 6, m)] = bin_size;
 
-  vector<size_t> bins(10, 0);
-  size_t bin_size = n / bins.size();
   for (size_t i = 0; i < n; ++i) {
     bins[i / bin_size] += sizes[i];
   }
@@ -57,9 +80,8 @@ map<string, double> computeStatistics(const vector<set<uint64_t>> &index) {
 
   n = bins.size();
   for (size_t i = 0; i < n; ++i) {
-    stats[to_string(i+10) + " dec_" + to_string(i+1)] = bins[i];
+    stats[fmt("bin_" + to_string(i+1), i + 7, m)] = bins[i];
   }
-
   return stats;
 
 }
@@ -193,10 +215,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  map<string, double> stats = computeStatistics(index);
+  map<string, double> stats = computeStatistics(index, NB_BINS);
   char c = '#';
   for (auto info: stats) {
-    cout << c << (info.first.c_str() + 3);
+    const string &kw = info.first;
+    cout << c << kw.substr(kw.find(' ') + 1);
     c = '\t';
   }
   c = '\n';

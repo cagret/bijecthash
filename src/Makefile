@@ -34,6 +34,9 @@ BijectHash_SOURCES = \
   permutation_transformer.hpp permutation_transformer.cpp	\
   transformer.hpp transformer.cpp
 
+NB_BINS = # this default value should be overwritten on command line (e.g., running 'make NB_BINS=100')
+BijectHash_CXXFLAGS = -DNB_BINS=$(NB_BINS)
+
 benchmark_SOURCES = \
   benchmark.cpp				\
   fileReader.hpp fileReader.cpp		\
