@@ -22,7 +22,7 @@ run_method() {
     temp_file=$(mktemp)
     echo "k= $k"
     echo "k1= $k1"
-    ./src/BijectHash "$fasta_path" $k "$method" $k1 >> "$temp_file"
+    ./src/BijectHash "$fasta_path" --quiet --nb-bins 100 --length "$k" --method "$method" --prefix-length "$k1" >> "$temp_file"
     cat "$temp_file" >> result.txt
     rm "$temp_file"
 }
