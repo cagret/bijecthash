@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Définir le chemin du fichier fasta et la longueur à utiliser
-fasta_path="resources/SRR072008.fasta"
+fasta_path="resources/SRR072008.fastq"
 length="30"
 
 # Liste des méthodes à exécuter

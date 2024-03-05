@@ -153,32 +153,42 @@ vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &trans
 
 int main(int argc, char* argv[]) {
   // Check if the correct number of arguments are provided
-  if (argc != 4) {
-    cerr << "Error: Invalid arguments. Usage: " << argv[0] << " <filename> <k> <method>" << endl
-         << "where method is one of:" << endl
-         << "  - identity" << endl
-         << "  - random" << endl
-         << "  - cyclic" << endl
-         << "  - inverse" << endl
-         << "  - zigzag" << endl
-         << "  - inthash" << endl
-         << "  - GAB" << endl
-         << endl;
-    return 1;
-  }
+   if (argc != 4 && argc != 5) {
+        cerr << "Error: Invalid arguments. Usage: " << argv[0] << " <filename> <k> <method> [k1]" << endl
+             << "where method is one of:" << endl
+             << "  - identity" << endl
+             << "  - random" << endl
+             << "  - cyclic" << endl
+             << "  - inverse" << endl
+             << "  - zigzag" << endl
+             << "  - inthash" << endl
+             << "  - GAB" << endl
+             << "k1 is optional." << endl
+             << endl;
+        return 1;
+    }  
 
   // Parse command-line arguments
   string filename = argv[1];
   size_t k = strtoul(argv[2], NULL, 10); // Size of k-mers
   string method = argv[3];
-
+  size_t k1 = 0;
   // Validate k
   if (k <= 0) {
     cerr << "Error: Invalid value for k. Please provide a positive integer." << endl;
     return 1;
   }
-
-  size_t k1 = k / 3 + 2;
+  if (argc == 5) {
+        k1 = strtoul(argv[4], NULL, 10);
+        // Validate k1
+        if (k1 <= 0) {
+            cerr << "Error: Invalid value for k1. Please provide a positive integer." << endl;
+            return 1;
+        }
+    } else {
+        // Use a default value for k1 if it's not provided
+        k1 = k / 3 + 2;
+    }
   // Don't allow a prefix length greater than 13 (since 4^13 > 67M subtrees, which is already enormeous)
   if (k1 > 13) k1 = 13;
 
