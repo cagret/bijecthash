@@ -4,7 +4,9 @@
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
 #include "permutation_transformer.hpp"
+#include "settings.hpp"
 
+#include <libgen.h>
 #include <cassert>
 #include <iostream>
 #include <vector>
@@ -16,12 +18,6 @@
 #include <sys/resource.h>
 
 //#define DEBUG
-#if (NB_BINS+0) < 1
-#  undef NB_BINS
-#endif
-#ifndef NB_BINS
-#  define NB_BINS 10
-#endif
 
 using namespace std;
 
@@ -86,15 +82,16 @@ map<string, double> computeStatistics(const vector<set<uint64_t>> &index, size_t
 
 }
 
-vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &transformer) {
+vector<set<uint64_t>> makeIndex(const Transformer &transformer) {
 
-  size_t k = transformer.getKmerLength();
-  size_t k1 = transformer.getKmerPrefixLength();
+  const Settings &s = transformer.settings;
 
-  FileReader reader(k, filename);
+  size_t k1 = s.prefix_length;
+
+  FileReader reader(s);
 
   if (!reader.isOpen()) {
-    cerr << "Error: Unable to open fasta/fastq file '" << filename << "'" << endl;
+    cerr << "Error: Unable to open fasta/fastq file '" << s.filename << "'" << endl;
     terminate();
   }
 
@@ -140,8 +137,8 @@ vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &trans
   auto memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
 
   cout << "# Method\tFile\ttime(ms)\tmemory(KB)\n"
-       << transformer.description()
-       << "\t" << filename
+       << transformer.description
+       << "\t" << transformer.settings.filename
        << "\t" << elapsed.count()
        << "\t"<< memory
        << endl;
@@ -150,82 +147,46 @@ vector<set<uint64_t>> makeIndex(const string &filename, const Transformer &trans
 
 }
 
-
 int main(int argc, char* argv[]) {
-  // Check if the correct number of arguments are provided
-   if (argc != 4 && argc != 5) {
-        cerr << "Error: Invalid arguments. Usage: " << argv[0] << " <filename> <k> <method> [k1]" << endl
-             << "where method is one of:" << endl
-             << "  - identity" << endl
-             << "  - random" << endl
-             << "  - cyclic" << endl
-             << "  - inverse" << endl
-             << "  - zigzag" << endl
-             << "  - inthash" << endl
-             << "  - GAB" << endl
-             << "k1 is optional." << endl
-             << endl;
-        return 1;
-    }  
 
-  // Parse command-line arguments
-  string filename = argv[1];
-  size_t k = strtoul(argv[2], NULL, 10); // Size of k-mers
-  string method = argv[3];
-  size_t k1 = 0;
-  // Validate k
-  if (k <= 0) {
-    cerr << "Error: Invalid value for k. Please provide a positive integer." << endl;
-    return 1;
-  }
-  if (argc == 5) {
-        k1 = strtoul(argv[4], NULL, 10);
-        // Validate k1
-        if (k1 <= 0) {
-            cerr << "Error: Invalid value for k1. Please provide a positive integer." << endl;
-            return 1;
-        }
-    } else {
-        // Use a default value for k1 if it's not provided
-        k1 = k / 3 + 2;
-    }
-  // Don't allow a prefix length greater than 13 (since 4^13 > 67M subtrees, which is already enormeous)
-  if (k1 > 13) k1 = 13;
+  const Settings settings(argc, argv);
+
+  cerr << settings << endl;
 
   vector<set<uint64_t>> index;
 
-  if (method == "identity") {
-    index = makeIndex(filename, IdentityTransformer(k, k1));
-  } else if (method == "inthash") {
-    index = makeIndex(filename, IntHashTransformer(k, k1));
-  } else if (method == "GAB") {
-    index = makeIndex(filename, GaBTransformer(k, k1, 17, 42, k*2));
-  } else if (method == "random") {
-    index = makeIndex(filename, PermutationTransformer(k, k1));
-  } else if (method == "inverse") {
-    vector<size_t> p(k);
-    for (size_t i = 0; i < k; ++i) {
-      p[i] = k - i - 1;
+  if (settings.method == "identity") {
+    index = makeIndex(IdentityTransformer(settings));
+  } else if (settings.method == "inthash") {
+    index = makeIndex(IntHashTransformer(settings));
+  } else if (settings.method == "GAB") {
+    index = makeIndex(GaBTransformer(settings, 17, 42));
+  } else if (settings.method == "random") {
+    index = makeIndex(PermutationTransformer(settings));
+  } else if (settings.method == "inverse") {
+    vector<size_t> p(settings.length);
+    for (size_t i = 0; i < settings.length; ++i) {
+      p[i] = settings.length - i - 1;
     }
-    index = makeIndex(filename, PermutationTransformer(k, k1, p, "Inverse"));
-  } else if (method == "cyclic") {
-    vector<size_t> p(k);
-    for (size_t i = 0; i < k; ++i) {
-      p[i] = (i + 1) % k;
+    index = makeIndex(PermutationTransformer(settings, p, "Inverse"));
+  } else if (settings.method == "cyclic") {
+    vector<size_t> p(settings.length);
+    for (size_t i = 0; i < settings.length; ++i) {
+      p[i] = (i + 1) % settings.length;
     }
-    index = makeIndex(filename, PermutationTransformer(k, k1, p, "Cyclic"));
-  } else if (method == "zigzag") {
-    vector<size_t> p(k);
-    for (size_t i = 0; i < k; ++i) {
-      p[i] = ((i & 1) ? (k - i - (k & 1)) : i);
+    index = makeIndex(PermutationTransformer(settings, p, "Cyclic"));
+  } else if (settings.method == "zigzag") {
+    vector<size_t> p(settings.length);
+    for (size_t i = 0; i < settings.length; ++i) {
+      p[i] = ((i & 1) ? (settings.length - i - (settings.length & 1)) : i);
     }
-    index = makeIndex(filename, PermutationTransformer(k, k1, p, "ZigZag"));
+    index = makeIndex(PermutationTransformer(settings, p, "ZigZag"));
   } else {
-    cerr << "Error: Unknown method '" << method << "'" << endl;
+    cerr << "Error: Unknown method '" << settings.method << "'" << endl;
     return 1;
   }
 
-  map<string, double> stats = computeStatistics(index, NB_BINS);
+  map<string, double> stats = computeStatistics(index, settings.nb_bins);
   char c = '#';
   for (auto info: stats) {
     const string &kw = info.first;

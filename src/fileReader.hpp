@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <settings.hpp>
 
 /**
  * File reader to extract k-mers from fasta/fastq files
@@ -22,11 +23,10 @@ public:
 
 private:
 
-  std::string _filename;
+  Settings _settings;
   std::ifstream _is;
   size_t _line;
   size_t _column;
-  size_t _k;
   Format _format;
 
   std::string _current_sequence_description;
@@ -48,7 +48,7 @@ public:
    *
    * \param filename The name of the file to parse.
    */
-  FileReader(size_t k, const std::string &filename = "");
+  FileReader(const Settings &s);
 
   /**
    * Open the given filename.
@@ -83,7 +83,7 @@ public:
    * string if no file is opened.
    */
   inline std::string getFilename() const {
-    return _filename;
+    return _settings.filename;
   }
 
   /**
@@ -112,7 +112,7 @@ public:
    * \return Returns the length of the extracted k-mers for this reader.
    */
   inline size_t k() const {
-    return _k;
+    return _settings.length;
   }
 
   /**

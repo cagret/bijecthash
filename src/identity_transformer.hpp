@@ -15,12 +15,12 @@ public:
    * Builds a Transformer depending on the k-mer length and the prefix
    * length.
    *
-   * \param k The k-mer length.
+   * \param s The global settings.
    *
    * \param prefix_length The k-mer prefix length.
    */
-  inline IdentityTransformer(size_t k, size_t prefix_length):
-    Transformer(k, prefix_length, "Identity") {}
+  inline IdentityTransformer(const Settings &s):
+    Transformer(s, "Identity") {}
 
   /**
    * Encode some given k-mer into a prefix/suffix code.

@@ -21,11 +21,11 @@ public:
    * Builds a Transformer depending on the k-mer length and the prefix
    * length.
    *
-   * \param k The k-mer length.
+   * \param s The global settings.
    *
    * \param prefix_length The k-mer prefix length.
    */
-  IntHashTransformer(size_t k, size_t prefix_length);
+  IntHashTransformer(const Settings &s);
 
   /**
    * Encode some given k-mer into a prefix/suffix code.

@@ -6,12 +6,12 @@
 
 using namespace std;
 
-FileReader::FileReader(size_t k, const string &filename): _k(k) {
-  open(filename);
+FileReader::FileReader(const Settings &s): _settings(s) {
+  open(s.filename);
 }
 
 void FileReader::_reset() {
-  _filename.clear();
+  _settings.filename.clear();
   _is.clear();
   _line = 0;
   _column = 0;
@@ -19,7 +19,7 @@ void FileReader::_reset() {
   _current_sequence_description.clear();
   _current_sequence_length = 0;
   _current_kmer.clear();
-  _current_kmer.reserve(_k);
+  _current_kmer.reserve(_settings.length);
   _kmer_id_offset = 0;
   _current_kmer_id = 0;
 }
@@ -29,7 +29,7 @@ bool FileReader::open(const string &filename) {
   if (!filename.empty()) {
     _is.open(filename);
     if (_is.is_open()) {
-      _filename = filename;
+      _settings.filename = filename;
       _line = 1;
       char c = _is.peek();
       switch (c) {
@@ -57,16 +57,16 @@ bool FileReader::_nextKmerFromFasta() {
   assert(isOpen());
 
   size_t k = _current_kmer.length();
-  if (k >= _k) {
-    _current_kmer.erase(0, k -_k + 1);
+  if (k >= _settings.length) {
+    _current_kmer.erase(0, k -_settings.length + 1);
     k = _current_kmer.length();
-    assert(k == _k - 1);
+    assert(k == _settings.length - 1);
   }
 
-  while (_is && (k < _k)) {
+  while (_is && (k < _settings.length)) {
 
     char c = _is.get();
-    bool warn = true;
+    bool warn = _settings.verbose;
 #ifdef DEBUG
     cerr << "Processing char '" << c << "'" << endl;
 #endif
@@ -107,7 +107,7 @@ bool FileReader::_nextKmerFromFasta() {
       case 'T':
         _current_kmer += toupper(c);
         ++k;
-        if (++_current_sequence_length >= _k) {
+        if (++_current_sequence_length >= _settings.length) {
           ++_current_kmer_id;
         }
         break;
@@ -135,28 +135,32 @@ bool FileReader::_nextKmerFromFasta() {
       case 'N':
         _current_kmer.clear();
         k = 0;
-        cerr << "Warning: "
-             << "file '" << _filename
-             << "' (line " << _line << ", column " << _column << "):"
-             << " degeneracy symbol '" << c << "'"
-             << " found in sequence '" << _current_sequence_description << "'."
-             << endl;
-        if (++_current_sequence_length >= _k) {
+        if (_settings.verbose) {
+          cerr << "Warning: "
+               << "file '" << _settings.filename
+               << "' (line " << _line << ", column " << _column << "):"
+               << " degeneracy symbol '" << c << "'"
+               << " found in sequence '" << _current_sequence_description << "'."
+               << endl;
+        }
+        if (++_current_sequence_length >= _settings.length) {
           ++_current_kmer_id;
         }
         break;
       default:
-        cerr << "Warning: "
-             << "file '" << _filename
-             << "' (line " << _line << ", column " << _column << "):"
-             << " unexpected symbol '" << c << "'"
-             << " for sequence '" << _current_sequence_description << "'."
-             << endl;
+        if (_settings.verbose) {
+          cerr << "Warning: "
+               << "file '" << _settings.filename
+               << "' (line " << _line << ", column " << _column << "):"
+               << " unexpected symbol '" << c << "'"
+               << " for sequence '" << _current_sequence_description << "'."
+               << endl;
+        }
         warn = false;
       } 
     }
-    warn &= (k < _k);
-    warn &= (_current_sequence_length >= _k);
+    warn &= (k < _settings.length);
+    warn &= (_current_sequence_length >= _settings.length);
     if (warn) {
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
            << " and relative ID " << getCurrentKmerID(false)
@@ -165,7 +169,7 @@ bool FileReader::_nextKmerFromFasta() {
     }
   }
 
-  if (k != _k) {
+  if (k != _settings.length) {
     _current_sequence_description.clear();
     _current_sequence_length = 0;
     _current_kmer.clear();
@@ -176,11 +180,11 @@ bool FileReader::_nextKmerFromFasta() {
   else {
     cerr << "DBG: current sequence description: " << getCurrentSequenceDescription() << endl
          << "     current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl
-         << "     k = " << k << " and _k = " << _k << endl;
+         << "     k = " << k << " and _settings.length = " << _settings.length << endl;
   }
 #endif
 
-  return (k == _k);
+  return (k == _settings.length);
 
 }
 
@@ -190,19 +194,19 @@ bool FileReader::_nextKmerFromFastq() {
   assert(isOpen());
 
   size_t k = _current_kmer.length();
-  if (k >= _k) {
-    _current_kmer.erase(0, k -_k + 1);
+  if (k >= _settings.length) {
+    _current_kmer.erase(0, k -_settings.length + 1);
     k = _current_kmer.length();
-    assert(k == _k - 1);
+    assert(k == _settings.length - 1);
   }
   int state = !_current_sequence_description.empty();
 
   size_t nb = 0;
 
-  while (_is && (k < _k)) {
+  while (_is && (k < _settings.length)) {
 
     char c = _is.get();
-    bool warn = true;
+    bool warn = _settings.verbose;
 #ifdef DEBUG
     cerr << "Processing char '" << c << "'" << endl;
 #endif
@@ -257,7 +261,7 @@ bool FileReader::_nextKmerFromFastq() {
       case 'T':
         _current_kmer += toupper(c);
         ++k;
-        if (++_current_sequence_length >= _k) {
+        if (++_current_sequence_length >= _settings.length) {
           ++_current_kmer_id;
         }
         break;
@@ -285,23 +289,27 @@ bool FileReader::_nextKmerFromFastq() {
       case 'N':
         _current_kmer.clear();
         k = 0;
-        cerr << "Warning: "
-             << "file '" << _filename
-             << "' (line " << _line << ", column " << _column << "):"
-             << " degeneracy symbol '" << c << "'"
-             << " found in sequence '" << _current_sequence_description << "'."
-             << endl;
-        if (++_current_sequence_length >= _k) {
+        if (_settings.verbose) {
+          cerr << "Warning: "
+               << "file '" << _settings.filename
+               << "' (line " << _line << ", column " << _column << "):"
+               << " degeneracy symbol '" << c << "'"
+               << " found in sequence '" << _current_sequence_description << "'."
+               << endl;
+        }
+        if (++_current_sequence_length >= _settings.length) {
           ++_current_kmer_id;
         }
         break;
       default:
-        cerr << "Warning: "
-             << "file '" << _filename
-             << "' (line " << _line << ", column " << _column << "):"
-             << " unexpected symbol '" << c << "'"
-             << " for sequence '" << _current_sequence_description << "'."
-             << endl;
+        if (_settings.verbose) {
+          cerr << "Warning: "
+               << "file '" << _settings.filename
+               << "' (line " << _line << ", column " << _column << "):"
+               << " unexpected symbol '" << c << "'"
+               << " for sequence '" << _current_sequence_description << "'."
+               << endl;
+        }
         warn = false;
       }
       break;
@@ -316,9 +324,9 @@ bool FileReader::_nextKmerFromFastq() {
       string desc;
       getline(_is, desc);
       _column += desc.length();
-      if (!(desc.empty() || (desc == _current_sequence_description))) {
+      if (_settings.verbose && !(desc.empty() || (desc == _current_sequence_description))) {
         cerr << "Warning: "
-             << "file '" << _filename
+             << "file '" << _settings.filename
              << "' (line " << _line << ", column " << _column << "):"
              << " repeated sequence description '" << desc << "'"
              << " doesn't match with '" << _current_sequence_description << "'."
@@ -342,9 +350,9 @@ bool FileReader::_nextKmerFromFastq() {
       } else if (c > ' ') {
         assert(nb);
           --nb;
-      } else if ((c != ' ') && (c != -1)) {
+      } else if (_settings.verbose && (c != ' ') && (c != -1)) {
         cerr << "Warning: "
-             << "file '" << _filename
+             << "file '" << _settings.filename
              << "' (line " << _line << ", column " << _column << "):"
              << " unexpected symbol with ASCII code " << hex << (int) c << dec
              << " for sequence '" << _current_sequence_description << "'."
@@ -356,7 +364,7 @@ bool FileReader::_nextKmerFromFastq() {
     default:
       cerr << "BUG: this situation should never occur!!! "
            << "     "
-           << "file '" << _filename
+           << "file '" << _settings.filename
            << "' (line " << _line << ", column " << _column << "):"
            << " character '" << c << "'"
            << " for sequence '" << _current_sequence_description << "'."
@@ -365,8 +373,8 @@ bool FileReader::_nextKmerFromFastq() {
     }
 
     warn &= (state == 1);
-    warn &= (k < _k);
-    warn &= (_current_sequence_length >= _k);
+    warn &= (k < _settings.length);
+    warn &= (_current_sequence_length >= _settings.length);
     if (warn) {
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
            << " and relative ID " << getCurrentKmerID(false)
@@ -375,7 +383,7 @@ bool FileReader::_nextKmerFromFastq() {
     }
   }
 
-  if (k != _k) {
+  if (k != _settings.length) {
     _current_sequence_description.clear();
     _current_sequence_length = 0;
     _current_kmer.clear();
@@ -386,9 +394,9 @@ bool FileReader::_nextKmerFromFastq() {
   else {
     cerr << "DBG: current sequence description: " << getCurrentSequenceDescription() << endl
          << "     current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl
-         << "     k = " << k << " and _k = " << _k << endl;
+         << "     k = " << k << " and _settings.length = " << _settings.length << endl;
   }
 #endif
 
-  return (k == _k);
+  return (k == _settings.length);
 }

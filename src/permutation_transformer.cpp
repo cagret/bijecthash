@@ -11,16 +11,16 @@
 
 using namespace std;
 
-PermutationTransformer::PermutationTransformer(size_t k, size_t prefix_length, const vector<size_t> &permutation, const std::string &description):
-  Transformer(k, prefix_length, description),
-  _permutation(permutation.size() == k ? permutation : _generateRandomPermutation(k)),
+PermutationTransformer::PermutationTransformer(const Settings &s, const vector<size_t> &permutation, const std::string &description):
+  Transformer(s, description),
+  _permutation(permutation.size() == settings.length ? permutation : _generateRandomPermutation(settings.length)),
   _reverse_permutation(_computeReversePermutation(_permutation))
 {
   if (description.empty()) {
-    string *desc_ptr = const_cast<string *>(&_description);
+    string *desc_ptr = const_cast<string *>(&description);
     desc_ptr->clear();
     *desc_ptr += "Permutation[";
-    for (size_t i = 0; i < k; ++i) {
+    for (size_t i = 0; i < settings.length; ++i) {
       if (i) *desc_ptr += ",";
       *desc_ptr += to_string(_permutation[i]);
     }
@@ -28,20 +28,20 @@ PermutationTransformer::PermutationTransformer(size_t k, size_t prefix_length, c
   }
 #ifdef DEBUG
   cout << "permutation:" << endl;
-  for (size_t i = 0; i < k; ++i) {
+  for (size_t i = 0; i < settings.length; ++i) {
     cout << setw(4) << i;
   }
   cout << endl;
-  for (size_t i = 0; i < k; ++i) {
+  for (size_t i = 0; i < settings.length; ++i) {
     cout << setw(4) << _permutation[i];
   }
   cout << endl;
   cout << "reverse permutation:" << endl;
-  for (size_t i = 0; i < k; ++i) {
+  for (size_t i = 0; i < settings.length; ++i) {
     cout << setw(4) << i;
   }
   cout << endl;
-  for (size_t i = 0; i < k; ++i) {
+  for (size_t i = 0; i < settings.length; ++i) {
     cout << setw(4) << _reverse_permutation[i];
   }
   cout << endl;
@@ -89,14 +89,14 @@ Transformer::EncodedKmer PermutationTransformer::operator()(const std::string &k
     terminate();
   }
 #endif
-  e.prefix = _encode(permuted_kmer.c_str(), _prefix_length);
-  e.suffix = _encode(permuted_kmer.c_str() + _prefix_length, _suffix_length);
+  e.prefix = _encode(permuted_kmer.c_str(), settings.prefix_length);
+  e.suffix = _encode(permuted_kmer.c_str() + settings.prefix_length, settings.length - settings.prefix_length);
   return e;
 }
 
 string PermutationTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  string permuted_kmer = _decode(e.prefix, _prefix_length);
-  permuted_kmer += _decode(e.suffix, _suffix_length);
+  string permuted_kmer = _decode(e.prefix, settings.prefix_length);
+  permuted_kmer += _decode(e.suffix, settings.length - settings.prefix_length);
   string kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
   return kmer;
 }

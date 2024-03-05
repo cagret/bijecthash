@@ -34,13 +34,13 @@ string Transformer::_decode(uint64_t v, size_t n) {
   return decoded;
 }
 
-Transformer::Transformer(size_t k, size_t prefix_length, const string &description):
-  _prefix_length(prefix_length),
-  _suffix_length(k - prefix_length),
-  _description(description)
+Transformer::Transformer(const Settings &s, const string &description):
+  settings(s),
+  description(description)
 {
-  assert(_prefix_length > 0);
-  assert(_suffix_length > 0);
-  assert(_prefix_length <= (4 * sizeof(uint64_t)));
-  assert(_suffix_length <= (4 * sizeof(uint64_t)));
+  assert(settings.length > 0);
+  assert(settings.prefix_length > 0);
+  assert(settings.length > settings.prefix_length);
+  assert(s.prefix_length <= (4 * sizeof(uint64_t)));
+  assert((s.length - s.prefix_length) <= (4 * sizeof(uint64_t)));
 }

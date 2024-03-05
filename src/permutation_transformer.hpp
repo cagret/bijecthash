@@ -59,16 +59,14 @@ public:
    * Builds a Transformer depending on the k-mer length and the prefix
    * length.
    *
-   * \param k The k-mer length.
-   *
-   * \param prefix_length The k-mer prefix length.
+   * \param s The global settings.
    *
    * \param permutation The k-mer permutation to apply (default is to generate a random permutation).
    *
    * \param description If given, then the description string is used
    * instead of the "Permutation[<details>]" auto generated string.
    */
-  PermutationTransformer(size_t k, size_t prefix_length,
+  PermutationTransformer(const Settings &s,
                          const std::vector<size_t> &permutation = std::vector<size_t>(),
                          const std::string &description = "");
 

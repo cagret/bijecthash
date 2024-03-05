@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdint>
+#include <settings.hpp>
 
 /**
  * A transformer is a bijective application that can transform some
@@ -14,21 +15,6 @@
 class Transformer {
 
 protected:
-
-  /**
-   * The k-mer prefix length.
-   */
-  const size_t _prefix_length;
-
-  /**
-   * The k-mer suffix length.
-   */
-  const size_t _suffix_length;
-
-  /**
-   * The tranformer description.
-   */
-  const std::string _description;
 
   /**
    * Encodes a DNA string of length n into a 64 bits integer.
@@ -62,6 +48,17 @@ protected:
 
 public:
 
+
+  /**
+   * The tranformer settings.
+   */
+  const Settings settings;
+
+  /**
+   * The tranformer description.
+   */
+  const std::string description;
+
   /**
    * Data type of a encoded k-mer.
    */
@@ -74,31 +71,11 @@ public:
    * Builds a Transformer depending on the k-mer length and the prefix
    * length.
    *
-   * \param k The k-mer length.
-   *
-   * \param prefix_length The k-mer prefix length.
+   * \param s The global settings.
    *
    * \param description The transformer description.
    */
-  Transformer(size_t k, size_t prefix_length, const std::string &description);
-
-  /**
-   * Get this transformer k-mer length.
-   *
-   * \return Returns this transformer k-mer length.
-   */
-  inline size_t getKmerLength() const {
-    return _prefix_length + _suffix_length;
-  }
-
-  /**
-   * Get this transformer prefix length.
-   *
-   * \return Returns this transformer prefix length.
-   */
-  inline size_t getKmerPrefixLength() const {
-    return _prefix_length;
-  }
+  Transformer(const Settings &s, const std::string &description);
 
   /**
    * Encode some given k-mer into a prefix/suffix code.
@@ -121,15 +98,6 @@ public:
    * \return Returns the k-mer corresponding to the given encoding.
    */
   virtual std::string operator()(const EncodedKmer &e) const = 0;
-
-  /**
-   * Return the transformer description.
-   *
-   * \return Returns the transformer description.
-   */
-  inline std::string description() const {
-    return _description;
-  }
 
 };
 
