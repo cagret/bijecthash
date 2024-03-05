@@ -99,7 +99,7 @@ Settings::Settings(int argc, char** argv):
         } else {
           err = 1;
         }
-      } else if ((opt == "prefix_length") || (opt == "p")) {
+      } else if ((opt == "prefix-length") || (opt == "p")) {
         if ((i + 1) < argc) {
           char *ptr;
           prefix_length = strtoul(argv[++i], &ptr, 10);
