@@ -24,7 +24,7 @@
 long long getPeakMemoryUsage() {
 	struct rusage rusage;
 	getrusage(RUSAGE_SELF, &rusage);
-	return rusage.ru_maxrss; 
+	return rusage.ru_maxrss;
 }
 
 
@@ -71,7 +71,7 @@ void writeData(
 }
 
 std::vector<size_t> calculateDecileSizes(const std::vector<std::vector<uint64_t>>& tables) {
-	std::vector<size_t> decileSizes(10, 0); 
+	std::vector<size_t> decileSizes(10, 0);
 	size_t totalTables = tables.size();
 	size_t tableIndex = 0;
 
@@ -88,9 +88,9 @@ std::vector<size_t> calculateDecileSizes(const std::vector<std::vector<uint64_t>
 }
 
 void processKmersWithPermutation(
-		const std::vector<std::pair<std::string, std::string>>& sequences, 
-		size_t k, size_t prefixSize,size_t MAX_PREFIX, 
-		const std::vector<size_t>& permutation, 
+		const std::vector<std::pair<std::string, std::string>>& sequences,
+		size_t k, size_t prefixSize,size_t MAX_PREFIX,
+		const std::vector<size_t>& permutation,
 		std::optional<std::function<uint64_t(uint64_t)>> hashFunction,
 		const std::string& outputFileName, std::ofstream& outFile) {
 
@@ -112,8 +112,8 @@ void processKmersWithPermutation(
 			uint64_t prefixEncoded, suffixEncoded;
 			for (const auto& kmer : kmers) {
 				if (hashFunction) {
-					uint64_t kmerEncoded = encode(kmer); 
-					uint64_t kmerHashed = (*hashFunction)(kmerEncoded); 
+					uint64_t kmerEncoded = encode(kmer);
+					uint64_t kmerHashed = (*hashFunction)(kmerEncoded);
 					uint64_t suffixMask = (1ULL << (2 * prefixSize)) - 1;
 					prefixEncoded = kmerHashed >> (64 - 2 * prefixSize);
 					suffixEncoded = kmerHashed & suffixMask;
@@ -155,7 +155,7 @@ void processKmersWithPermutation(
 
 	auto end = std::chrono::high_resolution_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	//auto variance = calculateVariance(globalKmerIndex); 
+	//auto variance = calculateVariance(globalKmerIndex);
 	auto memoryAfter = getPeakMemoryUsage();
 	auto memoryUsed = memoryAfter - memoryBefore;
 	//outFile << outputFileName << "," << k << "," << elapsed.count() << "," << variance << "," << memoryUsed << "\n";
@@ -180,16 +180,16 @@ std::string determineFileType(const std::string& filename) {
 	std::ifstream file(filename);
 	std::string line;
 	while (std::getline(file, line)) {
-		if (!line.empty()) { 
+		if (!line.empty()) {
 			if (line[0] == '>') {
 				return "FASTA";
 			} else if (line[0] == '@') {
 				return "FASTQ";
 			}
-			break; 
+			break;
 		}
 	}
-	return "UNKNOWN"; 
+	return "UNKNOWN";
 }
 
 int main(int argc, char* argv[]) {
@@ -227,14 +227,14 @@ int main(int argc, char* argv[]) {
 			double variance;
 			uint64_t prefixKmer, suffixKmer;
 			size_t prefixSize = 11;
-			size_t MAX_PREFIX = static_cast<size_t>(std::pow(4, prefixSize)); 
+			size_t MAX_PREFIX = static_cast<size_t>(std::pow(4, prefixSize));
 			long memoryBefore, memoryAfter, memoryUsed;
 			uint64_t mask = (1ULL << (2 * k)) - 1;
 
 			std::vector<std::vector<uint64_t>> globalKmerIndex;
-			std::vector<size_t> identityPermutation = generateIdentityPermutation(k); 
+			std::vector<size_t> identityPermutation = generateIdentityPermutation(k);
 			/*
-			   std::vector<size_t> randomPermutation = generateRandomPermutation(k); 
+			   std::vector<size_t> randomPermutation = generateRandomPermutation(k);
 			   std::vector<size_t> inversePermutation = generateInversePermutation(k);
 			   std::vector<size_t> cyclicPermutation = generateCyclicPermutation(k);
 			   std::vector<size_t> zigzagPermutation = generateZigzagPermutation(k);

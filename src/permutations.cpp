@@ -68,8 +68,8 @@ std::vector<size_t> generateIdentityPermutation(size_t k) {
 
 std::vector<size_t> generateInversePermutation(size_t k) {
 	std::vector<size_t> p(k);
-	std::iota(p.begin(), p.end(), 0); 
-	std::reverse(p.begin(), p.end()); 
+	std::iota(p.begin(), p.end(), 0);
+	std::reverse(p.begin(), p.end());
 	return p;
 
 
@@ -83,20 +83,20 @@ std::vector<size_t> generateSeedSortPermutation(const std::string& sequence) {
 	for (char c : sequence) {
 		seed += c;
 	}
-	std::mt19937 generator(seed); 
+	std::mt19937 generator(seed);
 	std::shuffle(p.begin(), p.end(), generator);
 	return p;
 }
 
 std::vector<size_t> generateCyclicPermutation(size_t k) {
 	std::vector<size_t> p(k);
-	std::iota(p.begin(), p.end(), 0); 
-	if (k > 0) { 
-		size_t temp = p.back(); 
+	std::iota(p.begin(), p.end(), 0);
+	if (k > 0) {
+		size_t temp = p.back();
 		for (size_t i = k - 1; i > 0; --i) {
-			p[i] = p[i - 1]; 
+			p[i] = p[i - 1];
 		}
-		p[0] = temp; 
+		p[0] = temp;
 	}
 	return p;
 }
@@ -121,13 +121,13 @@ std::vector<size_t> generateRandomPermutation(size_t k) {
 
 
 uint64_t rot(uint64_t s, size_t width) {
-	const size_t bitSize = 64; 
+	const size_t bitSize = 64;
 	size_t halfWidth = width / 2;
-	return (s << halfWidth) | (s >> (bitSize - halfWidth)); 
+	return (s << halfWidth) | (s >> (bitSize - halfWidth));
 }
 
 uint64_t Ga_b(uint64_t s, uint64_t a, uint64_t b, size_t sigma) {
-	const uint64_t mask = (1ULL << sigma) - 1; 
+	const uint64_t mask = (1ULL << sigma) - 1;
 	return ((a * (rot(s, sigma) ^ b)) & mask);
 }
 

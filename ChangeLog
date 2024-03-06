@@ -1,0 +1,342 @@
+2024-03-07  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/benchmark.cpp, src/permutations.cpp:
+	Remove trailing spaces.
+	
+	
+2024-03-07  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/gab_transformer.cpp, src/gab_transformer.hpp,
+	src/permutation_transformer.cpp, src/transformer.cpp:
+	BugFix: the GAB transformer wasn't working correctly.
+	Improve documentation.
+	
+	
+2024-03-07  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/identity_transformer.hpp, src/inthash_transformer.hpp:
+	Fix documentation.
+	
+	
+2024-03-07  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/fileReader.cpp, src/fileReader.hpp,
+	src/main.cpp, src/program_options.cpp, src/program_options.hpp,
+	src/settings.cpp, src/settings.hpp:
+	Filter out program options from settings for a better logic.
+	Now the BijectHash program can handle multiple files.
+	A tag can be given to represent the set of input files and the global output contains more informations.
+	The debug mode is more verbose and can be activate by passing "CXXFLAGS=-DDEBUG" to the make command line.
+	
+	
+2024-03-05  DoccY <alban.mancheron@lirmm.fr>
+
+	* run_methods.sh:
+	Apply command line modifications to the run_methods script.
+	
+	
+2024-03-05  DoccY <alban.mancheron@lirmm.fr>
+
+	* :
+	commit 57f96d67041f7124b0e2110aef4d3a5a7efc6bac
+	Author: DoccY <alban.mancheron@lirmm.fr>
+	Date:   Tue Mar 5 20:08:01 2024 +0100
+	
+	
+2024-03-05  cagret <cagret@mailo.com>
+
+	* run_methods.sh:
+	Add -p option to parallelise the benchmark
+	
+	
+2024-03-05  cagret <cagret@mailo.com>
+
+	* run_methods.sh:
+	add k1 in bench
+	
+	
+2024-03-05  cagret <cagret@mailo.com>
+
+	* run_methods.sh, src/main.cpp:
+	add k1 optional option
+	
+	
+2024-03-05  cagret <cagret@mailo.com>
+
+	* :
+	Add SRR.gz fiiles
+	
+	
+2024-03-01  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/main.cpp:
+	Improve statistics computation by allowing to set a custom value for NB_BINS.
+	Running `make clean && make NB_BINS=100` will generate a binary that group subtree sizes in 100 bins.
+	By default, subtree sizes are grouped into 10 bins.
+	The expected average number of subtrees per bin is the average size of the trees times the number of subtrees per bin (i.e., the bin_size which is output in the statistics).
+	Notice that the bin_size is at least one (the nb of bins is bounded by the number of subtrees).
+	
+	
+2024-03-01  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/fileReader.cpp:
+	Restoring Warnings while reading fasta/fastq files even if not in debug mode since Warnings are not dedicated to debuging but to inform user that the file is badly formatted.
+	
+	
+2024-03-01  cagret <cagret@mailo.com>
+
+	* resources/seq.py, run_methods.sh, src/Makefile,
+	src/benchmark.cpp, src/fileReader.cpp, src/gab_transformer.cpp,
+	src/gab_transformer.hpp, src/main.cpp:
+	Add GAB methode following inthash méthode and add inverse method in main.cpp place DEBUG méthod to fileReader modify seq.py for compilation also update Makefile to compile new GAB
+	
+	
+2024-02-29  cagret <cagret@mailo.com>
+
+	* resources/Makefile:
+	change python to python3
+	
+	
+2024-02-29  DoccY <alban.mancheron@lirmm.fr>
+
+	* resources/{exemple1.fa => example1.fa}, resources/example1.fq,
+	resources/{exemple2.fa => example2.fa}, resources/example2.fq,
+	src/fileReader.cpp, src/fileReader.hpp, src/main.cpp,
+	src/transformer.cpp:
+	Add fastq file reader implementation.
+	Add examples of fastq files in the resource directory.
+	Add some more statistics computation in BijectHash.
+	
+	
+2024-02-29  DoccY <alban.mancheron@lirmm.fr>
+
+	* .gitignore, Makefile, doc/Doxyfile, doc/Makefile,
+	resources/Makefile, src/Makefile, src/fileReader.cpp,
+	src/identity_transformer.hpp, src/inthash_transformer.hpp,
+	src/main.cpp, src/permutation_transformer.hpp, src/transformer.hpp:
+	Add API documentation generation.
+	Complete file documentation.
+	Improve makefile handling.
+	
+	
+2024-02-28  DoccY <alban.mancheron@lirmm.fr>
+
+	* Makefile, resources/exemple1.fa, resources/exemple2.fa,
+	src/fileReader.cpp, src/fileReader.hpp,
+	src/identity_transformer.cpp, src/identity_transformer.hpp,
+	src/inthash_transformer.cpp, src/inthash_transformer.hpp,
+	src/main.cpp, src/permutation_transformer.cpp,
+	src/permutation_transformer.hpp, src/transformer.cpp,
+	src/transformer.hpp:
+	Big code refactoring using a Transformer bijective functor.
+	From now, fasta files are not loaded into memory and k-mers are extracted at glance.
+	Fastq files are not handled yet (coming soon).
+	GAB hash transfomer is not yet implemented.
+	
+	
+2024-02-28  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	Add DEBUG
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	Enhance k-mer processing with optional custom hash function support
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	remove ksize
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* Makefile, src/benchmark.cpp, src/permutations.cpp,
+	src/permutations.hpp:
+	Refactor code to include permutations handling in benchmarking process
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* decile.py, src/benchmark.cpp, src/permutations.cpp,
+	src/permutations.hpp:
+	add decile.py to plot the suffixe by prefixe distribution, and modify the benchmark_output to print the decile per prefixe
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* boiteMoustache.py:
+	Add boiteamoustache.py for calculating sum of SuffixCount per decile
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	Refactor: Optimized parallel loops with OpenMP and replaced unordered_map with vector<vector> Updated function signatures, added <functional> header, and implemented new functionalities
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	fix and add kmerEncodedHashed splitEncodedKmer
+	
+	
+2024-02-27  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	fixed free(): unaligned chunk detected in tcache 2 comment seedsort
+	
+	
+2024-02-26  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	minor fix
+	
+	
+2024-02-26  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	Add cyclic and zigzag permutation
+	
+	
+2024-02-26  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	fixed missing comment
+	
+	
+2024-02-26  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	Change  σ=24 to  σ=2*k
+	
+	
+2024-02-26  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	Add GAB hash function implementation for k-mer prefix encoding in benchmarking, supporting k=30 with k1=12, k2=18 and adjusted σ=2*k1 (24) for optimized hash distribution
+	
+	
+2024-02-26  cagret <cagret@mailo.com>
+
+	* :
+	rm large file
+	
+	
+2024-02-26  cagret <cagret@mailo.com>
+
+	* .gitignore, resources/seq.py:
+	Add new gitignore rules
+	
+	
+2024-02-25  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	fix identity permutation
+	
+	
+2024-02-25  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	apply prefix/suffix logic to IntHash loop
+	
+	
+2024-02-25  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp, src/fileReader.cpp, src/fileReader.hpp:
+	Enhance FASTA/FASTQ parsing and skip non-ACGT characters in encoding
+	
+	
+2024-02-23  cagret <cagret@mailo.com>
+
+	* src/benchmark.cpp:
+	mem bench omp sync error fixed
+	
+	
+2024-02-23  cagret <cagret@mailo.com>
+
+	* Makefile, src/benchmark.cpp:
+	minor updates
+	
+	
+2024-02-23  cagret <cagret@mailo.com>
+
+	* seq.py => resources/seq.py:
+	add resources folder
+	
+	
+2024-02-23  cagret <cagret@mailo.com>
+
+	* benchmark.cpp, benchmark_hash.cpp, idVSrand.py, plot.py,
+	plot_global.py, plot_hash.py, src/benchmark.cpp, fileReader.cpp =>
+	src/fileReader.cpp, fileReader.hpp => src/fileReader.hpp, inthash.c
+	=> src/inthash.c, inthash.h => src/inthash.h, main.cpp =>
+	src/main.cpp, var.py:
+	Cleanning repo
+	
+	
+2024-02-23  cagret <cagret@mailo.com>
+
+	* Makefile:
+	Update Makefile
+	
+	
+2024-02-23  cagret <cagret@mailo.com>
+
+	* README.md:
+	update Readme
+	
+	
+2024-02-23  cagret <cagret@mailo.com>
+
+	* benchmark.cpp, benchmark_hash.cpp, idVSrand.py, plot_global.py,
+	plot_hash.py, var.py:
+	Add parallelization using OpenMP and new plot
+	
+	
+2024-02-22  cagret <cagret@mailo.com>
+
+	* .gitignore, Makefile, README.md, benchmark.cpp,
+	benchmark_hash.cpp, main.cpp, plot.py, plot_hash.py, seq.py,
+	sequences.fasta:
+	 Added benchmarking and plotting scripts, modified existing files, and deleted obsolete sequence file
+	
+	
+2024-02-22  cagret <cagret@mailo.com>
+
+	* main.cpp:
+	Adjust mask calculation for larger k values, allocating 60 bits for k=30.((1ULL << (2 * k)) - 1)
+	
+	
+2024-02-22  cagret <cagret@mailo.com>
+
+	* main.cpp:
+	Update main
+	
+	
+2024-02-22  cagret <cagret@mailo.com>
+
+	* Makefile, inthash.c, inthash.h, main.cpp:
+	Add inthash.c and inthash.h, and modify Makefile and main.cpp; no changes staged for commit
+	
+	
+2024-02-22  cagret <cagret@mailo.com>
+
+	* README.md:
+	Add Readme
+	
+	
+2024-02-22  cagret <cagret@mailo.com>
+
+	* .gitignore, Makefile, fileReader.cpp, fileReader.hpp, main.cpp,
+	seq.py, sequences.fasta:
+	Add FASTA file reader, k-mer permutation functionality, and related main program updates.
+	
+	
+2024-02-22  cagret <cagret@mailo.com>
+
+	* Initial commit
+
