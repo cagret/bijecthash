@@ -3,7 +3,6 @@
 #include <random>
 #include <algorithm>
 
-//#define DEBUG
 #ifdef DEBUG
 #  include <iostream>
 #  include <iomanip>
@@ -27,24 +26,30 @@ PermutationTransformer::PermutationTransformer(const Settings &s, const vector<s
     *desc_ptr += "]";
   }
 #ifdef DEBUG
-  cout << "permutation:" << endl;
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "permutation:" << endl;
+  cerr << "  ";
   for (size_t i = 0; i < settings.length; ++i) {
-    cout << setw(4) << i;
+    cerr << setw(4) << i;
   }
-  cout << endl;
+  cerr << endl;
+  cerr << "  ";
   for (size_t i = 0; i < settings.length; ++i) {
-    cout << setw(4) << _permutation[i];
+      cerr << setw(4) << _permutation[i];
   }
-  cout << endl;
-  cout << "reverse permutation:" << endl;
+  cerr << endl;
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+  cerr << "reverse permutation:" << endl;
+  cerr << "  ";
   for (size_t i = 0; i < settings.length; ++i) {
-    cout << setw(4) << i;
+    cerr << setw(4) << i;
   }
-  cout << endl;
+  cerr << endl;
+  cerr << "  ";
   for (size_t i = 0; i < settings.length; ++i) {
-    cout << setw(4) << _reverse_permutation[i];
+    cerr << setw(4) << _reverse_permutation[i];
   }
-  cout << endl;
+  cerr << endl;
 #endif
 }
 
@@ -79,9 +84,11 @@ Transformer::EncodedKmer PermutationTransformer::operator()(const std::string &k
   EncodedKmer e;
   string permuted_kmer = _applyPermutation(kmer, _permutation);
 #ifdef DEBUG
-  cout << "Permuted k-mer:   '" << permuted_kmer << "'" << endl;
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+  cerr << "Permuted k-mer:   '" << permuted_kmer << "'" << endl;
   string unpermuted_kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
-  cout << "Unpermuted k-mer: '" << unpermuted_kmer << "'" << endl;
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+  cerr << "Unpermuted k-mer: '" << unpermuted_kmer << "'" << endl;
   if (unpermuted_kmer != kmer) {
     cerr << "Error: the unpermuted k-mer"
          << " differs from the original k-mer"

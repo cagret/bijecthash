@@ -5,6 +5,12 @@
 using namespace std;
 
 uint64_t Transformer::_encode(const char *dna_str, size_t n) {
+#ifdef DEBUG
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "n = " << n << endl;
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "dna_str = '" << string(dna_str, n) << "'" << endl;
+#endif
   assert(n <= (4 * sizeof(uint64_t)));
   uint64_t encoded = 0;
   for (size_t i = 0; i < n; ++i) {
@@ -22,15 +28,29 @@ uint64_t Transformer::_encode(const char *dna_str, size_t n) {
     }
     encoded = (encoded << 2) | val;
   }
+#ifdef DEBUG
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "encoded = " << encoded << endl;
+#endif
   return encoded;
 }
 
 string Transformer::_decode(uint64_t v, size_t n) {
+#ifdef DEBUG
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "n = " << n << endl;
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "v = " << v << endl;
+#endif
   string decoded(n, '?');
   while (n--) {
     decoded[n] = "ACGT"[v & 3];
     v >>= 2;
   }
+#ifdef DEBUG
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "decoded = '" << decoded << "'" << endl;
+#endif
   return decoded;
 }
 

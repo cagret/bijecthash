@@ -3,14 +3,86 @@
 
 #include <transformer.hpp>
 
+/**
+ * Random Hashing function that operates a permutation based on a bit
+ * rotation (general case of inthash64).
+ *
+ * More formally, this defined a bijective permutation on \f$[0;
+ * 2^{\sigma}[\f$ such that for some odd multiplciative value \f$a\f$
+ * and some \f$b\f$ a \f$\sigma\f$ bit offset, \f$G_{a,b}(s) = \left(a
+ * \times \left(\mathrm{rot}(s)\oplus
+ * b\right)\right)\;\mathrm{mod}\;{2^\sigma}\f$ (where
+ * \f$\mathrm{rot}(s)\f$ denotes an inversion of the two halves of the
+ * bits representing \f$s\f$.
+ */
 class GaBTransformer : public Transformer {
 
 private:
-  uint64_t _a;
-  uint64_t _b;
-  size_t _sigma;
+
+  /**
+   * Odd multiplier.
+   */
+  const uint64_t _a;
+
+  /**
+   * The odd multiplier multiplicative inverse
+   * (\f$\mathrm{mod}\;2^\sigma\f$.
+   */
+  const uint64_t _rev_a;
+
+  /**
+   * Offset on _sigma bits.
+   */
+  const uint64_t _b;
+
+  /**
+   * Precomputed rotation offset.
+   */
+  const uint64_t _rotation_offset;
+
+  /**
+   * Precomputed rotation mask.
+   */
+  const uint64_t _rotation_mask;
+
+  /**
+   * Precomputed binary mask for retrieving the whole k-mer.
+   */
+  const uint64_t _kmer_mask;
+
+  /**
+   * Precomputed shift offset for retrieving the prefix.
+   */
   const uint64_t _prefix_shift;
+
+  /**
+   * Precomputed binary mask for retrieving the suffix.
+   */
   const uint64_t _suffix_mask;
+
+  /**
+   * Compute a cyclic rotation of half of the bits of
+   * the s binary value.
+   *
+   * \param s The bits to rotate.
+   */
+  uint64_t _rotate(uint64_t s) const;
+
+  /**
+   * The static function that computes the permutation of s given a,
+   * b, and sigma.
+   *
+   * \param s The bits to permute
+   */
+  uint64_t _G(uint64_t s) const;
+
+  /**
+   * The static function that computes the reverse permutation of s
+   * given rev_a, b, and sigma.
+   *
+   * \param s The bits to restore (reverse permute)
+   */
+  uint64_t _G_rev(uint64_t s) const;
 
 public:
 
@@ -19,6 +91,10 @@ public:
    * length.
    *
    * \param s The global settings.
+   *
+   * \param a The odd multiplier
+   *
+   * \param b The number of bits to permute.
    */
   GaBTransformer(const Settings &s, uint64_t a, uint64_t b);
 
@@ -44,8 +120,6 @@ public:
    */
   virtual std::string operator()(const Transformer::EncodedKmer &e) const override;
 
-  static uint64_t rot(uint64_t s, size_t width);
-  static uint64_t Ga_b(uint64_t s, uint64_t a, uint64_t b, size_t sigma);
 };
 
 #endif
