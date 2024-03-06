@@ -4,6 +4,7 @@
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
 #include "permutation_transformer.hpp"
+#include "program_options.hpp"
 #include "settings.hpp"
 
 #include <libgen.h>
@@ -82,51 +83,58 @@ map<string, double> computeStatistics(const vector<set<uint64_t>> &index, size_t
 
 }
 
-vector<set<uint64_t>> makeIndex(const Transformer &transformer) {
+vector<set<uint64_t>> makeIndex(const Transformer &transformer, const vector<string> &filenames, const string &tag) {
 
   const Settings &s = transformer.settings;
 
   size_t k1 = s.prefix_length;
-
-  FileReader reader(s);
-
-  if (!reader.isOpen()) {
-    cerr << "Error: Unable to open fasta/fastq file '" << s.filename << "'" << endl;
-    terminate();
-  }
-
   size_t nb_subtrees = (1ul << (2 * k1));
   vector<set<uint64_t>> kmerIndex(nb_subtrees);
+  FileReader reader(s);
 
   struct rusage rusage_start;
   getrusage(RUSAGE_SELF, &rusage_start);
   auto start = std::chrono::high_resolution_clock::now();
 
-  // Process each kmer
-  while (reader.nextKmer()) {
+  for (auto filename: filenames) {
+    reader.open(filename);
 
-    const string &kmer = reader.getCurrentKmer();
-
-#ifdef DEBUG
-    if (reader.getCurrentKmerID(false) == 1) {
-      cout << "New sequence: '" << reader.getCurrentSequenceDescription() << "'" << endl;
+    if (!reader.isOpen()) {
+      cerr << "Error: Unable to open fasta/fastq file '" << filename << "'" << endl;
+      terminate();
     }
-    cout << "k-mer '" << reader.getCurrentKmer()
-         << " (abs_ID: " << reader.getCurrentKmerID()
-         << ",  rel_ID: " << reader.getCurrentKmerID(false)
-         << ")" << endl;
-#endif
 
-    Transformer::EncodedKmer encoded = transformer(kmer);
-    string decoded = transformer(encoded);
+    // Process each kmer
+    while (reader.nextKmer()) {
+
+      const string &kmer = reader.getCurrentKmer();
 
 #ifdef DEBUG
-    cout << "original kmer: '" << kmer << "'" << endl;
-    cout << "decoded kmer:  '" << decoded << "'" << endl;
+      if (reader.getCurrentKmerID(false) == 1) {
+        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+             << "New sequence: '" << reader.getCurrentSequenceDescription() << "'" << endl;
+      }
+      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+           << "k-mer '" << reader.getCurrentKmer()
+           << " (abs_ID: " << reader.getCurrentKmerID()
+           << ",  rel_ID: " << reader.getCurrentKmerID(false)
+           << ")" << endl;
 #endif
-    assert(decoded == kmer);
 
-    kmerIndex[encoded.prefix].insert(encoded.suffix);
+      Transformer::EncodedKmer encoded = transformer(kmer);
+      string decoded = transformer(encoded);
+
+#ifdef DEBUG
+      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+           << "original kmer: '" << kmer << "'" << endl;
+      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+           << "decoded kmer:  '" << decoded << "'" << endl;
+#endif
+      assert(decoded == kmer);
+
+      kmerIndex[encoded.prefix].insert(encoded.suffix);
+
+    }
 
   }
 
@@ -136,51 +144,59 @@ vector<set<uint64_t>> makeIndex(const Transformer &transformer) {
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
   auto memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
 
-  cout << "# Method\tFile\ttime(ms)\tmemory(KB)\n"
-       << transformer.description
-       << "\t" << transformer.settings.filename
-       << "\t" << elapsed.count()
-       << "\t"<< memory
+  cout << "# XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)\n"
+       << tag
+       << '\t' << s.length
+       << '\t' << s.prefix_length
+       << '\t' << transformer.description
+       << '\t' << elapsed.count()
+       << '\t' << memory
        << endl;
-
   return kmerIndex;
 
 }
 
 int main(int argc, char* argv[]) {
 
-  const Settings settings(argc, argv);
+  const ProgramOptions opts(argc, argv);
+  const Settings settings = opts.settings();
+  const vector<string> filenames = opts.filenames();
 
-  cerr << settings << endl;
+  cerr << "Settings:" << endl
+       << settings << endl;
+  cerr << "Files to process:" << endl;
+  for (auto f: filenames) {
+    cerr << "- '" << f << "'" << endl;
+  }
 
   vector<set<uint64_t>> index;
 
   if (settings.method == "identity") {
-    index = makeIndex(IdentityTransformer(settings));
+    index = makeIndex(IdentityTransformer(settings), filenames, settings.tag);
   } else if (settings.method == "inthash") {
-    index = makeIndex(IntHashTransformer(settings));
+    index = makeIndex(IntHashTransformer(settings), filenames, settings.tag);
   } else if (settings.method == "GAB") {
-    index = makeIndex(GaBTransformer(settings, 17, 42));
+    index = makeIndex(GaBTransformer(settings, 17, 42), filenames, settings.tag);
   } else if (settings.method == "random") {
-    index = makeIndex(PermutationTransformer(settings));
+    index = makeIndex(PermutationTransformer(settings), filenames, settings.tag);
   } else if (settings.method == "inverse") {
     vector<size_t> p(settings.length);
     for (size_t i = 0; i < settings.length; ++i) {
       p[i] = settings.length - i - 1;
     }
-    index = makeIndex(PermutationTransformer(settings, p, "Inverse"));
+    index = makeIndex(PermutationTransformer(settings, p, "Inverse"), filenames, settings.tag);
   } else if (settings.method == "cyclic") {
     vector<size_t> p(settings.length);
     for (size_t i = 0; i < settings.length; ++i) {
       p[i] = (i + 1) % settings.length;
     }
-    index = makeIndex(PermutationTransformer(settings, p, "Cyclic"));
+    index = makeIndex(PermutationTransformer(settings, p, "Cyclic"), filenames, settings.tag);
   } else if (settings.method == "zigzag") {
     vector<size_t> p(settings.length);
     for (size_t i = 0; i < settings.length; ++i) {
       p[i] = ((i & 1) ? (settings.length - i - (settings.length & 1)) : i);
     }
-    index = makeIndex(PermutationTransformer(settings, p, "ZigZag"));
+    index = makeIndex(PermutationTransformer(settings, p, "ZigZag"), filenames, settings.tag);
   } else {
     cerr << "Error: Unknown method '" << settings.method << "'" << endl;
     return 1;

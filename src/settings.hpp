@@ -1,15 +1,12 @@
 #ifndef __SETTINGS_HPP__
 #define __SETTINGS_HPP__
 
-#include <vector>
-#include <string>
 #include <iostream>
 
+/**
+ * A simple structure to handle all necessary informations settings.
+ */
 struct Settings {
-  static const Settings default_settings;
-  static const std::vector<std::string> available_methods;
-  std::string program_name;
-  std::string filename;
 
   /**
    * The k-mer length.
@@ -21,17 +18,37 @@ struct Settings {
    */
   size_t prefix_length;
 
+  /**
+   * The transformer method to use.
+   */
   std::string method;
+
+  /**
+   * The tag of the experiment.
+   */
+  std::string tag;
+
+  /**
+   * The number of bins to use for statistics computations.
+   */
   size_t nb_bins;
+
+  /**
+   * Verbosity of the program.
+   */
   bool verbose;
-
-  void usage() const;
-  Settings(int argc, char **argv);
-
-  Settings();
 
 };
 
+/**
+ * Print settings.
+ *
+ * \param os The output stream on which to output the given settings.
+ *
+ * \param s The settings to output.
+ *
+ * \return Returns the modified output stream.
+ */
 std::ostream &operator<<(std::ostream &os, const Settings &s);
 
 #endif

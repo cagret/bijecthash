@@ -7,7 +7,7 @@ CXX = g++
 LD = g++
 
 # Compiling options
-CXXFLAGS = -Wall -Wextra -ansi -pedantic -I. -fopenmp -O3 -std=c++17 # For C++
+override CXXFLAGS += -Wall -Wextra -ansi -pedantic -I. -fopenmp -O3 -std=c++17 # For C++
 LDFLAGS = # Linker Options
 
 # Silent production rules
@@ -30,6 +30,7 @@ BijectHash_SOURCES = \
   inthash_transformer.hpp inthash_transformer.cpp		\
   gab_transformer.hpp gab_transformer.cpp			\
   main.cpp							\
+  program_options.hpp program_options.cpp			\
   permutations.hpp permutations.cpp				\
   permutation_transformer.hpp permutation_transformer.cpp	\
   settings.hpp settings.cpp					\

@@ -23,7 +23,8 @@ public:
 
 private:
 
-  Settings _settings;
+  const Settings &_settings;
+  std::string _filename;
   std::ifstream _is;
   size_t _line;
   size_t _column;
@@ -44,11 +45,12 @@ public:
   /**
    * Constructs a new FileReader instance (and internally call the open() method)
    *
-   * \param k The k-mer length used to parse the file.
+   * \param s The settings used to parse the file (only length,
+   * prefix_length and verbose attributes).
    *
-   * \param filename The name of the file to parse.
+   * \param filename The name of the file to parse (see open() method).
    */
-  FileReader(const Settings &s);
+  FileReader(const Settings &s, const std::string &filename = "");
 
   /**
    * Open the given filename.
@@ -83,7 +85,7 @@ public:
    * string if no file is opened.
    */
   inline std::string getFilename() const {
-    return _settings.filename;
+    return _filename;
   }
 
   /**

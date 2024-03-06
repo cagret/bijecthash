@@ -2,16 +2,14 @@
 #include <cassert>
 #include <iostream>
 
-// #define DEBUG
-
 using namespace std;
 
-FileReader::FileReader(const Settings &s): _settings(s) {
-  open(s.filename);
+FileReader::FileReader(const Settings &s, const string &filename): _settings(s) {
+  open(filename);
 }
 
 void FileReader::_reset() {
-  _settings.filename.clear();
+  _filename.clear();
   _is.clear();
   _line = 0;
   _column = 0;
@@ -29,7 +27,7 @@ bool FileReader::open(const string &filename) {
   if (!filename.empty()) {
     _is.open(filename);
     if (_is.is_open()) {
-      _settings.filename = filename;
+      _filename = filename;
       _line = 1;
       char c = _is.peek();
       switch (c) {
@@ -68,7 +66,8 @@ bool FileReader::_nextKmerFromFasta() {
     char c = _is.get();
     bool warn = _settings.verbose;
 #ifdef DEBUG
-    cerr << "Processing char '" << c << "'" << endl;
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "Processing char '" << c << "'" << endl;
 #endif
     ++_column;
     if (_current_sequence_description.empty()) {
@@ -137,7 +136,7 @@ bool FileReader::_nextKmerFromFasta() {
         k = 0;
         if (_settings.verbose) {
           cerr << "Warning: "
-               << "file '" << _settings.filename
+               << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " degeneracy symbol '" << c << "'"
                << " found in sequence '" << _current_sequence_description << "'."
@@ -150,14 +149,14 @@ bool FileReader::_nextKmerFromFasta() {
       default:
         if (_settings.verbose) {
           cerr << "Warning: "
-               << "file '" << _settings.filename
+               << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " unexpected symbol '" << c << "'"
                << " for sequence '" << _current_sequence_description << "'."
                << endl;
         }
         warn = false;
-      } 
+      }
     }
     warn &= (k < _settings.length);
     warn &= (_current_sequence_length >= _settings.length);
@@ -178,9 +177,12 @@ bool FileReader::_nextKmerFromFasta() {
   }
 #ifdef DEBUG
   else {
-    cerr << "DBG: current sequence description: " << getCurrentSequenceDescription() << endl
-         << "     current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl
-         << "     k = " << k << " and _settings.length = " << _settings.length << endl;
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "current sequence description: " << getCurrentSequenceDescription() << endl;
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl;
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "k = " << k << " and _settings.length = " << _settings.length << endl;
   }
 #endif
 
@@ -208,7 +210,8 @@ bool FileReader::_nextKmerFromFastq() {
     char c = _is.get();
     bool warn = _settings.verbose;
 #ifdef DEBUG
-    cerr << "Processing char '" << c << "'" << endl;
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "Processing char '" << c << "'" << endl;
 #endif
     ++_column;
 
@@ -216,7 +219,8 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 0: {
 #ifdef DEBUG
-      cerr << "State 0 (expecting sequence header)" << endl;
+      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+           << "State 0 (expecting sequence header)" << endl;
 #endif
       assert(_current_sequence_description.empty());
       // Expects a new sequence description header
@@ -235,7 +239,8 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 1: {
 #ifdef DEBUG
-      cerr << "State 1 (processing nucl. sequence)" << endl;
+      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+           << "State 1 (processing nucl. sequence)" << endl;
 #endif
       switch (c) {
       case '\n':
@@ -291,7 +296,7 @@ bool FileReader::_nextKmerFromFastq() {
         k = 0;
         if (_settings.verbose) {
           cerr << "Warning: "
-               << "file '" << _settings.filename
+               << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " degeneracy symbol '" << c << "'"
                << " found in sequence '" << _current_sequence_description << "'."
@@ -304,7 +309,7 @@ bool FileReader::_nextKmerFromFastq() {
       default:
         if (_settings.verbose) {
           cerr << "Warning: "
-               << "file '" << _settings.filename
+               << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " unexpected symbol '" << c << "'"
                << " for sequence '" << _current_sequence_description << "'."
@@ -317,7 +322,8 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 2: {
 #ifdef DEBUG
-      cerr << "State 2 (sequence separator)" << endl;
+      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+           << "State 2 (sequence separator)" << endl;
 #endif
       assert(c == '+');
       assert(_column == 1);
@@ -326,7 +332,7 @@ bool FileReader::_nextKmerFromFastq() {
       _column += desc.length();
       if (_settings.verbose && !(desc.empty() || (desc == _current_sequence_description))) {
         cerr << "Warning: "
-             << "file '" << _settings.filename
+             << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " repeated sequence description '" << desc << "'"
              << " doesn't match with '" << _current_sequence_description << "'."
@@ -338,7 +344,8 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 3: {
 #ifdef DEBUG
-      cerr << "State 3 (processing quality for the remaining " << nb << "symbols)" << endl;
+      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+           << "State 3 (processing quality for the remaining " << nb << "symbols)" << endl;
 #endif
       if (c == '\n') {
         ++_line;
@@ -352,7 +359,7 @@ bool FileReader::_nextKmerFromFastq() {
           --nb;
       } else if (_settings.verbose && (c != ' ') && (c != -1)) {
         cerr << "Warning: "
-             << "file '" << _settings.filename
+             << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " unexpected symbol with ASCII code " << hex << (int) c << dec
              << " for sequence '" << _current_sequence_description << "'."
@@ -364,7 +371,7 @@ bool FileReader::_nextKmerFromFastq() {
     default:
       cerr << "BUG: this situation should never occur!!! "
            << "     "
-           << "file '" << _settings.filename
+           << "file '" << _filename
            << "' (line " << _line << ", column " << _column << "):"
            << " character '" << c << "'"
            << " for sequence '" << _current_sequence_description << "'."
@@ -392,9 +399,12 @@ bool FileReader::_nextKmerFromFastq() {
   }
 #ifdef DEBUG
   else {
-    cerr << "DBG: current sequence description: " << getCurrentSequenceDescription() << endl
-         << "     current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl
-         << "     k = " << k << " and _settings.length = " << _settings.length << endl;
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "current sequence description: " << getCurrentSequenceDescription() << endl;
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl;
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "k = " << k << " and _settings.length = " << _settings.length << endl;
   }
 #endif
 
