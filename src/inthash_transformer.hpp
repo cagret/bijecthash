@@ -11,8 +11,19 @@ class IntHashTransformer: public Transformer {
 
 private:
 
+  /**
+   * Precomputed binary mask for retrieving the whole k-mer.
+   */
   const uint64_t _kmer_mask;
+
+  /**
+   * Precomputed shift offset for retrieving the prefix.
+   */
   const uint64_t _prefix_shift;
+
+  /**
+   * Precomputed binary mask for retrieving the suffix.
+   */
   const uint64_t _suffix_mask;
 
 public:
@@ -22,8 +33,6 @@ public:
    * length.
    *
    * \param s The global settings.
-   *
-   * \param prefix_length The k-mer prefix length.
    */
   IntHashTransformer(const Settings &s);
 

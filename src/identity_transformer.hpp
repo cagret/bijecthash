@@ -16,8 +16,6 @@ public:
    * length.
    *
    * \param s The global settings.
-   *
-   * \param prefix_length The k-mer prefix length.
    */
   inline IdentityTransformer(const Settings &s):
     Transformer(s, "Identity") {}
