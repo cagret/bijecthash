@@ -15,7 +15,7 @@
 #include <functional>
 
 #include "inthash.h"
-#include "fileReader.hpp"
+#include "file_reader.hpp"
 #include "permutations.hpp"
 
 //#define DEBUG
