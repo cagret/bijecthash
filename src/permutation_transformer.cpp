@@ -39,7 +39,7 @@ PermutationTransformer::PermutationTransformer(const Settings &s, const vector<s
   }
   cerr << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-  cerr << "reverse permutation:" << endl;
+       << "reverse permutation:" << endl;
   cerr << "  ";
   for (size_t i = 0; i < settings.length; ++i) {
     cerr << setw(4) << i;
@@ -85,10 +85,10 @@ Transformer::EncodedKmer PermutationTransformer::operator()(const std::string &k
   string permuted_kmer = _applyPermutation(kmer, _permutation);
 #ifdef DEBUG
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-  cerr << "Permuted k-mer:   '" << permuted_kmer << "'" << endl;
+       << "Permuted k-mer:   '" << permuted_kmer << "'" << endl;
   string unpermuted_kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-  cerr << "Unpermuted k-mer: '" << unpermuted_kmer << "'" << endl;
+       << "Unpermuted k-mer: '" << unpermuted_kmer << "'" << endl;
   if (unpermuted_kmer != kmer) {
     cerr << "Error: the unpermuted k-mer"
          << " differs from the original k-mer"

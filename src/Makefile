@@ -8,7 +8,7 @@ LD = g++
 
 # Compiling options
 override CXXFLAGS += -Wall -Wextra -ansi -pedantic -I. -fopenmp -O3 -std=c++17 # For C++
-LDFLAGS = # Linker Options
+LDFLAGS = -pthread# Linker Options
 
 # Silent production rules
 MSQ = @
@@ -24,6 +24,7 @@ DEPDIR = .dep
 PROGS = BijectHash #benchmark
 
 BijectHash_SOURCES = \
+  circular_queue.hpp						\
   fileReader.hpp fileReader.cpp					\
   identity_transformer.hpp identity_transformer.cpp		\
   inthash.h inthash.c						\

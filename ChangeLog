@@ -1,5 +1,13 @@
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
+	* src/Makefile, src/circular_queue.hpp, src/main.cpp,
+	src/permutation_transformer.cpp, src/transformer.cpp:
+	Using multiple producer-multiple consumer design pattern to read/transform the k-mers.
+	Code is currently not well structured but seems to work pretty well.
+	
+	
+2024-03-07  DoccY <alban.mancheron@lirmm.fr>
+
 	* src/benchmark.cpp, src/permutations.cpp:
 	Remove trailing spaces.
 	
