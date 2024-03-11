@@ -79,7 +79,7 @@ public:
    *
    * \return Returns the EncodedKmer corresponding to the given k-mer.
    */
-  virtual EncodedKmer operator()(const std::string &kmer) const;
+  virtual EncodedKmer operator()(const std::string &kmer) const override;
 
   /**
    * Decode some given encoded k-mer.
@@ -90,7 +90,7 @@ public:
    *
    * \return Returns the k-mer corresponding to the given encoding.
    */
-  virtual std::string operator()(const EncodedKmer &e) const;
+  virtual std::string operator()(const EncodedKmer &e) const override;
 
 };
 

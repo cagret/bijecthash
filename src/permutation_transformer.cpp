@@ -20,7 +20,7 @@ PermutationTransformer::PermutationTransformer(const Settings &s, const vector<s
   _reverse_permutation(_computeReversePermutation(_permutation))
 {
   if (description.empty()) {
-    string *desc_ptr = const_cast<string *>(&description);
+    string *desc_ptr = const_cast<string *>(&(this->description));
     desc_ptr->clear();
     *desc_ptr += "Permutation[";
     for (size_t i = 0; i < settings.length; ++i) {
