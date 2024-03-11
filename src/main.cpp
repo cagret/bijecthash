@@ -1,400 +1,204 @@
-#include "file_reader.hpp"
 #include "transformer.hpp"
-#include "identity_transformer.hpp"
-#include "inthash_transformer.hpp"
-#include "gab_transformer.hpp"
-#include "permutation_transformer.hpp"
 #include "program_options.hpp"
 #include "settings.hpp"
 #include "circular_queue.hpp"
+#include "kmer_index.hpp"
+#include "kmer_collector.hpp"
+#include "kmer_processor.hpp"
+
+#ifdef WATCH_QUEUE
+#  include "locker.hpp"
+#endif
 
 #include <libgen.h>
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include <set>
 #include <map>
 #include <algorithm>
 #include <string>
 #include <chrono>
 #include <sys/resource.h>
 #include <thread>
-#include <mutex>
-#include <atomic>
 
 using namespace std;
 
-mutex print_mutex;
-
-// A shorthand for the index type
-typedef vector<set<uint64_t>> index_t;
-
-string fmt(string w, size_t i, size_t max) {
-  string m = to_string(max);
-  string s = to_string(i);
-  if (s.length() < m.length()) {
-    string p(m.length() - s.length(), '0');
-    s = p + s;
-  }
-  return s + " " + w;
-}
-
-map<string, double> computeStatistics(const index_t &index, size_t nb_bins) {
-
-  map<string, double> stats;
-
-  vector<size_t> sizes;
-  size_t n = index.size();
-  sizes.reserve(n);
-  if (nb_bins > index.size()) {
-    nb_bins = index.size();
-  }
-  size_t m = nb_bins + 6;
+#ifdef WATCH_QUEUE
+void threadsWatcher(const CircularQueue<string> &queue) {
 
   double mean = 0;
-  double variance = 0;
-
-  for (const auto &s : index) {
-    sizes.push_back(s.size());
-    mean += s.size();
-    variance += s.size() * s.size();
+  double var = 0;
+  double nb = 0;
+  auto delay = 100ns;
+  int disp = 1024 - 1;
+  size_t running_collectors;
+  size_t s;
+  do {
+    running_collectors = KmerCollector::running();
+  } while (!running_collectors);
+  size_t running_processors = KmerProcessor::running();
+  while (running_collectors > 0) {
+    s = queue.size();
+    mean += s;
+    var += s * s;
+    if (++disp & 1024) {
+      const int v = (s * 100.0 / queue.capacity);
+      assert(v >= 0);
+      assert(v <= 100.);
+      io_mutex.lock();
+      cerr << "\033[squeue size: [" << string(v / 2, '=') << string(50-v/2, ' ') << "]"
+           << " (" << v << "%)\033[K\033[u";
+      io_mutex.unlock();
+      disp = 0;
+    }
+    ++nb;
+#ifdef DEBUG
+    io_mutex.lock();
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "[thread " << this_thread::get_id() << "]:"
+         << "Watcher:" << running_collectors << " / " << KmerCollector::counter() << " running collectors"
+         << " and " << running_processors << " / " << KmerProcessor::counter() << " running processors"
+         << ", queue size: " << s << endl;
+    io_mutex.unlock();
+#endif
+    this_thread::yield();
+    this_thread::sleep_for(delay);
+    running_collectors = KmerCollector::running();
+    running_processors = KmerProcessor::running();
   }
 
-  sort(sizes.begin(), sizes.end());
-  stats[fmt("min", 1, m)] = sizes.front();
-  stats[fmt("med", 2, m)] = sizes[n / 2];
-  stats[fmt("max", 3, m)] = sizes.back();
-
-  mean /= n;
-
-  stats[fmt("mean", 4, m)] = mean;
-
-  variance /= n;
-  variance -= mean * mean;
-  stats[fmt("var", 5, m)] = variance;
-
-  vector<size_t> bins(nb_bins, 0);
-  size_t bin_size = n / bins.size() + (n % bins.size() > 0);
-  stats[fmt("bin_size", 6, m)] = bin_size;
-
-  for (size_t i = 0; i < n; ++i) {
-    bins[i / bin_size] += sizes[i];
+  while (running_processors > 0) {
+    s = queue.size();
+    mean += s;
+    var += s * s;
+    ++nb;
+#ifdef DEBUG
+    io_mutex.lock();
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "[thread " << this_thread::get_id() << "]:"
+         << "Watcher:" << running_collectors << " / " << KmerCollector::counter() << " running collectors"
+         << " and " << running_processors << " / " << KmerProcessor::counter() << " running processors"
+         << ", queue size: " << s << endl;
+    assert(KmerCollector::running() == 0);
+    io_mutex.unlock();
+#endif
+    this_thread::yield();
+    this_thread::sleep_for(delay);
+    running_processors = KmerProcessor::running();
   }
-  sizes.clear();
 
-  n = bins.size();
-  for (size_t i = 0; i < n; ++i) {
-    stats[fmt("bin_" + to_string(i+1), i + 7, m)] = bins[i];
+  s = queue.size();
+  if (nb != 0) {
+    mean /= nb;
+    var /= nb;
+    var -= mean * mean;
   }
-  return stats;
-
+#ifdef DEBUG
+  io_mutex.lock();
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "[thread " << this_thread::get_id() << "]:"
+       << "Watcher:" << KmerCollector::running() << " / " << KmerCollector::counter() << " running collectors"
+       << " and " << KmerProcessor::running() << " / " << KmerProcessor::counter() << " running processors"
+       << ", queue size: " << s << endl;
+  io_mutex.unlock();
+#endif
+  assert(s == 0);
+  assert(KmerCollector::running() == 0);
+  assert(KmerCollector::running() == 0);
+  io_mutex.lock();
+  cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "[thread " << this_thread::get_id() << "]:"
+       << "Watcher:"
+       << "nb of samples: " << nb << endl;
+  cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "[thread " << this_thread::get_id() << "]:"
+       << "Watcher:"
+       << "queue size average: " << mean << endl;
+  cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "[thread " << this_thread::get_id() << "]:"
+       << "Watcher:"
+       << "queue size variance: " << var << endl;
+  assert(nb != 0);
+  io_mutex.unlock();
 }
-
-struct KmerProducerConsumer {
-  static size_t counter;
-  static atomic_size_t still_alive;
-  const size_t id;
-  const Settings &settings;
-  const string &filename;
-  CircularQueue<string> &queue;
-  const Transformer &transformer;
-  index_t &index;
-  mutex &index_mutex;
-  thread prod;
-  thread cons;
-
-  KmerProducerConsumer(const Settings &settings,
-                       const string &filename,
-                       CircularQueue<string> &queue,
-                       const Transformer &transformer,
-                       index_t &index,
-                       mutex &m):
-    id(++counter),
-    settings(settings), filename(filename), queue(queue),
-    transformer(transformer), index(index), index_mutex(m)
-  {
-    ++still_alive;
-  }
-
-  void producer() {
-#ifdef DEBUG
-    print_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "[thread " << this_thread::get_id() << "]:"
-         << "Producer " << id << ":"
-         << "filename = '" << filename << "'" << endl;
-    print_mutex.unlock();
 #endif
-    FileReader reader(settings);
-    reader.open(filename);
 
-    if (!reader.isOpen()) {
-      cerr << "Error: Unable to open fasta/fastq file '" << filename << "'" << endl;
-      terminate();
-    }
-
-    while (reader.nextKmer()) {
-      const string &kmer = reader.getCurrentKmer();
-#ifdef DEBUG
-      if (reader.getCurrentKmerID(false) == 1) {
-        print_mutex.lock();
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "[thread " << this_thread::get_id() << "]:"
-             << "Producer " << id << ":"
-             << "New sequence: '" << reader.getCurrentSequenceDescription() << "'" << endl;
-        print_mutex.unlock();
-      }
-      print_mutex.lock();
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "[thread " << this_thread::get_id() << "]:"
-           << "Producer " << id << ":"
-           << "k-mer '" << reader.getCurrentKmer()
-           << " (abs_ID: " << reader.getCurrentKmerID()
-           << ",  rel_ID: " << reader.getCurrentKmerID(false)
-           << ")" << endl;
-      print_mutex.unlock();
-#endif
-      while (!queue.push(kmer)) {
-#ifdef DEBUG
-        print_mutex.lock();
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "[thread " << this_thread::get_id() << "]:"
-             << "Producer " << id << ":"
-             << "Unable to push k-mer '" << kmer << "." << endl;
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "[thread " << this_thread::get_id() << "]:"
-             << "Producer " << id << ":"
-             << "queue size: " << queue.size()
-             << " (" << (queue.empty() ? "empty" : "not empty")
-             << ", " << (queue.full() ? "full" : "not full") << ")." << endl;
-        print_mutex.unlock();
-#endif
-        this_thread::yield();
-        this_thread::sleep_for(1ns);
-      }
-#ifdef DEBUG
-      print_mutex.lock();
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "[thread " << this_thread::get_id() << "]:"
-           << "Producer " << id << ":"
-           << "k-mer '" << kmer << " pushed successfully." << endl;
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "[thread " << this_thread::get_id() << "]:"
-           << "Producer " << id << ":"
-           << "queue size: " << queue.size()
-           << " (" << (queue.empty() ? "empty" : "not empty")
-           << ", " << (queue.full() ? "full" : "not full") << ")." << endl;
-      print_mutex.unlock();
-      cerr << queue;
-#endif
-    }
-    --still_alive;
-#ifdef DEBUG
-    print_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "[thread " << this_thread::get_id() << "]:"
-         << "Producer " << id << ":"
-         << "still_alive = " << still_alive << ":"
-         << "file '" << filename << "' processed." << endl;
-    print_mutex.unlock();
-#endif
-  }
-
-  void consumer() {
-    while ((still_alive.load() > 0) || !queue.empty()) {
-      string kmer;
-      bool ok = queue.pop(kmer);
-      while (!queue.empty() && !ok) {
-        ok = queue.pop(kmer);
-#ifdef DEBUG
-        print_mutex.lock();
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "[thread " << this_thread::get_id() << "]:"
-             << "Consumer " << id << ":"
-             << "still_alive = " << still_alive.load() << ":"
-             << "queue.size() = " << queue.size() << ":"
-             << "Unable to pop any kmer." << endl;
-        print_mutex.unlock();
-#endif
-        this_thread::yield();
-        this_thread::sleep_for(1ns);
-      }
-      if (ok) {
-#ifdef DEBUG
-        print_mutex.lock();
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "[thread " << this_thread::get_id() << "]:"
-             << "Consumer " << id << ":"
-             << "k-mer '" << kmer << "' successfully popped." << endl;
-        print_mutex.unlock();
-#endif
-        Transformer::EncodedKmer encoded = transformer(kmer);
-        string decoded = transformer(encoded);
-
-#ifdef DEBUG
-        print_mutex.lock();
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "[thread " << this_thread::get_id() << "]:"
-             << "Consumer " << id << ":"
-             << "original kmer: '" << kmer << "'" << endl;
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "[thread " << this_thread::get_id() << "]:"
-             << "Consumer " << id << ":"
-             << "decoded kmer:  '" << decoded << "'" << endl;
-        print_mutex.unlock();
-#endif
-        assert(decoded == kmer);
-        lock_guard<mutex> g(index_mutex);
-        index[encoded.prefix].insert(encoded.suffix);
-      }
-    }
-#ifdef DEBUG
-    print_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "[thread " << this_thread::get_id() << "]:"
-         << "Consumer " << id << ":"
-         << "still_alive = " << still_alive << ":"
-         << "Producer " << id << " has finished." << endl;
-    print_mutex.unlock();
-    cerr << queue;
-#endif
-  }
-
-  void run() {
-    prod = thread(&KmerProducerConsumer::producer, this);
-    cons = thread(&KmerProducerConsumer::consumer, this);
-  }
-
-  void join() {
-    prod.join();
-    cons.join();
-  }
-
+struct infos {
+  chrono::milliseconds time;
+  long int memory;
 };
 
-size_t KmerProducerConsumer::counter = 0;
-atomic_size_t KmerProducerConsumer::still_alive = 0;
-
-
-index_t makeIndexMultiThread(const Transformer &transformer, const vector<string> &filenames, const string &tag) {
-
-  const Settings &s = transformer.settings;
-
-  size_t k1 = s.prefix_length;
-  size_t nb_subtrees = (1ul << (2 * k1));
-  index_t kmer_index(nb_subtrees);
-  mutex index_guardian;
+infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filenames) {
+  const Settings &s = kmer_index.settings;
 
   struct rusage rusage_start;
   getrusage(RUSAGE_SELF, &rusage_start);
-  auto start = std::chrono::high_resolution_clock::now();
+  auto start = chrono::high_resolution_clock::now();
 
-  CircularQueue<string> kmer_queue(10);
-  vector<KmerProducerConsumer> workers;
-  workers.reserve(filenames.size());
+  CircularQueue<string> kmer_queue(s.queue_size);
+  vector<KmerCollector> collectors;
+  collectors.reserve(filenames.size());
+  vector<KmerProcessor> processors;
+  size_t nb_threads = thread::hardware_concurrency();
+  if (nb_threads > 3 * filenames.size()) {
+    // Don't use more than 2 processor for 1 collector
+    nb_threads = 2 * filenames.size();
+  } else {
+    // If there is less than 2 processor for 1 collector...
+    if (nb_threads > 2 * filenames.size()) {
+      // If there is more than 1 processor for 1 collector, use all of available threads.
+      nb_threads -= filenames.size();
+    } else {
+      // Use at least 1 collector for 1 processor.
+      nb_threads = filenames.size();
+    }
+  }
+  // And always use one more thread.
+  ++nb_threads;
+  cerr << "Using " << nb_threads << " k-mer processor(s) [heuristic]"
+       << " for " << filenames.size() << " k-mer collector(s) [one per file]." << endl
+       << endl;
+  processors.reserve(nb_threads);
+
+#ifdef WATCH_QUEUE
+  thread watcher(threadsWatcher, cref(kmer_queue));
+#endif
 
   for (auto &filename: filenames) {
-    workers.emplace_back(s, filename, kmer_queue, transformer, kmer_index, index_guardian);
-    workers.back().run();
+    collectors.emplace_back(s, filename, kmer_queue);
+    collectors.back().run();
   }
 
-  for (auto &worker: workers) {
+  while (nb_threads--) {
+    processors.emplace_back(s, kmer_index, kmer_queue);
+    processors.back().run();
+  }
+
+  for (auto &worker: collectors) {
     worker.join();
   }
+
+  for (auto &worker: processors) {
+    worker.join();
+  }
+#ifdef WATCH_QUEUE
+  watcher.join();
+#endif
+
 #ifdef DEBUG
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "CircularQueue:" << endl
        << kmer_queue << endl;
 #endif
 
-  auto end = std::chrono::high_resolution_clock::now();
+  auto end = chrono::high_resolution_clock::now();
   struct rusage rusage_end;
   getrusage(RUSAGE_SELF, &rusage_end);
-  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-  auto memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
+  infos time_mem;
+  time_mem.time = chrono::duration_cast<chrono::milliseconds>(end - start);
+  time_mem.memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
 
-  cout << "# XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)\n"
-       << tag
-       << '\t' << s.length
-       << '\t' << s.prefix_length
-       << '\t' << transformer.description
-       << '\t' << elapsed.count()
-       << '\t' << memory
-       << endl;
-  return kmer_index;
-
-}
-
-index_t makeIndex(const Transformer &transformer, const vector<string> &filenames, const string &tag) {
-
-  const Settings &s = transformer.settings;
-
-  size_t k1 = s.prefix_length;
-  size_t nb_subtrees = (1ul << (2 * k1));
-  index_t kmer_index(nb_subtrees);
-  FileReader reader(s);
-
-  struct rusage rusage_start;
-  getrusage(RUSAGE_SELF, &rusage_start);
-  auto start = std::chrono::high_resolution_clock::now();
-
-  for (auto &filename: filenames) {
-    reader.open(filename);
-
-    if (!reader.isOpen()) {
-      cerr << "Error: Unable to open fasta/fastq file '" << filename << "'" << endl;
-      terminate();
-    }
-
-    // Process each kmer
-    while (reader.nextKmer()) {
-
-      const string &kmer = reader.getCurrentKmer();
-
-#ifdef DEBUG
-      if (reader.getCurrentKmerID(false) == 1) {
-        cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-             << "New sequence: '" << reader.getCurrentSequenceDescription() << "'" << endl;
-      }
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "k-mer '" << reader.getCurrentKmer()
-           << " (abs_ID: " << reader.getCurrentKmerID()
-           << ",  rel_ID: " << reader.getCurrentKmerID(false)
-           << ")" << endl;
-#endif
-
-      Transformer::EncodedKmer encoded = transformer(kmer);
-      string decoded = transformer(encoded);
-
-#ifdef DEBUG
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "original kmer: '" << kmer << "'" << endl;
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "decoded kmer:  '" << decoded << "'" << endl;
-#endif
-      assert(decoded == kmer);
-
-      kmer_index[encoded.prefix].insert(encoded.suffix);
-
-    }
-
-  }
-
-  auto end = std::chrono::high_resolution_clock::now();
-  struct rusage rusage_end;
-  getrusage(RUSAGE_SELF, &rusage_end);
-  auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-  auto memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
-
-  cout << "# XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)\n"
-       << tag
-       << '\t' << s.length
-       << '\t' << s.prefix_length
-       << '\t' << transformer.description
-       << '\t' << elapsed.count()
-       << '\t' << memory
-       << endl;
-  return kmer_index;
+  return time_mem;
 
 }
 
@@ -410,53 +214,32 @@ int main(int argc, char* argv[]) {
   for (auto &filename: filenames) {
     cerr << "- '" << filename << "'" << endl;
   }
+  cerr << endl;
 
-  index_t index;
+  KmerIndex index(settings);
 
-  if (settings.method == "identity") {
-    index = makeIndex(IdentityTransformer(settings), filenames, settings.tag);
-  } else if (settings.method == "inthash") {
-    index = makeIndex(IntHashTransformer(settings), filenames, settings.tag);
-  } else if (settings.method == "GAB") {
-    index = makeIndex(GaBTransformer(settings, 17, 42), filenames, settings.tag);
-  } else if (settings.method == "random") {
-    index = makeIndexMultiThread(PermutationTransformer(settings), filenames, settings.tag);
-  } else if (settings.method == "inverse") {
-    vector<size_t> p(settings.length);
-    for (size_t i = 0; i < settings.length; ++i) {
-      p[i] = settings.length - i - 1;
-    }
-    index = makeIndex(PermutationTransformer(settings, p, "Inverse"), filenames, settings.tag);
-  } else if (settings.method == "cyclic") {
-    vector<size_t> p(settings.length);
-    for (size_t i = 0; i < settings.length; ++i) {
-      p[i] = (i + 1) % settings.length;
-    }
-    index = makeIndex(PermutationTransformer(settings, p, "Cyclic"), filenames, settings.tag);
-  } else if (settings.method == "zigzag") {
-    vector<size_t> p(settings.length);
-    for (size_t i = 0; i < settings.length; ++i) {
-      p[i] = ((i & 1) ? (settings.length - i - (settings.length & 1)) : i);
-    }
-    index = makeIndex(PermutationTransformer(settings, p, "ZigZag"), filenames, settings.tag);
-  } else {
-    cerr << "Error: Unknown method '" << settings.method << "'" << endl;
-    return 1;
-  }
+  infos time_mem = makeIndexMultiThread(index, filenames);
+  map<string, double> stats = index.statistics();
 
-  map<string, double> stats = computeStatistics(index, settings.nb_bins);
-  char c = '#';
+  cout << "# XP\tLength\tPrefix-length\tMethod\tTime(ms)\tMemory(KB)";
   for (auto &info: stats) {
     const string &kw = info.first;
-    cout << c << kw.substr(kw.find(' ') + 1);
-    c = '\t';
-  }
-  c = '\n';
-  for (auto &info: stats) {
-    cout << c << info.second;
-    c = '\t';
+    cout << '\t' << kw.substr(kw.find(' ') + 1);
   }
   cout << endl;
+
+  cout << settings.tag
+       << '\t' << settings.length
+       << '\t' << settings.prefix_length
+       << '\t' << settings.method
+       << '\t' << time_mem.time.count()
+       << '\t' << time_mem.memory;
+  for (auto &info: stats) {
+    cout << '\t' << info.second;
+  }
+  cout << endl;
+
+  // cout << index << endl;
 
   return 0;
 }

@@ -9,6 +9,9 @@ LD = g++
 # Compiling options
 override CXXFLAGS += -Wall -Wextra -ansi -pedantic -I. -fopenmp -O3 -std=c++17 # For C++
 
+# Uncomment to enable queue evolution observation.
+ override CXXFLAGS += -DWATCH_QUEUE
+
 # Uncomment to enable printing of (lots of) debug informations.
  override CXXFLAGS += -DDEBUG
 
@@ -37,6 +40,9 @@ BijectHash_SOURCES = \
   identity_transformer.hpp identity_transformer.cpp		\
   inthash.h inthash.c						\
   inthash_transformer.hpp inthash_transformer.cpp		\
+  kmer_collector.hpp kmer_collector.cpp				\
+  kmer_index.hpp kmer_index.cpp					\
+  kmer_processor.hpp kmer_processor.cpp				\
   locker.hpp locker.cpp						\
   main.cpp							\
   permutations.hpp permutations.cpp				\
