@@ -10,13 +10,13 @@ LD = g++
 override CXXFLAGS += -Wall -Wextra -ansi -pedantic -I. -fopenmp -O3 -std=c++17 # For C++
 
 # Uncomment to enable queue evolution observation.
- override CXXFLAGS += -DWATCH_QUEUE
+#override CXXFLAGS += -DWATCH_QUEUE
 
 # Uncomment to enable printing of (lots of) debug informations.
- override CXXFLAGS += -DDEBUG
+#override CXXFLAGS += -DDEBUG
 
 # Uncomment to disable assertion checking.
-#override CXXFLAGS += -DNDEBUG
+override CXXFLAGS += -DNDEBUG
 
 LDFLAGS = -pthread# Linker Options
 

@@ -1,3 +1,72 @@
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile:
+	Deactivate debug and circular queue watcher and remove assertion checking in the default makefile options.
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/kmer_collector.cpp, src/kmer_collector.hpp,
+	src/kmer_processor.cpp, src/kmer_processor.hpp, src/main.cpp:
+	Add KmerCollector and KmerProcessor classes and moves most of teh main code into these two classes.
+	Add a watcher to observe the circular queue evolution.
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/kmer_index.cpp, src/kmer_index.hpp:
+	Add a KmerIndex data structure to correctly handle concurrent access.
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* doc/Doxyfile, src/file_reader.hpp, src/gab_transformer.hpp:
+	Improve doxygen documentation.
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/program_options.cpp, src/settings.cpp, src/settings.hpp:
+	Add a new program option to change the circular queue capacity (defaults to 1024).
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/identity_transformer.hpp, src/inthash_transformer.hpp,
+	src/permutation_transformer.cpp, src/permutation_transformer.hpp:
+	BugFix: The description of teh PermutationTransformer was performed on the constructor parameter and not to the constructor attribute.
+	Code Refactoring: just explicitly mark the overrided method.
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/file_reader.cpp, src/file_reader.hpp,
+	src/permutation_transformer.cpp:
+	Code refactoring: Removing of the private _reset() method from fileReader class since is is mostly what to do when closing the file.
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/circular_queue.hpp, src/file_reader.cpp,
+	src/gab_transformer.cpp, src/permutation_transformer.cpp,
+	src/transformer.cpp:
+	Use the io_mutex spin-lock mutex to display messages.
+	
+	
+2024-03-11  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/locker.cpp, src/locker.hpp:
+	Add a spin-lock mutex class, a locker guardian facility and a multiple readers - single writer handler class.
+	
+	
+2024-03-07  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/benchmark.cpp, src/{fileReader.cpp =>
+	file_reader.cpp}, src/{fileReader.hpp => file_reader.hpp},
+	src/main.cpp, src/permutations.cpp:
+	Rename fileReader.* files in order to have the same naming convention for all source files.
+	
+	
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
 	* src/Makefile, src/circular_queue.hpp, src/main.cpp,
