@@ -36,7 +36,6 @@ private:
   size_t _kmer_id_offset;
   size_t _current_kmer_id;
 
-  void _reset();
   bool _nextKmerFromFasta();
   bool _nextKmerFromFastq();
 

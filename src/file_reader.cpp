@@ -10,20 +10,6 @@ FileReader::FileReader(const Settings &s, const string &filename): _settings(s) 
   open(filename);
 }
 
-void FileReader::_reset() {
-  _filename.clear();
-  _is.clear();
-  _line = 0;
-  _column = 0;
-  _format = UNDEFINED;
-  _current_sequence_description.clear();
-  _current_sequence_length = 0;
-  _current_kmer.clear();
-  _current_kmer.reserve(_settings.length);
-  _kmer_id_offset = 0;
-  _current_kmer_id = 0;
-}
-
 bool FileReader::open(const string &filename) {
   close();
   if (!filename.empty()) {
@@ -38,17 +24,27 @@ bool FileReader::open(const string &filename) {
       default: close();
       }
     } else {
-      _reset();
+      close();
     }
   }
   return (_format != UNDEFINED);
 }
 
 void FileReader::close() {
+  _filename.clear();
   if (_is.is_open()) {
     _is.close();
   }
-  _reset();
+  _is.clear();
+  _line = 0;
+  _column = 0;
+  _format = UNDEFINED;
+  _current_sequence_description.clear();
+  _current_sequence_length = 0;
+  _current_kmer.clear();
+  _current_kmer.reserve(_settings.length);
+  _kmer_id_offset = 0;
+  _current_kmer_id = 0;
 }
 
 bool FileReader::_nextKmerFromFasta() {

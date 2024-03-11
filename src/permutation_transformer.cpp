@@ -10,6 +10,10 @@
 
 using namespace std;
 
+#ifdef DEBUG
+#include "locker.hpp"
+#endif
+
 PermutationTransformer::PermutationTransformer(const Settings &s, const vector<size_t> &permutation, const std::string &description):
   Transformer(s, description),
   _permutation(permutation.size() == settings.length ? permutation : _generateRandomPermutation(settings.length)),
@@ -27,6 +31,8 @@ PermutationTransformer::PermutationTransformer(const Settings &s, const vector<s
   }
 #ifdef DEBUG
   io_mutex.lock();
+  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "description: '" << description << "'" << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "permutation:" << endl;
   cerr << "  ";
