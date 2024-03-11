@@ -2,6 +2,9 @@
 #define __SETTINGS_HPP__
 
 #include <iostream>
+#include <memory>
+
+class Transformer;
 
 /**
  * A simple structure to handle all necessary informations settings.
@@ -34,9 +37,22 @@ struct Settings {
   size_t nb_bins;
 
   /**
+   * The circular queue size to share data between the k-mer collectors and processors.
+   */
+  size_t queue_size;
+
+  /**
    * Verbosity of the program.
    */
   bool verbose;
+
+  /**
+   * Provide the transformer corresponding to this settings.
+   *
+   * \return Returns a shared pointer to the wanted transformer or
+   * NULL if settings are incorrect.
+   */
+  const std::shared_ptr<const Transformer> transformer() const;
 
 };
 

@@ -23,6 +23,7 @@ const Settings ProgramOptions::default_settings =
    available_methods[0] /* method */,
    "" /* tag */,
    100 /* nb_bins */,
+   1024 /* queue_size */,
    true /* verbose */
   };
 
@@ -37,6 +38,7 @@ void ProgramOptions::usage() const {
        << " -k | --length <value>" << "\t\t" << "Set the k-mer length (default: " << default_settings.length << ")." << endl
        << " -p | --prefix-length <value>" << "\t" << "Set the prefix length of k-mers (default: " << default_settings.prefix_length << ")." << endl
        << " -n | --nb-bins <value>" << "\t" << "Number of bins for the computed statistics (default: " << default_settings.nb_bins << ")." << endl
+       << " -s | --queue-size <value>" << "\t" << "Size of the circular queue (rounded to the ceiling power of two) used to share k-mers between collectors and processors (default: " << default_settings.queue_size << " -k-mers)." << endl
        << " -t | --tag <string>" << "\t" << "The experiment tag (default is the coma separated list of input files)." << endl
        << " -m | --method <method>" << "\t\t" << "The k-mer transformation method to use (default: " << default_settings.method << ")." << endl
        << endl
@@ -119,6 +121,17 @@ ProgramOptions::ProgramOptions(int argc, char** argv):
           char *ptr;
           _settings.nb_bins = strtoul(argv[++i], &ptr, 10);
           if ((_settings.nb_bins == 0) || (*ptr != '\0')) {
+            err = 2;
+            --i;
+          }
+        } else {
+          err = 1;
+        }
+      } else if ((opt == "queue-size") || (opt == "s")) {
+        if ((i + 1) < argc) {
+          char *ptr;
+          _settings.queue_size = strtoul(argv[++i], &ptr, 10);
+          if ((_settings.queue_size == 0) || (*ptr != '\0')) {
             err = 2;
             --i;
           }
