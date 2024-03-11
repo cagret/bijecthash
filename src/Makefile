@@ -8,6 +8,13 @@ LD = g++
 
 # Compiling options
 override CXXFLAGS += -Wall -Wextra -ansi -pedantic -I. -fopenmp -O3 -std=c++17 # For C++
+
+# Uncomment to enable printing of (lots of) debug informations.
+ override CXXFLAGS += -DDEBUG
+
+# Uncomment to disable assertion checking.
+#override CXXFLAGS += -DNDEBUG
+
 LDFLAGS = -pthread# Linker Options
 
 # Silent production rules
@@ -30,6 +37,7 @@ BijectHash_SOURCES = \
   identity_transformer.hpp identity_transformer.cpp		\
   inthash.h inthash.c						\
   inthash_transformer.hpp inthash_transformer.cpp		\
+  locker.hpp locker.cpp						\
   main.cpp							\
   permutations.hpp permutations.cpp				\
   permutation_transformer.hpp permutation_transformer.cpp	\

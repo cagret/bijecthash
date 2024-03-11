@@ -1,145 +1,290 @@
 #ifndef __CIRCULAR_QUEUE_HPP__
 #define __CIRCULAR_QUEUE_HPP__
 
-//#include <atomic>
+#include <atomic>
 #include <vector>
-#include <mutex>
+#include <locker.hpp>
 
-extern std::mutex print_mutex;
-
+/**
+ * A template basic implementation of a thread safe circular queue (of
+ * some given fixed capacity).
+ *
+ * Notice that even if it uses atomic variables, the current
+ * implementation is not lock free at all.
+ */
 template <typename T>
 class CircularQueue {
 
-private:
-  T *_data;
-  std::vector<bool> _available;
-  const size_t _capacity;
-  // std::atomic_size_t _size;
-  // std::atomic_size_t _first;
-  // std::atomic_size_t _last;
-  size_t _size;
-  size_t _first;
-  size_t _last;
-  mutable std::mutex _mutex;
+public:
 
+  /**
+   * The capacity of the queue.
+   */
+  const size_t capacity;
+
+private:
+
+  /**
+   * Multithread mutex locker
+   */
+  mutable SpinlockMutex _mutex;
+
+  /**
+   * Mask to compute modulo more efficiently
+   */
+  const size_t _mask;
+
+  /**
+   * The data to store in this queue.
+   */
+  T *_data;
+
+  /**
+   * The current number of elements in this queue.
+   */
+  std::atomic_size_t _size;
+
+  /**
+   * The index of the first queued element.
+   */
+  std::atomic_size_t _first;
+
+  /**
+   * The index of the after-the-last queued element.
+   */
+  std::atomic_size_t _last;
+
+  /**
+   * For thread safety, move assignment operator is removed.
+   */
   CircularQueue &operator=(const CircularQueue &&) = delete;
+
+  /**
+   * For thread safety, copy assignment operator is removed.
+   */
   CircularQueue &operator=(const CircularQueue &) = delete;
+
+  /**
+   * For thread safety, copy constructor is removed.
+   */
   CircularQueue(const CircularQueue &) = delete;
 
-  bool _threadUnsafePush(const T &t) {
-    if (_threadUnsafeFull()) return false;
-    _data[_last++] = t;
-    _last %= _capacity;
-    ++_size;
-    return true;
-  }
-
-  bool _threadUnsafeEmplace(const T &&t) {
-    if (_threadUnsafeFull()) return false;
-    _data[_last++] = std::move(t);
-    _last %= _capacity;
-    ++_size;
-    return true;
-  }
-
-  bool _threadUnsafePop(T &t) {
-    if (_threadUnsafeEmpty()) return false;
-    t = _data[_first++];
-    _first %= _capacity;
-    --_size;
-    return true;
-  }
-
-  size_t _threadUnsafeSize() const {
-    return _size;
-  }
-
-  bool _threadUnsafeEmpty() const {
-    return (_threadUnsafeSize() == 0);
-  }
-
-  bool _threadUnsafeFull() const {
-    return (_threadUnsafeSize() == _capacity);
+  /**
+   * Get the ceiling power of two of the given number
+   *
+   * \param n The value to ceil.
+   *
+   * \return Returns the ceiling power of two of the given value.
+   */
+  inline static size_t _nextPowerOfTwo(size_t n) {
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    n |= n >> 32;
+    n++;
+    return n;
   }
 
 public:
 
+  /**
+   * Create a thread safe circular queue of the given capacity.
+   *
+   * \param capacity The amount of data that can be stored in the
+   * queue. Notice that for performance consideration, the capacity is
+   * rounded to the closest to capacity power of two value.
+   */
   CircularQueue(size_t capacity):
-    _data(new T[capacity]),
-    _capacity(capacity),
+    capacity(_nextPowerOfTwo(capacity)),
+    _mask(this->capacity - 1),
+    _data(new T[this->capacity]),
     _size(0),
     _first(0),
     _last(0)
-  {}
+  {
+#ifdef DEBUG
+    io_mutex.lock();
+    std::cerr << "Creating a circular queue having capacity " << capacity << std::endl;
+    io_mutex.unlock();
+#endif
+  }
 
+  /**
+   * Destructor
+   */
   ~CircularQueue() {
-    if (_capacity) {
+    if (capacity) {
       delete [] _data;
     }
   }
 
+  /**
+   * Try to enqueue a copy of the given element in this queue.
+   *
+   * \param t The element to enqueue.
+   *
+   * \return This return true on success and false otherwise (when the
+   * queue is full).
+   */
   bool push(const T &t) {
-    // if (full()) return false;
-    // size_t p = _last.load(std::memory_order_acquire);
-    // _data[p++] = t;
-    // p %= _capacity;
-    // ++_size;
-    // _last.store(p, std::memory_order_release);
-    std::lock_guard<std::mutex> g(_mutex);
-    return _threadUnsafePush(t);
+    LockerGuardian g(_mutex);
+#ifdef DEBUG
+    io_mutex.lock();
+    std::cerr << "Try to enqueue some element on queue of size " << _size.load()
+              << " which is [" << _first.load() << ", " << _last.load() << "["
+              << std::endl;
+    io_mutex.unlock();
+#endif
+    if (full()) return false;
+#ifdef DEBUG
+    io_mutex.lock();
+    std::cerr << "Ok, let's go..." << std::endl;
+    io_mutex.unlock();
+#endif
+    size_t p = _last.load();
+#ifdef DEBUG
+    size_t p_copy = p;
+    io_mutex.lock();
+    std::cerr << "Adding element at position " << p_copy << std::endl;
+    io_mutex.unlock();
+#endif
+    _data[p++] = t;
+    p = p & _mask;
+    ++_size;
+    _last.store(p);
+#ifdef DEBUG
+    io_mutex.lock();
+    std::cerr << "Element added at position " << p_copy
+              << ", now size is " << _size.load()
+              << " which is [" << _first.load() << ", " << _last.load() << "["
+              << std::endl;
+    io_mutex.unlock();
+#endif
+    return true;
   }
 
+  /**
+   * Try to enqueue the given element in this queue.
+   *
+   * \param t The element to enqueue.
+   *
+   * \return This return true on success and false otherwise (when the
+   * queue is full).
+   */
   bool emplace(const T &&t) {
-    // if (full()) return false;
-    // size_t p = _last.load(std::memory_order_acquire);
-    // _data[p++] = std::move(t);
-    // p %= _capacity;
-    // ++_size;
-    // _last.store(p, std::memory_order_release);
-    std::lock_guard<std::mutex> g(_mutex);
-    return _threadUnsafeEmplace(t);
+    LockerGuardian g(_mutex);
+    if (full()) return false;
+    size_t p = _last.load();
+    _data[p++] = std::move(t);
+    p = p & _mask;
+    ++_size;
+    _last.store(p);
+    return true;
   }
 
+  /**
+   * Try to dequeue the oldest element in this queue.
+   *
+   * \param t A variable where to store the dequeued element.
+   *
+   * \return This return true on success and false otherwise (when the
+   * queue is empty).
+   */
   bool pop(T &t) {
-    // if (empty()) return false;
-    // size_t p = _first.load(std::memory_order_acquire);
-    // t = std::move(_data[p++]);
-    // p %= _capacity;
-    // --_size;
-    // _first.store(p, std::memory_order_release);
-    std::lock_guard<std::mutex> g(_mutex);
-    return _threadUnsafePop(t);
+    LockerGuardian g(_mutex);
+#ifdef DEBUG
+    io_mutex.lock();
+    std::cerr << "Try to dequeue some element on queue of size " << _size.load()
+              << " which is [" << _first.load() << ", " << _last.load() << "["
+              << std::endl;
+    io_mutex.unlock();
+#endif
+    if (empty()) return false;
+#ifdef DEBUG
+    io_mutex.lock();
+    std::cerr << "Ok, let's go..." << std::endl;
+    io_mutex.unlock();
+#endif
+    size_t p = _first.load();
+#ifdef DEBUG
+    size_t p_copy = p;
+    io_mutex.lock();
+    std::cerr << "Removing element at position " << p_copy << std::endl;
+    io_mutex.unlock();
+#endif
+    t = std::move(_data[p++]);
+    p = p & _mask;
+    --_size;
+    _first.store(p);
+#ifdef DEBUG
+    io_mutex.lock();
+    std::cerr << "Element removed from position " << p_copy
+              << ", now size is " << _size.load()
+              << " which is [" << _first.load() << ", " << _last.load() << "["
+              << std::endl;
+    io_mutex.unlock();
+#endif
+    return true;
   }
 
+  /**
+   * Get the size of this queue.
+   *
+   * \return Returns the number of enqueued elements.
+   */
   size_t size() const {
-    // return _size.load();
-    std::lock_guard<std::mutex> g(_mutex);
-    return _threadUnsafeSize();
+    return _size.load();
   }
 
+  /**
+   * Check if there is some elements in this queue.
+   *
+   * \return Returns true if there is no element in this queue and
+   * false otherwise.
+   */
   bool empty() const {
-    // return (size() == 0);
-    std::lock_guard<std::mutex> g(_mutex);
-    return _threadUnsafeEmpty();
+    return (size() == 0);
   }
 
+  /**
+   * Check if there is some available room in this queue.
+   *
+   * \return Returns true if there is no room to add some element in
+   * this queue and false otherwise.
+   */
   bool full() const {
-    // return (size() == _capacity);
-    std::lock_guard<std::mutex> g(_mutex);
-    return _threadUnsafeFull();
+    return (size() == capacity);
   }
 
+  /**
+   * Print this queue to the given stream.
+   *
+   * \param os The output stream on which to print this queue.
+   */
   void toStream(std::ostream &os) const {
-    std::lock_guard<std::mutex> g(print_mutex);
+    LockerGuardian g1(_mutex);
+    LockerGuardian g2(io_mutex);
     os << "CircularQueue:\n";
-    for (size_t i = 0; i < _size; ++i) {
-      os << "- '" << _data[(_first + i) % _capacity] << "'\n";
+    size_t n = _size.load();
+    for (size_t i = 0; i < n; ++i) {
+      os << "- '" << _data[(_first + i) & _mask] << "'\n";
     }
-    os << std::endl;
   }
 
 };
 
+/**
+ * Overloads the stream insertion operator for circular queues.
+ *
+ * \param os The output stream on which to insert the queue.
+ *
+ * \param q The que to insert into the stream.
+ *
+ * \return Returns the modified output stream.
+ */
 template <typename T>
 std::ostream &operator<<(std::ostream &os, const CircularQueue<T> &q) {
   q.toStream(os);

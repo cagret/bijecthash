@@ -26,6 +26,7 @@ PermutationTransformer::PermutationTransformer(const Settings &s, const vector<s
     *desc_ptr += "]";
   }
 #ifdef DEBUG
+  io_mutex.lock();
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "permutation:" << endl;
   cerr << "  ";
@@ -50,6 +51,7 @@ PermutationTransformer::PermutationTransformer(const Settings &s, const vector<s
     cerr << setw(4) << _reverse_permutation[i];
   }
   cerr << endl;
+  io_mutex.unlock();
 #endif
 }
 
@@ -84,6 +86,7 @@ Transformer::EncodedKmer PermutationTransformer::operator()(const std::string &k
   EncodedKmer e;
   string permuted_kmer = _applyPermutation(kmer, _permutation);
 #ifdef DEBUG
+  io_mutex.lock();
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "Permuted k-mer:   '" << permuted_kmer << "'" << endl;
   string unpermuted_kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
@@ -93,8 +96,9 @@ Transformer::EncodedKmer PermutationTransformer::operator()(const std::string &k
     cerr << "Error: the unpermuted k-mer"
          << " differs from the original k-mer"
          << endl;
-    terminate();
+    exit(1);
   }
+  io_mutex.unlock();
 #endif
   e.prefix = _encode(permuted_kmer.c_str(), settings.prefix_length);
   e.suffix = _encode(permuted_kmer.c_str() + settings.prefix_length, settings.length - settings.prefix_length);

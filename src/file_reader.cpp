@@ -2,6 +2,8 @@
 #include <cassert>
 #include <iostream>
 
+#include <locker.hpp>
+
 using namespace std;
 
 FileReader::FileReader(const Settings &s, const string &filename): _settings(s) {
@@ -66,8 +68,10 @@ bool FileReader::_nextKmerFromFasta() {
     char c = _is.get();
     bool warn = _settings.verbose;
 #ifdef DEBUG
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "Processing char '" << c << "'" << endl;
+    io_mutex.lock();
+    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+         << "Processing char '" << c << "'" << endl;
+    io_mutex.unlock();
 #endif
     ++_column;
     if (_current_sequence_description.empty()) {
@@ -135,12 +139,14 @@ bool FileReader::_nextKmerFromFasta() {
         _current_kmer.clear();
         k = 0;
         if (_settings.verbose) {
+          io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " degeneracy symbol '" << c << "'"
                << " found in sequence '" << _current_sequence_description << "'."
                << endl;
+          io_mutex.unlock();
         }
         if (++_current_sequence_length >= _settings.length) {
           ++_current_kmer_id;
@@ -148,12 +154,14 @@ bool FileReader::_nextKmerFromFasta() {
         break;
       default:
         if (_settings.verbose) {
+          io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " unexpected symbol '" << c << "'"
                << " for sequence '" << _current_sequence_description << "'."
                << endl;
+          io_mutex.unlock();
         }
         warn = false;
       }
@@ -161,10 +169,12 @@ bool FileReader::_nextKmerFromFasta() {
     warn &= (k < _settings.length);
     warn &= (_current_sequence_length >= _settings.length);
     if (warn) {
+      io_mutex.lock();
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
            << " and relative ID " << getCurrentKmerID(false)
            << " is ignored since it contains some degeneracy symbols."
            << endl;
+      io_mutex.unlock();
     }
   }
 
@@ -177,12 +187,14 @@ bool FileReader::_nextKmerFromFasta() {
   }
 #ifdef DEBUG
   else {
+    io_mutex.lock();
     cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
          << "current sequence description: " << getCurrentSequenceDescription() << endl;
     cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
          << "current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl;
     cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
          << "k = " << k << " and _settings.length = " << _settings.length << endl;
+    io_mutex.unlock();
   }
 #endif
 
@@ -210,8 +222,10 @@ bool FileReader::_nextKmerFromFastq() {
     char c = _is.get();
     bool warn = _settings.verbose;
 #ifdef DEBUG
+    io_mutex.lock();
     cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
          << "Processing char '" << c << "'" << endl;
+    io_mutex.unlock();
 #endif
     ++_column;
 
@@ -219,8 +233,10 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 0: {
 #ifdef DEBUG
+      io_mutex.lock();
       cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
            << "State 0 (expecting sequence header)" << endl;
+      io_mutex.unlock();
 #endif
       assert(_current_sequence_description.empty());
       // Expects a new sequence description header
@@ -239,8 +255,10 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 1: {
 #ifdef DEBUG
+      io_mutex.lock();
       cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
            << "State 1 (processing nucl. sequence)" << endl;
+      io_mutex.unlock();
 #endif
       switch (c) {
       case '\n':
@@ -295,12 +313,14 @@ bool FileReader::_nextKmerFromFastq() {
         _current_kmer.clear();
         k = 0;
         if (_settings.verbose) {
+          io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " degeneracy symbol '" << c << "'"
                << " found in sequence '" << _current_sequence_description << "'."
                << endl;
+          io_mutex.unlock();
         }
         if (++_current_sequence_length >= _settings.length) {
           ++_current_kmer_id;
@@ -308,12 +328,14 @@ bool FileReader::_nextKmerFromFastq() {
         break;
       default:
         if (_settings.verbose) {
+          io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
                << "' (line " << _line << ", column " << _column << "):"
                << " unexpected symbol '" << c << "'"
                << " for sequence '" << _current_sequence_description << "'."
                << endl;
+          io_mutex.unlock();
         }
         warn = false;
       }
@@ -322,8 +344,10 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 2: {
 #ifdef DEBUG
+      io_mutex.lock();
       cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
            << "State 2 (sequence separator)" << endl;
+      io_mutex.unlock();
 #endif
       assert(c == '+');
       assert(_column == 1);
@@ -331,12 +355,14 @@ bool FileReader::_nextKmerFromFastq() {
       getline(_is, desc);
       _column += desc.length();
       if (_settings.verbose && !(desc.empty() || (desc == _current_sequence_description))) {
+        io_mutex.lock();
         cerr << "Warning: "
              << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " repeated sequence description '" << desc << "'"
              << " doesn't match with '" << _current_sequence_description << "'."
              << endl;
+        io_mutex.unlock();
       }
       state = 3;
       break;
@@ -344,8 +370,10 @@ bool FileReader::_nextKmerFromFastq() {
 
     case 3: {
 #ifdef DEBUG
+      io_mutex.lock();
       cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
            << "State 3 (processing quality for the remaining " << nb << "symbols)" << endl;
+      io_mutex.unlock();
 #endif
       if (c == '\n') {
         ++_line;
@@ -358,17 +386,20 @@ bool FileReader::_nextKmerFromFastq() {
         assert(nb);
           --nb;
       } else if (_settings.verbose && (c != ' ') && (c != -1)) {
+        io_mutex.lock();
         cerr << "Warning: "
              << "file '" << _filename
              << "' (line " << _line << ", column " << _column << "):"
              << " unexpected symbol with ASCII code " << hex << (int) c << dec
              << " for sequence '" << _current_sequence_description << "'."
              << endl;
+        io_mutex.unlock();
       }
       break;
     }
 
     default:
+      io_mutex.lock();
       cerr << "BUG: this situation should never occur!!! "
            << "     "
            << "file '" << _filename
@@ -376,17 +407,20 @@ bool FileReader::_nextKmerFromFastq() {
            << " character '" << c << "'"
            << " for sequence '" << _current_sequence_description << "'."
            << endl;
-      terminate();
+      exit(1);
+      io_mutex.unlock();
     }
 
     warn &= (state == 1);
     warn &= (k < _settings.length);
     warn &= (_current_sequence_length >= _settings.length);
     if (warn) {
+      io_mutex.lock();
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
            << " and relative ID " << getCurrentKmerID(false)
            << " is ignored since it contains some degeneracy symbols."
            << endl;
+      io_mutex.unlock();
     }
   }
 
@@ -399,12 +433,14 @@ bool FileReader::_nextKmerFromFastq() {
   }
 #ifdef DEBUG
   else {
+    io_mutex.lock();
     cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
          << "current sequence description: " << getCurrentSequenceDescription() << endl;
     cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
          << "current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl;
     cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
          << "k = " << k << " and _settings.length = " << _settings.length << endl;
+    io_mutex.unlock();
   }
 #endif
 

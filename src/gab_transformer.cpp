@@ -2,6 +2,10 @@
 
 #include <cassert>
 
+#ifdef DEBUG
+#include <locker.hpp>
+#endif
+
 using namespace std;
 
 // trick to assign new values for a and b using computation of both old values
@@ -38,6 +42,7 @@ static uint64_t _multiplicativeInverse(uint64_t a, size_t sigma) {
     _assign(b1, a1 - q * b1, a1, b1);
   }
 #ifdef DEBUG
+  io_mutex.lock();
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "a = " << a << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
@@ -46,6 +51,7 @@ static uint64_t _multiplicativeInverse(uint64_t a, size_t sigma) {
        << "a * a' = " << (a * x) << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "(a * a') & " << ((1ul << sigma) - 1) << " = " << ((a * x) & ((1ul << sigma) - 1)) << endl;
+  io_mutex.unlock();
 #endif
   assert(((a * x) & ((1ul << sigma) - 1)) == 1);
   return x;
@@ -68,6 +74,7 @@ uint64_t GaBTransformer::_rotate(uint64_t s) const {
 
 uint64_t GaBTransformer::_G(uint64_t s) const {
 #ifdef DEBUG
+  io_mutex.lock();
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "s = " << s << endl;
   uint64_t rotation = _rotate(s);
@@ -79,12 +86,14 @@ uint64_t GaBTransformer::_G(uint64_t s) const {
        << "_a * (_rotate(s) ^ _b) = " << (_a * (rotation ^ _b)) << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "(_a * (_rotate(s) ^ _b)) & _kmer_mask = " << ((_a * (rotation ^ _b)) & _kmer_mask) << endl;
+  io_mutex.unlock();
 #endif
   return ((_a * (_rotate(s) ^ _b)) & _kmer_mask);
 }
 
 uint64_t GaBTransformer::_G_rev(uint64_t s) const {
 #ifdef DEBUG
+  io_mutex.lock();
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "s = " << s << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
@@ -95,6 +104,7 @@ uint64_t GaBTransformer::_G_rev(uint64_t s) const {
        << "((_rev_a * s) & _kmer_mask) ^ _b = " << (((_rev_a * s) & _kmer_mask) ^ _b) << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "_rotate(((_rev_a * s) & _kmer_mask) ^ _b) = " << _rotate(((_rev_a * s) & _kmer_mask) ^ _b) << endl;
+  io_mutex.unlock();
 #endif
   return _rotate(((_rev_a * s) & _kmer_mask) ^ _b);
 }
@@ -107,6 +117,7 @@ Transformer::EncodedKmer GaBTransformer::operator()(const std::string &kmer) con
   v = _G(v);
 #ifdef DEBUG
   uint64_t rev_v = _G_rev(v);
+  io_mutex.lock();
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "orig = " << orig << endl;
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
@@ -114,6 +125,7 @@ Transformer::EncodedKmer GaBTransformer::operator()(const std::string &kmer) con
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "rev_v = " << rev_v << endl;
   assert(orig == rev_v);
+  io_mutex.unlock();
 #endif
   EncodedKmer e;
   e.prefix = v >> _prefix_shift;
