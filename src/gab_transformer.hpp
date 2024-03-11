@@ -65,6 +65,8 @@ private:
    * the s binary value.
    *
    * \param s The bits to rotate.
+   *
+   * \return Returns the rotated bits of the s binary value.
    */
   uint64_t _rotate(uint64_t s) const;
 
@@ -73,14 +75,18 @@ private:
    * b, and sigma.
    *
    * \param s The bits to permute
+   *
+   * \return Return the image of s by the permutation.
    */
   uint64_t _G(uint64_t s) const;
 
   /**
-   * The static function that computes the reverse permutation of s
+   * The static function that computes the inverse permutation of s
    * given rev_a, b, and sigma.
    *
    * \param s The bits to restore (reverse permute)
+   *
+   * \return Return the preimage of s by the permutation.
    */
   uint64_t _G_rev(uint64_t s) const;
 

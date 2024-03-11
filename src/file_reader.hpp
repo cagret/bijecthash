@@ -16,27 +16,94 @@ public:
    * The file format
    */
   enum Format {
-        FASTA,     /**< File is fasta formatted */
-        FASTQ,     /**< File is fastq formatted */
-        UNDEFINED, /**< File format is not detected */
+               FASTA,     /**< File is fasta formatted */
+               FASTQ,     /**< File is fastq formatted */
+               UNDEFINED, /**< File format is not detected */
   };
 
 private:
 
+  /**
+   * The reader settings (only length and verbose attributes are
+   * used).
+   */
   const Settings &_settings;
+
+  /**
+   * The currently associated filename.
+   */
   std::string _filename;
+
+  /**
+   * The input stream associated to the filename (if any).
+   */
   std::ifstream _is;
+
+  /**
+   * The number of the current line in the file (starting at 1, if no
+   * file is open then 0).
+   */
   size_t _line;
+
+  /**
+   * The number of the current column in the file (starting at 1, if
+   * no file is open then 0).
+   */
   size_t _column;
+
+  /**
+   * The file format.
+   */
   Format _format;
 
+  /**
+   * The current sequence description (empty if no k-mer is
+   * available).
+   */
   std::string _current_sequence_description;
+
+  /**
+   * The current sequence length (until the end of the current k-mer)
+   */
   size_t _current_sequence_length;
+
+  /**
+   * The current k-mer.
+   */
   std::string _current_kmer;
+
+  /**
+   * The offset needed to compute the relative ID of the current k-mer
+   * using its absolute ID (this is the absolute ID of the last k-mer
+   * of the previous sequence).
+   */
   size_t _kmer_id_offset;
+
+  /**
+   * The absolute ID of the current k-mer.
+   */
   size_t _current_kmer_id;
 
+  /**
+   * Load the next available k-mer from the current file assuming it
+   * is Fasta formatted.
+   *
+   * \return Returns true if a k-mer has been loaded (if the file is
+   * opened and has a k-mer) and false otherwise (if no file is
+   * opened, if the file is opened but is not fasta formatted or if
+   * the file is opened, fasta formatted but contains no more k-mer).
+   */
   bool _nextKmerFromFasta();
+
+  /**
+   * Load the next available k-mer from the current file assuming it
+   * is Fastq formatted.
+   *
+   * \return Returns true if a k-mer has been loaded (if the file is
+   * opened and has a k-mer) and false otherwise (if no file is
+   * opened, if the file is opened but is not fastq formatted or if
+   * the file is opened, fastq formatted but contains no more k-mer).
+   */
   bool _nextKmerFromFastq();
 
 public:
