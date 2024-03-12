@@ -124,16 +124,17 @@ void threadsWatcher(const CircularQueue<string> &queue) {
 #endif
 
 struct infos {
-  chrono::milliseconds time;
+  //chrono::milliseconds time;
+  long int time;
   long int memory;
 };
 
 infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filenames) {
   const Settings &s = kmer_index.settings;
 
-  struct rusage rusage_start;
+  struct rusage rusage_start, rusage_end;
   getrusage(RUSAGE_SELF, &rusage_start);
-  auto start = chrono::high_resolution_clock::now();
+  //auto start = chrono::high_resolution_clock::now();
 
   CircularQueue<string> kmer_queue(s.queue_size);
   vector<KmerCollector> collectors;
@@ -191,11 +192,12 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
        << kmer_queue << endl;
 #endif
 
-  auto end = chrono::high_resolution_clock::now();
-  struct rusage rusage_end;
+  //auto end = chrono::high_resolution_clock::now();
+  //struct rusage rusage_end;
   getrusage(RUSAGE_SELF, &rusage_end);
   infos time_mem;
-  time_mem.time = chrono::duration_cast<chrono::milliseconds>(end - start);
+  //time_mem.time = chrono::duration_cast<chrono::milliseconds>(end - start);
+  time_mem.time = rusage_end.ru_utime.tv_usec - rusage_start.ru_utime.tv_usec;
   time_mem.memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
 
   return time_mem;
@@ -232,7 +234,8 @@ int main(int argc, char* argv[]) {
        << '\t' << settings.length
        << '\t' << settings.prefix_length
        << '\t' << index.transformer().description
-       << '\t' << time_mem.time.count()
+       //<< '\t' << time_mem.time.count()
+       << '\t' << time_mem.time
        << '\t' << time_mem.memory;
   for (auto &info: stats) {
     cout << '\t' << info.second;

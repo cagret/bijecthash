@@ -1,9 +1,12 @@
 *.o
 *.fa
 *.fasta
+*.fastq
 *.pdf
 *.csv
 *.png
+*.txt
+*.awk
 *.py
 a.out
 benchmark
