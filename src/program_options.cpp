@@ -1,6 +1,7 @@
 #include "program_options.hpp"
 
 #include <libgen.h>
+#include <cstdlib>
 #include <algorithm>
 
 using namespace std;
@@ -13,7 +14,7 @@ const vector<string> ProgramOptions::available_methods =
    "inverse",
    "zigzag",
    "inthash",
-   "GAB"
+   "GAB[=a,b]"
   };
 
 const Settings ProgramOptions::default_settings =
@@ -26,6 +27,22 @@ const Settings ProgramOptions::default_settings =
    1024 /* queue_size */,
    true /* verbose */
   };
+
+// Build a filtering comparison operator based on the given method
+// name.
+//
+// Method names are truncated to the first occurence of either '[' or
+// '=' before being compared.
+struct sameMethod {
+  const string m;
+  static string basename(const string &s) {
+    return s.substr(0, s.find_first_of("[="));
+  }
+  sameMethod(const string &m): m(basename(m)) {}
+  bool operator()(const string &method) {
+    return basename(method) == m;
+  }
+};
 
 void ProgramOptions::usage() const {
   cerr << endl
@@ -147,7 +164,7 @@ ProgramOptions::ProgramOptions(int argc, char** argv):
       } else if ((opt == "method") || (opt == "m")) {
         if ((i + 1) < argc) {
           _settings.method = argv[++i];
-          if (find(available_methods.begin(), available_methods.end(), _settings.method) == available_methods.end()) {
+          if (find_if(available_methods.begin(), available_methods.end(), sameMethod(_settings.method)) == available_methods.end()) {
             err = 3;
             --i;
           }

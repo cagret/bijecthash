@@ -5,6 +5,8 @@
 #include "gab_transformer.hpp"
 #include "permutation_transformer.hpp"
 
+#include <cstdlib>
+
 using namespace std;
 
 const shared_ptr<const Transformer> Settings::transformer() const {
@@ -13,8 +15,21 @@ const shared_ptr<const Transformer> Settings::transformer() const {
     t = make_shared<const IdentityTransformer>(IdentityTransformer(*this));
   } else if (method == "inthash") {
     t = make_shared<const IntHashTransformer>(IntHashTransformer(*this));
-  } else if (method == "GAB") {
-    t = make_shared<const GaBTransformer>(GaBTransformer(*this, 17, 42));
+  } else if (method.substr(0,3) == "GAB") {
+    uint64_t a = 0, b = 0;
+    if (method[3] == '=') {
+      char *ptr;
+      a = strtoul(method.c_str() + 4, &ptr, 10);
+      if (*ptr == ',') {
+        ++ptr;
+        b = strtoul(ptr, &ptr, 10);
+      }
+      if (*ptr != '\0') {
+        cerr << "Error: unable to parse the GAB method parameters." << endl;
+        exit(1);
+      }
+    }
+    t = make_shared<const GaBTransformer>(GaBTransformer(*this, a, b));
   } else if (method == "random") {
     t = make_shared<const PermutationTransformer>(PermutationTransformer(*this));
   } else if (method == "inverse") {

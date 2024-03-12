@@ -1,3 +1,12 @@
+2024-03-12  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/gab_transformer.cpp, src/gab_transformer.hpp,
+	src/kmer_index.hpp, src/main.cpp, src/program_options.cpp,
+	src/settings.cpp:
+	Update the Gab transformer in order to accept custom parameters for the multiplier and the mask.
+	Use the transformer description instead of the method name in the output.
+	
+	
 2024-03-11  DoccY <alban.mancheron@lirmm.fr>
 
 	* src/Makefile:

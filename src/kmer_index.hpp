@@ -225,6 +225,15 @@ public:
    */
   std::map<std::string, double> statistics() const;
 
+  /**
+   * Return the index transformer in use.
+   *
+   * \return Returns the k-mer index transformer in use.
+   */
+  inline const Transformer &transformer() const {
+    return *_transformer;
+  }
+
 };
 
 /**

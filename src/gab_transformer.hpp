@@ -20,22 +20,6 @@ class GaBTransformer : public Transformer {
 private:
 
   /**
-   * Odd multiplier.
-   */
-  const uint64_t _a;
-
-  /**
-   * The odd multiplier multiplicative inverse
-   * (\f$\mathrm{mod}\;2^\sigma\f$.
-   */
-  const uint64_t _rev_a;
-
-  /**
-   * Offset on _sigma bits.
-   */
-  const uint64_t _b;
-
-  /**
    * Precomputed rotation offset.
    */
   const uint64_t _rotation_offset;
@@ -59,6 +43,22 @@ private:
    * Precomputed binary mask for retrieving the suffix.
    */
   const uint64_t _suffix_mask;
+
+  /**
+   * Odd multiplier.
+   */
+  const uint64_t _a;
+
+  /**
+   * The odd multiplier multiplicative inverse
+   * (\f$\mathrm{mod}\;2^\sigma\f$.
+   */
+  const uint64_t _rev_a;
+
+  /**
+   * Offset on _sigma bits.
+   */
+  const uint64_t _b;
 
   /**
    * Compute a cyclic rotation of half of the bits of
@@ -98,11 +98,13 @@ public:
    *
    * \param s The global settings.
    *
-   * \param a The odd multiplier
+   * \param a The odd multiplier (if zero, then generate a random
+   * number, if non zero but even, then use a + 1).
    *
-   * \param b The number of bits to permute.
+   * \param b The bits to permute using a bitwise xor operation (if
+   * zero, then generate a random mask).
    */
-  GaBTransformer(const Settings &s, uint64_t a, uint64_t b);
+  GaBTransformer(const Settings &s, uint64_t a = 0, uint64_t b = 0);
 
   /**
    * Encode some given k-mer into a prefix/suffix code.

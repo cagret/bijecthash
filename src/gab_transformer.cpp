@@ -1,6 +1,7 @@
 #include "gab_transformer.hpp"
 
 #include <cassert>
+#include <random>
 
 #ifdef DEBUG
 #include <locker.hpp>
@@ -57,15 +58,41 @@ static uint64_t _multiplicativeInverse(uint64_t a, size_t sigma) {
   return x;
 }
 
+static uint64_t _rand() {
+  random_device rd;
+  mt19937 g(rd());
+  return g();
+}
+
+static uint64_t _setCorrectOddCoefficient(uint64_t v) {
+  if (!v) {
+    v = _rand();
+  }
+  if ((v & 1) == 0) {
+    ++v;
+  }
+  return v;
+}
+
+static uint64_t _setCorrectBitMask(uint64_t v, uint64_t mask) {
+  if (!v) {
+    v = _rand();
+  }
+  return v & mask;
+}
+
 GaBTransformer::GaBTransformer(const Settings &s, uint64_t a, uint64_t b):
   Transformer(s, "GaB"),
-    _a(a), _rev_a(_multiplicativeInverse(a, 2 * settings.length)), _b(b),
   _rotation_offset(settings.length),
   _rotation_mask((1ul << settings.length) - 1),
   _kmer_mask((_rotation_mask << _rotation_offset) | _rotation_mask),
   _prefix_shift((settings.length - settings.prefix_length) << 1),
-  _suffix_mask((1ul << ((settings.length - settings.prefix_length) << 1)) - 1)
-{}
+  _suffix_mask((1ul << ((settings.length - settings.prefix_length) << 1)) - 1),
+  _a(_setCorrectOddCoefficient(a)), _rev_a(_multiplicativeInverse(_a, 2 * settings.length)), _b(_setCorrectBitMask(b, _kmer_mask))
+{
+  string *desc_ptr = const_cast<string *>(&(this->description));
+  *desc_ptr += "(" + to_string(_a) + "," + to_string(_b) + ")";
+}
 
 uint64_t GaBTransformer::_rotate(uint64_t s) const {
   s = (((s << _rotation_offset) | (s >> _rotation_offset)) & _kmer_mask);

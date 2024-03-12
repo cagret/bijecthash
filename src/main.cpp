@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
   cout << settings.tag
        << '\t' << settings.length
        << '\t' << settings.prefix_length
-       << '\t' << settings.method
+       << '\t' << index.transformer().description
        << '\t' << time_mem.time.count()
        << '\t' << time_mem.memory;
   for (auto &info: stats) {
@@ -240,6 +240,8 @@ int main(int argc, char* argv[]) {
   cout << endl;
 
   // cout << index << endl;
+
+  cerr << "That's All, Folks!!!" << endl;
 
   return 0;
 }
