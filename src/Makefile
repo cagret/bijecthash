@@ -34,21 +34,22 @@ DEPDIR = .dep
 PROGS = BijectHash #benchmark
 
 BijectHash_SOURCES = \
-  circular_queue.hpp						\
-  file_reader.hpp file_reader.cpp				\
-  gab_transformer.hpp gab_transformer.cpp			\
-  identity_transformer.hpp identity_transformer.cpp		\
-  inthash.h inthash.c						\
-  inthash_transformer.hpp inthash_transformer.cpp		\
-  kmer_collector.hpp kmer_collector.cpp				\
-  kmer_index.hpp kmer_index.cpp					\
-  kmer_processor.hpp kmer_processor.cpp				\
-  locker.hpp locker.cpp						\
-  main.cpp							\
-  permutations.hpp permutations.cpp				\
-  permutation_transformer.hpp permutation_transformer.cpp	\
-  program_options.hpp program_options.cpp			\
-  settings.hpp settings.cpp					\
+  circular_queue.hpp							\
+  file_reader.hpp file_reader.cpp					\
+  gab_transformer.hpp gab_transformer.cpp				\
+  identity_transformer.hpp identity_transformer.cpp			\
+  inthash.h inthash.c							\
+  inthash_transformer.hpp inthash_transformer.cpp			\
+  kmer_collector.hpp kmer_collector.cpp					\
+  kmer_index.hpp kmer_index.cpp						\
+  kmer_processor.hpp kmer_processor.cpp					\
+  locker.hpp locker.cpp							\
+  main.cpp								\
+  permutations.hpp permutations.cpp					\
+  permutation_transformer.hpp permutation_transformer.cpp		\
+  permutation_bit_transformer.hpp permutation_bit_transformer.cpp	\
+  program_options.hpp program_options.cpp				\
+  settings.hpp settings.cpp						\
   transformer.hpp transformer.cpp
 
 benchmark_SOURCES = \

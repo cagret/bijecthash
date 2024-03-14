@@ -4,6 +4,7 @@
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
 #include "permutation_transformer.hpp"
+#include "permutation_bit_transformer.hpp"
 
 #include <cstdlib>
 
@@ -31,7 +32,7 @@ const shared_ptr<const Transformer> Settings::transformer() const {
     }
     t = make_shared<const GaBTransformer>(GaBTransformer(*this, a, b));
   } else if (method == "random") {
-    t = make_shared<const PermutationTransformer>(PermutationTransformer(*this));
+    t = make_shared<const PermutationBitTransformer>(PermutationBitTransformer(*this));
   } else if (method == "inverse") {
     vector<size_t> p(length);
     for (size_t i = 0; i < length; ++i) {
