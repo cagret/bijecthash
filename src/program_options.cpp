@@ -49,7 +49,7 @@ void ProgramOptions::usage() const {
        << "Usage: " << _program_name << " [options] [-[-]] <filename> [<filename> ...]" << endl
        << "Where available options are:" << endl
        << " -h | --help" << "\t\t\t" << "Show this message then exit." << endl
-       << " -  | --" << "\t\t\t" << "Can be use to process file whose name starts by a dash." << endl
+       << " - | --" << "\t\t\t" << "Can be use to process file whose name starts by a dash." << endl
        << " -q | --quiet" << "\t\t\t" << "Don't print warnings and informations about ignored k-mers." << endl
        << " -V | --verbose" << "\t\t\t" << "Print warnings and informations about ignored k-mers." << endl
        << " -k | --length <value>" << "\t\t" << "Set the k-mer length (default: " << default_settings.length << ")." << endl

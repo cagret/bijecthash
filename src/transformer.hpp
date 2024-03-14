@@ -65,6 +65,7 @@ public:
   struct EncodedKmer {
     uint64_t prefix; /**< The encoded prefix */
     uint64_t suffix; /**< The encoded suffix */
+    uint64_t hash_value; /**< The hash value */
   };
 
   /**

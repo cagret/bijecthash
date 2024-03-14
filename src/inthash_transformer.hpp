@@ -25,6 +25,12 @@ private:
    * Precomputed binary mask for retrieving the suffix.
    */
   const uint64_t _suffix_mask;
+ 
+  /**
+   * Precomputed binary mask for retrieving the prefix.
+   */
+  const uint64_t _prefix_mask;
+
 
 public:
 
