@@ -2,20 +2,20 @@
 
 # Vérification du nombre d'arguments
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 [-p num_processes]"
+    echo "Usage: $0 <fasta_path> [-p num_processes]"
     exit 1
 fi
 
 # Définir le chemin du fichier fasta et la longueur à utiliser
+fasta_path="$1"
 k1_values=(8 9 10 11 12 13)
 # Liste des méthodes à exécuter
-methods=(identity random cyclic inverse zigzag inthash GAB)
+methods=(identity random cyclic lyndon bwt inverse zigzag inthash GAB)
 
 rm -f result.txt
 
 # Fonction pour exécuter une méthode avec une valeur de k1
 run_method() {
-    fasta_path="resources/SRR072008.fastq"
     k=30
     method="$1"
     k1="$2"
@@ -30,12 +30,12 @@ run_method() {
 export -f run_method
 
 # Vérifier s'il y a une option pour le nombre de processus
-if [ "$1" == "-p" ]; then
-    if [ "$#" -lt 2 ]; then
-        echo "Usage: $0 -p num_processes"
+if [ "$2" == "-p" ]; then
+    if [ "$#" -lt 3 ]; then
+        echo "Usage: $0 <fasta_path> -p num_processes"
         exit 1
     fi
-    num_processes="$2"
+    num_processes="$3"
     for method in "${methods[@]}"; do
         echo "Exécution avec la méthode : $method"
         parallel -j "$num_processes" run_method ::: "$method" ::: "${k1_values[@]}"
@@ -51,4 +51,3 @@ fi
 
 # Fermer le fichier result.txt
 exec 3>&-
-
