@@ -3,10 +3,13 @@
 #include "identity_transformer.hpp"
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
+#include "lyndon_transformer.hpp"
 #include "permutation_transformer.hpp"
 #include "permutation_bit_transformer.hpp"
 
 #include <cstdlib>
+#include <algorithm>
+#define DEBUG
 
 using namespace std;
 
@@ -45,11 +48,14 @@ const shared_ptr<const Transformer> Settings::transformer() const {
       p[i] = (i + 1) % length;
     }
     t = make_shared<const PermutationTransformer>(PermutationTransformer(*this, p, "Cyclic"));
+  } else if (method == "lyndon") {
+    t = make_shared<const LyndonTransformer>(LyndonTransformer(*this));
   } else if (method == "zigzag") {
     vector<size_t> p(length);
     for (size_t i = 0; i < length; ++i) {
       p[i] = ((i & 1) ? (length - i - (length & 1)) : i);
     }
+
     t = make_shared<const PermutationTransformer>(PermutationTransformer(*this, p, "ZigZag"));
   }
   return t;

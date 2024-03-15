@@ -69,6 +69,20 @@ public:
   };
 
   /**
+  * @brief Decodes an empty string of a given length.
+  *
+  * This function decodes a string of length `n` that would be encoded as 0.
+  * Essentially, it returns a string of `n` 'A' characters, as 'A' is decoded from 0.
+  *
+  * @param n The length of the string to decode.
+  * @return The decoded string of length `n`, consisting of all 'A' characters.
+  */
+  static std::string decode_empty(size_t n) {
+    return _decode(0, n);
+  }
+  
+  
+  /**
    * Builds a Transformer depending on the k-mer length and the prefix
    * length.
    *

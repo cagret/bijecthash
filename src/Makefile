@@ -37,6 +37,7 @@ BijectHash_SOURCES = \
   circular_queue.hpp							\
   file_reader.hpp file_reader.cpp					\
   gab_transformer.hpp gab_transformer.cpp				\
+  lyndon_transformer.hpp lyndon_transformer.cpp				\
   identity_transformer.hpp identity_transformer.cpp			\
   inthash.h inthash.c							\
   inthash_transformer.hpp inthash_transformer.cpp			\
