@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <bitset>
 
+#define DEBUG
+
 #ifdef DEBUG
 #  include <iostream>
 #  include <iomanip>
@@ -81,15 +83,26 @@ vector<size_t> PermutationBitTransformer::_computeReversePermutation(const vecto
   return r;
 }
 
+
 string PermutationBitTransformer::_applyPermutation(const string &s, const vector<size_t> &p) {
   string permuted(s.size(), 0);
   for (size_t i = 0; i < s.size(); ++i) {
-    size_t pos = p[i] / 8;
-    size_t bit_pos = p[i] % 8;
-    permuted[i] = s[pos] ^ (1 << bit_pos);
+    uint32_t char_value = static_cast<uint32_t>(s[i]);
+    if (char_value < 128 && isprint(char_value)) { 
+      for (size_t j = 0; j < 8; ++j) {
+        size_t bit_pos = p[i * 8 + j];
+        permuted[i] |= ((char_value >> j) & 1) << (bit_pos % 8);
+      }
+    } else { // Caractère spécial ou de contrôle
+      for (size_t j = 0; j < sizeof(uint32_t) * 8; ++j) {
+        size_t bit_pos = p[i * sizeof(uint32_t) * 8 + j];
+        permuted[i] |= ((char_value >> j) & 1) << (bit_pos % (sizeof(uint32_t) * 8));
+      }
+    }
   }
   return permuted;
 }
+
 
 Transformer::EncodedKmer PermutationBitTransformer::operator()(const std::string &kmer) const {
   EncodedKmer e;
@@ -118,6 +131,14 @@ string PermutationBitTransformer::operator()(const Transformer::EncodedKmer &e) 
   string permuted_kmer = _decode(e.prefix, settings.prefix_length);
   permuted_kmer += _decode(e.suffix, settings.length - settings.prefix_length);
   string kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
+  #ifdef DEBUG
+  io_mutex.lock();
+  cerr << "[DEBUG] PermutationBitTransformer::operator()(const EncodedKmer&)" << endl;
+  cerr << "[DEBUG] Permuted k-mer: " << permuted_kmer << endl;
+  cerr << "[DEBUG] Unpermuted k-mer: " << kmer << endl;
+  io_mutex.unlock();
+  #endif
+
   return kmer;
 }
 

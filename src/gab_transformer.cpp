@@ -162,18 +162,24 @@ Transformer::EncodedKmer GaBTransformer::operator()(const std::string &kmer) con
 } else {
 	uint64_t prefix = _encode(kmer.c_str(), 32);
         uint64_t suffix = _encode(kmer.c_str() + 32, settings.length - 32);
-        
+        uint64_t prefix_transformed = _G(prefix); 
         EncodedKmer e;
-        e.prefix = prefix;
-        e.suffix = suffix;
+        e.prefix = prefix_transformed >> _prefix_shift;
+        e.suffix = (prefix_transformed & _suffix_mask) | (suffix << ((settings.length - 32) << 1));;
         
         return e;  }
 
 }
 
 std::string GaBTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  uint64_t v = (e.prefix << _prefix_shift) | e.suffix;
-  v = _G_rev(v);
-  string kmer = _decode(v, settings.length);
-  return kmer;
+  if (settings.length <= 32) {
+    uint64_t v = (e.prefix << _prefix_shift) | e.suffix;
+    v = _G_rev(v);
+    return _decode(v, settings.length);
+  } else {
+    uint64_t u_transformed = (e.prefix << _prefix_shift) | (e.suffix & _suffix_mask);
+    uint64_t u = _G_rev(u_transformed);
+    uint64_t w = e.suffix >> ((32 - settings.prefix_length) << 1);
+    return _decode(u, 32) + _decode(w, settings.length - 32);
+  }
 }
