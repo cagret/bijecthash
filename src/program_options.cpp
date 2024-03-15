@@ -12,6 +12,7 @@ const vector<string> ProgramOptions::available_methods =
    "random",
    "cyclic",
    "lyndon",
+   "bwt",
    "inverse",
    "zigzag",
    "inthash",

@@ -4,6 +4,7 @@
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
 #include "lyndon_transformer.hpp"
+#include "bwt_transformer.hpp"
 #include "permutation_transformer.hpp"
 #include "permutation_bit_transformer.hpp"
 
@@ -50,6 +51,8 @@ const shared_ptr<const Transformer> Settings::transformer() const {
     t = make_shared<const PermutationTransformer>(PermutationTransformer(*this, p, "Cyclic"));
   } else if (method == "lyndon") {
     t = make_shared<const LyndonTransformer>(LyndonTransformer(*this));
+  } else if (method == "bwt") {
+    t = make_shared<const BWTTransformer>(BWTTransformer(*this));
   } else if (method == "zigzag") {
     vector<size_t> p(length);
     for (size_t i = 0; i < length; ++i) {
