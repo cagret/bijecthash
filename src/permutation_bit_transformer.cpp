@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <bitset>
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #  include <iostream>
