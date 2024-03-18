@@ -10,7 +10,7 @@ fi
 fasta_path="$1"
 k1_values=(8 9 10 11 12 13)
 # Liste des méthodes à exécuter
-methods=(identity random random_nucl cyclic lyndon bwt inverse zigzag inthash GAB)
+methods=(identity random random_nucl cyclic lyndon inverse zigzag inthash GAB)
 
 rm -f result.txt
 
@@ -22,7 +22,7 @@ run_method() {
     temp_file=$(mktemp)
     echo "k= $k"
     echo "k1= $k1"
-    ./src/BijectHash "$fasta_path" --quiet --nb-bins 100 --length "$k" --method "$method" --prefix-length "$k1" >> "$temp_file"
+    ./src/BijectHash_with_checks "$fasta_path" --quiet --nb-bins 100 --length "$k" --method "$method" --prefix-length "$k1" >> "$temp_file"
     cat "$temp_file" >> result.txt
     rm "$temp_file"
 }
