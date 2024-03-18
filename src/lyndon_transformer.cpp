@@ -3,24 +3,12 @@
 
 using namespace std;
 
-LyndonTransformer::LyndonTransformer(const Settings &s):
-  Transformer(s, "Lyndon")
-{}
-
 
 Transformer::EncodedKmer LyndonTransformer::operator()(const string &kmer) const {
   EncodedKmer e;
-  string str = kmer;
-  size_t length = str.size();
-
-#ifdef DEBUG
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << " Original string: '" << str << "'" << endl;
-#endif
-
   size_t j = 0;
-  for (size_t i = 1; i < length; ++i) {
-    if (str.substr(i) + str.substr(0, i) < str.substr(j) + str.substr(0, j)) {
+  for (size_t i = 1; i < kmer.size(); ++i) {
+    if (kmer.substr(i) + kmer.substr(0, i) < kmer.substr(j) + kmer.substr(0, j)) {
       j = i;
     }
   }
@@ -31,8 +19,8 @@ Transformer::EncodedKmer LyndonTransformer::operator()(const string &kmer) const
 #endif
 
   string lyndon_rotation;
-  lyndon_rotation.reserve(length);
-  lyndon_rotation = str.substr(j) + str.substr(0, j);
+  lyndon_rotation.reserve(kmer.size());
+  lyndon_rotation = kmer.substr(j) + kmer.substr(0, j);
 
 #ifdef DEBUG
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
@@ -41,9 +29,12 @@ Transformer::EncodedKmer LyndonTransformer::operator()(const string &kmer) const
 
   e.prefix = _encode(lyndon_rotation.c_str(), settings.prefix_length);
   e.suffix = _encode(lyndon_rotation.c_str() + settings.prefix_length, settings.length - settings.prefix_length);
+  e.lyndonIndex = j;
   return e;
 }
 
 string LyndonTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  return _decode(e.prefix, settings.prefix_length) + _decode(e.suffix, settings.length - settings.prefix_length);
+  string lyndon_rotation = _decode(e.prefix, settings.prefix_length) + _decode(e.suffix, settings.length - settings.prefix_length);
+  string kmer = lyndon_rotation.substr(lyndon_rotation.size() - e.lyndonIndex) + lyndon_rotation.substr(0, lyndon_rotation.size() - e.lyndonIndex);
+  return kmer;
 }
