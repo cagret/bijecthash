@@ -4,7 +4,6 @@
 #include <string>
 #include <cstdint>
 #include <settings.hpp>
-
 /**
  * A transformer is a bijective application that can transform some
  * k-mers into an equivalent prefix/suffix code combination and given
@@ -66,7 +65,7 @@ public:
     uint64_t prefix; /**< The encoded prefix */
     uint64_t suffix; /**< The encoded suffix */
     uint64_t hash_value; /**< The hash value */
-    uint64_t lyndonIndex; /**< The hash value */
+    uint64_t lyndonIndex; /**< The lyndon index value */
   };
 
   /**
