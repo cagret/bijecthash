@@ -31,7 +31,7 @@ DEPDIR = .dep
 #################
 
 # Binaries to build
-PROGS = BijectHash #benchmark
+PROGS = BijectHash BijectHash_with_checks BijectHash_full_debug #benchmark
 
 BijectHash_SOURCES = \
   circular_queue.hpp							\
@@ -53,6 +53,12 @@ BijectHash_SOURCES = \
   program_options.hpp program_options.cpp				\
   settings.hpp settings.cpp						\
   transformer.hpp transformer.cpp
+
+BijectHash_with_checks_SOURCES = $(BijectHash_SOURCES)
+BijectHash_with_checks_CXXFLAGS = -DWATCH_QUEUE -UNDEBUG
+
+BijectHash_full_debug_SOURCES = $(BijectHash_SOURCES)
+BijectHash_full_debug_CXXFLAGS = -DDEBUG -UNDEBUG
 
 benchmark_SOURCES = \
   benchmark.cpp				\

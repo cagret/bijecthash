@@ -1,3 +1,84 @@
+2024-03-18  DoccY <alban.mancheron@lirmm.fr>
+
+	* .gitignore, run_methods.sh, src/Makefile, src/kmer_index.cpp,
+	src/program_options.cpp, src/settings.cpp:
+	Adding two version of BujectHash in the default compilation target:
+	- BijectHash_with_checks: Performs assertion checks and monitor the circular queue.
+	- BijectHash_full_debug: Print lots of debugging information (and performs more assertion checks).
+	
+	IMPORTANT NOTE: for the moment, not all the transformation are working !!!
+	
+	* The following transformations works as expected with k-mer up to 45 (the prefix size is bounded by 13 and the suffix size is bounded by 32) :
+	  - identity
+	  - random_nucl
+	  - cyclic
+	  - inverse
+	  - zigzag
+	
+	* The following transformations works as expected with k-mer up to 31 but are buggy for higher k value :
+	  - inthash
+	  - GAB
+	
+	* The following transformations are not correctly implemented:
+	  - lyndon
+	  - bwt
+	
+	
+2024-03-17  cagret <cagret@mailo.com>
+
+	* src/permutation_bit_transformer.cpp, src/settings.cpp:
+	Comment define DEBUG
+	
+	
+2024-03-15  cagret <cagret@mailo.com>
+
+	* src/gab_transformer.cpp, src/inthash_transformer.cpp,
+	src/permutation_bit_transformer.cpp:
+	Modified gab_transformer, inthash_transformer and permutation_bit_transformer to handle sequences longer than 32 nucleotides
+	
+	
+2024-03-15  cagret <cagret@mailo.com>
+
+	* run_methods.sh:
+	Enhance script flexibility with dynamic FASTA path and streamline execution options, add Lyndon and BWT transformations
+	
+	
+2024-03-15  cagret <cagret@mailo.com>
+
+	* src/Makefile, src/bwt_transformer.cpp, src/bwt_transformer.hpp,
+	src/program_options.cpp, src/settings.cpp:
+	Update Makefile, program options, settings, and add BWT transformer files
+	
+	
+2024-03-15  cagret <cagret@mailo.com>
+
+	* src/Makefile, src/gab_transformer.cpp,
+	src/inthash_transformer.cpp, src/lyndon_transformer.cpp,
+	src/lyndon_transformer.hpp, src/program_options.cpp,
+	src/settings.cpp, src/transformer.hpp:
+	Fix Lyndon rotation computation in LyndonTransformer to handle non-unique minimum elements and ensure correct lexicographical ordering.
+	
+	
+2024-03-14  cagret <cagret@mailo.com>
+
+	* src/inthash_transformer.cpp, src/inthash_transformer.hpp,
+	src/program_options.cpp, src/transformer.hpp:
+	Handle 64-bit encoding with Inthash
+	
+	
+2024-03-14  cagret <cagret@mailo.com>
+
+	* src/Makefile, src/permutation_bit_transformer.cpp,
+	src/permutation_bit_transformer.hpp, src/settings.cpp:
+	Add PermutationBitTransformer class for bit permutation
+	
+	
+2024-03-12  cagret <cagret@mailo.com>
+
+	* .gitignore, src/main.cpp:
+	Replace chrono::milliseconds with rusage for CPU time measurement
+	
+	
 2024-03-12  DoccY <alban.mancheron@lirmm.fr>
 
 	* src/gab_transformer.cpp, src/gab_transformer.hpp,

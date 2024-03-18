@@ -35,7 +35,9 @@ const shared_ptr<const Transformer> Settings::transformer() const {
       }
     }
     t = make_shared<const GaBTransformer>(GaBTransformer(*this, a, b));
-  } else if (method == "random") {
+  } else if (method == "random_nucl") {
+    t = make_shared<const PermutationTransformer>(PermutationTransformer(*this));
+  } else if (method == "random_bits") {
     t = make_shared<const PermutationBitTransformer>(PermutationBitTransformer(*this));
   } else if (method == "inverse") {
     vector<size_t> p(length);

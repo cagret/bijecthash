@@ -10,7 +10,7 @@ fi
 fasta_path="$1"
 k1_values=(8 9 10 11 12 13)
 # Liste des méthodes à exécuter
-methods=(identity random cyclic lyndon bwt inverse zigzag inthash GAB)
+methods=(identity random random_nucl cyclic lyndon bwt inverse zigzag inthash GAB)
 
 rm -f result.txt
 

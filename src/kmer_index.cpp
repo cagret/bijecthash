@@ -94,8 +94,9 @@ KmerIndex &KmerIndex::operator=(const KmerIndex &index) {
 
 bool KmerIndex::insert(const string &kmer) {
   Transformer::EncodedKmer encoded = (*_transformer)(kmer);
-#ifdef DEBUG
+#if defined(DEBUG) || not(defined(NDEBUG))
   string decoded = (*_transformer)(encoded);
+#ifdef DEBUG
   io_mutex.lock();
   cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "[thread " << this_thread::get_id() << "]:"
@@ -104,6 +105,7 @@ bool KmerIndex::insert(const string &kmer) {
        << "[thread " << this_thread::get_id() << "]:"
        << "decoded kmer:  '" << decoded << "'" << endl;
   io_mutex.unlock();
+#endif
   assert(decoded == kmer);
 #endif
   bool res = _subindexes[encoded.prefix].insert(encoded.suffix);
