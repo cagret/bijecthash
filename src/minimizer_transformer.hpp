@@ -1,6 +1,10 @@
 #ifndef __MINIMIZER_TRANSFORMER_HPP__
 #define __MINIMIZER_TRANSFORMER_HPP__
 
+#include <limits>
+#include <string>
+#include <algorithm>
+
 #include "transformer.hpp"
 
 /**
@@ -40,6 +44,7 @@ public:
      */
     virtual std::string operator()(const EncodedKmer &e) const override;
 
+    std::string minimizer_unsplit(const std::string& s) const;
 private:
 
     /**
