@@ -4,12 +4,31 @@
 #include <transformer.hpp>
 #include <vector>
 #include <string>
+#include <random>
+#include <algorithm>
+#include <bitset>
+#include <cassert>
+#include <numeric>
 
 /**
  * The permutation transformer encodes k-mer after applying some given
  * permutation on the bits.
  */
 class PermutationBitTransformer: public Transformer {
+
+private:
+  size_t _kmer_length;
+
+  /**
+   * This applies the given permutation to the bits of the given string.
+   *
+   * \param s The string to permute (interpreted as a bit sequence).
+   *
+   * \param p The permutation of the bits to apply.
+   *
+   * \return Returns the permuted string (interpreted as a bit sequence).
+   */
+  uint64_t _applyBitwisePermutation(uint64_t encoded_kmer, const std::vector<size_t> &permutation) const;
 
 protected:
 
@@ -42,17 +61,6 @@ protected:
    */
   static std::vector<size_t> _computeReversePermutation(const std::vector<size_t> &p);
 
-  /**
-   * This applies the given permutation to the bits of the given string.
-   *
-   * \param s The string to permute (interpreted as a bit sequence).
-   *
-   * \param p The permutation of the bits to apply.
-   *
-   * \return Returns the permuted string (interpreted as a bit sequence).
-   */
-  static std::string _applyPermutation(const std::string &s, const std::vector<size_t> &p);
-
 public:
 
   /**
@@ -69,7 +77,6 @@ public:
   PermutationBitTransformer(const Settings &s,
                             const std::vector<size_t> &permutation = std::vector<size_t>(),
                             const std::string &description = "");
-
   /**
    * Encode some given k-mer into a prefix/suffix code.
    *

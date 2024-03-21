@@ -62,6 +62,10 @@ const shared_ptr<const Transformer> Settings::transformer() const {
 
     t = make_shared<const PermutationTransformer>(PermutationTransformer(*this, p, "ZigZag"));
   }
+  else {
+    cerr << "Error: Unsupported transformation method '" << method << "'." << endl;
+    exit(1);
+  }
   return t;
 }
 

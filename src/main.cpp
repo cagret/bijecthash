@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
   infos time_mem = makeIndexMultiThread(index, filenames);
   map<string, double> stats = index.statistics();
 
-  cout << "# XP\tLength\tPrefix-length\tMethod\tTime(ms)\tMemory(KB)";
+  cout << "#XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)";
   for (auto &info: stats) {
     const string &kw = info.first;
     cout << '\t' << kw.substr(kw.find(' ') + 1);

@@ -22,7 +22,7 @@ PermutationTransformer::PermutationTransformer(const Settings &s, const vector<s
   if (description.empty()) {
     string *desc_ptr = const_cast<string *>(&(this->description));
     desc_ptr->clear();
-    *desc_ptr += "Permutation[";
+    *desc_ptr += "Permutation_nucl[";
     for (size_t i = 0; i < settings.length; ++i) {
       if (i) *desc_ptr += ",";
       *desc_ptr += to_string(_permutation[i]);
