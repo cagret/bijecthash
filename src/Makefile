@@ -41,6 +41,7 @@ BijectHash_SOURCES = \
   identity_transformer.hpp identity_transformer.cpp			\
   inthash.h inthash.c							\
   inthash_transformer.hpp inthash_transformer.cpp			\
+  minimizer_transformer.hpp minimizer_transformer.cpp			\
   kmer_collector.hpp kmer_collector.cpp					\
   kmer_index.hpp kmer_index.cpp						\
   kmer_processor.hpp kmer_processor.cpp					\

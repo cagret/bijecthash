@@ -3,6 +3,7 @@
 #include "identity_transformer.hpp"
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
+#include "minimizer_transformer.hpp"
 #include "lyndon_transformer.hpp"
 #include "permutation_transformer.hpp"
 #include "permutation_bit_transformer.hpp"
@@ -18,6 +19,8 @@ const shared_ptr<const Transformer> Settings::transformer() const {
     t = make_shared<const IdentityTransformer>(IdentityTransformer(*this));
   } else if (method == "inthash") {
     t = make_shared<const IntHashTransformer>(IntHashTransformer(*this));
+  } else if (method == "minimizer") {
+    t = make_shared<const MinimizerTransformer>(MinimizerTransformer(*this));
   } else if (method.substr(0,3) == "GAB") {
     uint64_t a = 0, b = 0;
     if (method[3] == '=') {

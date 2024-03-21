@@ -17,6 +17,7 @@ const vector<string> ProgramOptions::available_methods =
    "inverse",
    "zigzag",
    "inthash",
+   "minimizer",
    "GAB[=a,b]"
   };
 
