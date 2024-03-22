@@ -12,9 +12,6 @@
  */
 class MinimizerTransformer : public Transformer {
 
-private:
-    size_t m; // Length of the minimizer used in encoding
-
 public:
     /**
      * Constructs a MinimizerTransformer with a specified minimizer length.
@@ -44,7 +41,6 @@ public:
      */
     virtual std::string operator()(const EncodedKmer &e) const override;
 
-    std::string minimizer_unsplit(const std::string& s) const;
 private:
 
     /**
@@ -66,6 +62,18 @@ private:
      * \return The minimizer of the string.
      */
     std::string minimizer(const std::string &s) const;
+    /**
+    * Internal method to unsplit a string based on the minimizer position.
+    *
+    * This method takes a string that has been split into a minimizer, prefix, and suffix,
+    * and reconstructs the original string based on the position of the minimizer.
+    *
+    * \param s The string to unsplit.
+    * \param pos The position of the minimizer in the original string.
+    *
+    * \return The reconstructed original string.
+    */
+    std::string minimizer_unsplit(std::string& s, size_t pos) const;
 };
 
 #endif // __MINIMIZER_TRANSFORMER_HPP__

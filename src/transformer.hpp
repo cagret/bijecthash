@@ -66,6 +66,7 @@ public:
     uint64_t suffix; /**< The encoded suffix */
     uint64_t hash_value; /**< The hash value */
     uint64_t lyndonIndex; /**< The lyndon index value */
+    uint32_t pos; /**< The position of the minimizer */
   };
 
   /**
