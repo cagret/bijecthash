@@ -15,13 +15,14 @@ uint64_t MinimizerTransformer::xorshift(const std::string &s, size_t start, size
         hash ^= hash << 17;
 
         #ifdef DEBUG
-            std::cerr << "[^DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+            std::cerr << "[^ &&& DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
                       << " start: " << start << ", end: " << end << ", i: " << i
-                      << ", s[i]: " << s[i] << ", hash: " << hash << std::endl;
+                      << ", s[i]: " << s[i] << ", hash: '" << hash <<"'"<< std::endl;
         #endif
     }
     return hash;
 }
+
 
 
 std::string MinimizerTransformer::minimizer(const std::string &s) const {
@@ -45,24 +46,32 @@ std::string MinimizerTransformer::minimizer(const std::string &s) const {
             min_start = i;
         }
     }
-
-    return s.substr(min_start, m);
+    std::string before = s.substr(0, min_start);
+    std::string minimizer = s.substr(min_start, m);
+    std::string after = s.substr(min_start + m);
+ #ifdef DEBUG
+        std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+                  << " Minimizer: " << minimizer << ", Before: " << before << ", After: " << after << std::endl;
+    #endif
+    return minimizer + before + after;
 }
 
 
 std::string MinimizerTransformer::minimizer_unsplit(const std::string& s) const {
     std::string s_copy = s;
-    size_t k = 0;
+    size_t m = 0;
     while (std::isdigit(s_copy.back())) {
-        k = k * 10 + (s_copy.back() - '0');
+        m = m * 10 + (s_copy.back() - '0');
         s_copy.pop_back();
     }
-    std::reverse(s_copy.begin() + k, s_copy.end() - k);
-
-    std::string minimizer = s_copy.substr(0, k);
-    std::string before = s_copy.substr(k, s_copy.size() - 2 * k);
-    std::string after = s_copy.substr(s_copy.size() - k);
-
+    std::reverse(s_copy.begin() + m, s_copy.end() - m);
+    std::string minimizer = s_copy.substr(0, m);
+    std::string before = s_copy.substr(m, s_copy.size() - 2 * m);
+    std::string after = s_copy.substr(s_copy.size() - m);
+ #ifdef DEBUG
+        std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+                  << " Minimizer: " << minimizer << ", Before: " << before << ", After: " << after << std::endl;
+    #endif
     return before + minimizer + after;
 }
 
@@ -74,8 +83,9 @@ Transformer::EncodedKmer MinimizerTransformer::operator()(const std::string &kme
                       << " minStr:" << minStr << std::endl;
         #endif
     if (minStr == kmer) {
-        encoded.prefix = 0;
-        encoded.suffix = 0;
+	encoded.prefix = xorshift(kmer, 0, settings.prefix_length);
+        encoded.suffix = xorshift(kmer, settings.prefix_length, kmer.length());
+        
         return encoded;
     }
     size_t min_start = kmer.find(minStr);
@@ -103,9 +113,9 @@ Transformer::EncodedKmer MinimizerTransformer::operator()(const std::string &kme
 }
 
 std::string MinimizerTransformer::operator()(const Transformer::EncodedKmer &e) const {
-    if (e.prefix == 0 && e.suffix == 0) {
-        return _decode(0, settings.length);
-    }
+    //if (e.prefix == 0 && e.suffix == 0) {
+    //    return _decode(0, settings.length);
+    //}
     std::string prefix = _decode(e.prefix, settings.prefix_length);
     std::string suffix = _decode(e.suffix, settings.length - settings.prefix_length);
     std::string kmer = prefix + suffix;
