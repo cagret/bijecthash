@@ -54,26 +54,6 @@ private:
      */
     uint64_t xorshift(uint64_t x) const;
 
-    /**
-     * Internal method to find the minimizer of a string.
-     *
-     * \param s The string to find the minimizer in.
-     *
-     * \return The minimizer of the string.
-     */
-    std::string minimizer(const std::string &s, size_t &min_start) const;
-    /**
-    * Internal method to unsplit a string based on the minimizer position.
-    *
-    * This method takes a string that has been split into a minimizer, prefix, and suffix,
-    * and reconstructs the original string based on the position of the minimizer.
-    *
-    * \param s The string to unsplit.
-    * \param pos The position of the minimizer in the original string.
-    *
-    * \return The reconstructed original string.
-    */
-    std::string minimizer_unsplit(std::string& s, size_t pos) const;
 };
 
 #endif // __MINIMIZER_TRANSFORMER_HPP__
