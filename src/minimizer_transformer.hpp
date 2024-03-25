@@ -52,7 +52,7 @@ private:
      *
      * \return The hash of the substring.
      */
-    uint64_t xorshift(const std::string &s, size_t start, size_t end) const;
+    uint64_t xorshift(uint64_t x) const;
 
     /**
      * Internal method to find the minimizer of a string.
@@ -61,7 +61,7 @@ private:
      *
      * \return The minimizer of the string.
      */
-    std::string minimizer(const std::string &s) const;
+    std::string minimizer(const std::string &s, size_t &min_start) const;
     /**
     * Internal method to unsplit a string based on the minimizer position.
     *
