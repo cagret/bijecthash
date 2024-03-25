@@ -8,6 +8,8 @@ fi
 
 # Définir le chemin du fichier fasta et la longueur à utiliser
 fasta_path="$1"
+export fasta_path=$fasta_path
+
 k1_values=(8 9 10 11 12 13)
 # Liste des méthodes à exécuter
 methods=(identity random_bits random_nucl cyclic lyndon inverse zigzag inthash GAB)
