@@ -16,8 +16,7 @@ public:
    *
    * \param s The global settings.
    */
-  inline LyndonTransformer(const Settings &s):
-	Transformer(s, "Lyndon"){}
+  LyndonTransformer(const Settings &s);
 
   /**
    * Encode some given k-mer into its Lyndon rotation.
