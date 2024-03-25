@@ -9,6 +9,7 @@ using namespace std;
 const vector<string> ProgramOptions::available_methods =
   {
    "identity",
+   "canonical",
    "random_bits",
    "random_nucl",
    "cyclic",

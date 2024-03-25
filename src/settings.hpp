@@ -11,6 +11,20 @@ class Transformer;
  */
 struct Settings {
 
+private:
+
+  /**
+   * This method compute the Transformer corresponding to the given
+   * string description.
+   *
+   * \param name The transformer to create.
+   *
+   * Return the created transformer as a smart pointer.
+   */
+  const std::shared_ptr<const Transformer> _string2transformer(const std::string &name) const;
+
+public:
+
   /**
    * The k-mer length.
    */
