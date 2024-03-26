@@ -61,7 +61,6 @@ KmerCollector::KmerCollector(const Settings &settings,
 
 static int clz(uint64_t v) {
 #ifdef __builtin_clzll_available
-  cerr << "__builtin_clzll(" << v << ") = " << __builtin_clzll(v) << endl;
   return __builtin_clzll(v);
 #else
   int p = 0;
