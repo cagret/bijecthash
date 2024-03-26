@@ -10,7 +10,5 @@ Transformer::EncodedKmer IdentityTransformer::operator()(const std::string &kmer
 }
 
 string IdentityTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  string kmer = _decode(e.prefix, settings.prefix_length);
-  kmer += _decode(e.suffix, settings.length - settings.prefix_length);
-  return kmer;
+  return getTransformedKmer(e);
 }

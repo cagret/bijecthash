@@ -78,8 +78,7 @@ public:
   static std::string decode_empty(size_t n) {
     return _decode(0, n);
   }
-  
-  
+
   /**
    * Builds a Transformer depending on the k-mer length and the prefix
    * length.
@@ -89,6 +88,11 @@ public:
    * \param description The transformer description.
    */
   Transformer(const Settings &s, const std::string &description);
+
+  /**
+   * Destructor
+   */
+  inline virtual ~Transformer() {}
 
   /**
    * Encode some given k-mer into a prefix/suffix code.
@@ -111,6 +115,19 @@ public:
    * \return Returns the k-mer corresponding to the given encoding.
    */
   virtual std::string operator()(const EncodedKmer &e) const = 0;
+
+  /**
+   * Get the transformed k-mer from its encoding.
+   *
+   * Each derived class that operates a transformation at the bit
+   * level instead of the nucleotide level should overload this
+   * operator.
+   *
+   * \param e The encoded k-mer to restitute.
+   *
+   * \return Returns the k-mer corresponding to the given encoding.
+   */
+  virtual std::string getTransformedKmer(const EncodedKmer &e) const;
 
 };
 

@@ -22,16 +22,9 @@ const vector<string> ProgramOptions::available_methods =
    "GAB[=a,b]"
   };
 
-const Settings ProgramOptions::default_settings =
-  {
-   21 /* length */,
-   10 /* prefix_length */,
-   available_methods[0] /* method */,
-   "" /* tag */,
-   100 /* nb_bins */,
-   1024 /* queue_size */,
-   true /* verbose */
-  };
+const Settings ProgramOptions::default_settings = Settings(21 /* length */,
+                                                           10 /* prefix_length */,
+                                                           available_methods[0] /* method */);
 
 // Build a filtering comparison operator based on the given method
 // name.
@@ -62,13 +55,13 @@ void ProgramOptions::usage() const {
        << " -n | --nb-bins <value>" << "\t" << "Number of bins for the computed statistics (default: " << default_settings.nb_bins << ")." << endl
        << " -s | --queue-size <value>" << "\t" << "Size of the circular queue (rounded to the ceiling power of two) used to share k-mers between collectors and processors (default: " << default_settings.queue_size << " -k-mers)." << endl
        << " -t | --tag <string>" << "\t" << "The experiment tag (default is the coma separated list of input files)." << endl
-       << " -m | --method <method>" << "\t\t" << "The k-mer transformation method to use (default: " << default_settings.method << ")." << endl
+       << " -m | --method <method>" << "\t\t" << "The k-mer transformation method to use (default: " << default_settings.getMethod() << ")." << endl
        << endl
        << "Available methods are:" << endl;
   for (auto m: available_methods) {
     cerr << "  - " << m << endl;
   }
-  cerr << endl
+  cerr << "Notice none of the method can handle k-mers having a suffix size (i.e. the length minus the prefix length) greater than 32." << endl
        << "Default verbosity is set to '" << (default_settings.verbose ? "verbose" : "quiet") << "'." << endl
        << endl;
   exit(1);
@@ -82,6 +75,7 @@ ProgramOptions::ProgramOptions(int argc, char** argv):
 
   bool options_accepted = true;
   string tag;
+  string method;
   int i = 0;
   _filenames.reserve(argc - 1);
 
@@ -168,8 +162,8 @@ ProgramOptions::ProgramOptions(int argc, char** argv):
         }
       } else if ((opt == "method") || (opt == "m")) {
         if ((i + 1) < argc) {
-          _settings.method = argv[++i];
-          if (find_if(available_methods.begin(), available_methods.end(), sameMethod(_settings.method)) == available_methods.end()) {
+          method = argv[++i];
+          if (find_if(available_methods.begin(), available_methods.end(), sameMethod(method)) == available_methods.end()) {
             err = 3;
             --i;
           }
@@ -218,6 +212,10 @@ ProgramOptions::ProgramOptions(int argc, char** argv):
          << " must be strictly less than the length (" << _settings.length << ")."
          << endl;
     usage();
+  }
+
+  if (!method.empty()) {
+    _settings.setMethod(method);
   }
 
   _filenames.shrink_to_fit();

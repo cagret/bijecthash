@@ -219,7 +219,6 @@ int main(int argc, char* argv[]) {
   cerr << endl;
 
   KmerIndex index(settings);
-
   infos time_mem = makeIndexMultiThread(index, filenames);
   map<string, double> stats = index.statistics();
 

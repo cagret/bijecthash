@@ -23,7 +23,7 @@ Transformer::EncodedKmer LyndonTransformer::operator()(const string &kmer) const
        << " Lyndon rotation index: " << lyndon_pos << endl;
 #endif
 
-  assert(lyndon_pos < 64); //lyndon_pos can only be encoded in 6 bits
+  assert(lyndon_pos < 64); // lyndon_pos can be encoded in only 6 bits
   string lyndon_rotation;
   lyndon_rotation.reserve(kmer.size());
   lyndon_rotation = kmer.substr(lyndon_pos) + kmer.substr(0, lyndon_pos);

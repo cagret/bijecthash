@@ -14,14 +14,24 @@ struct Settings {
 private:
 
   /**
+   * The transformer to use.
+   */
+  std::shared_ptr<const Transformer> _transformer;
+
+  /**
+   * The transformer method to use.
+   */
+  std::string _method;
+
+  /**
    * This method compute the Transformer corresponding to the given
    * string description.
    *
    * \param name The transformer to create.
    *
-   * Return the created transformer as a smart pointer.
+   * \return Returns the created transformer as a smart pointer.
    */
-  const std::shared_ptr<const Transformer> _string2transformer(const std::string &name) const;
+  std::shared_ptr<const Transformer> _string2transformer(const std::string &name) const;
 
 public:
 
@@ -34,11 +44,6 @@ public:
    * The k-mer prefix length.
    */
   size_t prefix_length;
-
-  /**
-   * The transformer method to use.
-   */
-  std::string method;
 
   /**
    * The tag of the experiment.
@@ -61,12 +66,51 @@ public:
   bool verbose;
 
   /**
+   * Settings constructor
+   *
+   * \param length The length of the k-mers.
+   *
+   * \param prefix_length The length of the k-mer prefix.
+   *
+   * \param method The transformation method to use.
+   *
+   * \param tag The tag of the experiment.
+   *
+   * \param nb_bins The number of bins to use for statistics computations.
+   *
+   * \param queue_size The circular queue size to share data between
+   * the k-mer collectors and processors.
+   *
+   * \param verbose Verbosity of the program.
+   */
+  Settings(size_t length, size_t prefix_length, const std::string &method,
+           const std::string &tag = "",
+           size_t nb_bins = 1024, size_t queue_size = 1024,
+           bool verbose = true);
+
+  /**
+   * Get the transformer method to use.
+   *
+   * \return Returns the transformer method to use.
+   */
+  inline std::string getMethod() const {
+    return _method;
+  }
+
+  /**
+   * Get the transformer method to use.
+   *
+   * \return Returns the transformer method to use.
+   */
+  void setMethod(const std::string &method);
+
+  /**
    * Provide the transformer corresponding to this settings.
    *
-   * \return Returns a shared pointer to the wanted transformer or
-   * NULL if settings are incorrect.
+   * \return Returns the transformer corresponding to the _method
+   * attribute.
    */
-  const std::shared_ptr<const Transformer> transformer() const;
+  std::shared_ptr<const Transformer> transformer() const;
 
 };
 

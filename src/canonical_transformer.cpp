@@ -60,8 +60,7 @@ Transformer::EncodedKmer CanonicalTransformer::operator()(const std::string &kme
 }
 
 string CanonicalTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  string kmer = _decode(e.prefix, settings.prefix_length);
-  kmer += _decode(e.suffix, settings.length - settings.prefix_length);
+  string kmer = getTransformedKmer(e);
   if (e.suffix >> 62) {
     size_t p = (settings.length >> 1) + (settings.length & 1);
     for (size_t i = 0; i < p; ++i) {

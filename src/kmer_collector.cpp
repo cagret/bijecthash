@@ -1,8 +1,13 @@
 #include "kmer_collector.hpp"
 
 #include "file_reader.hpp"
+#include "transformer.hpp"
+#include "locker.hpp"
 
-#include <locker.hpp>
+#include <cassert>
+#ifdef DEBUG
+#  include <bitset>
+#endif
 
 using namespace std;
 

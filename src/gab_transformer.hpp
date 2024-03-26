@@ -128,6 +128,19 @@ public:
    */
   virtual std::string operator()(const Transformer::EncodedKmer &e) const override;
 
+  /**
+   * Get the transformed k-mer from its encoding.
+   *
+   * Each derived class that operates a transformation at the bit
+   * level instead of the nucleotide level should overload this
+   * operator.
+   *
+   * \param e The encoded k-mer to restitute.
+   *
+   * \return Returns the k-mer corresponding to the given encoding.
+   */
+  virtual std::string getTransformedKmer(const EncodedKmer &e) const;
+
 };
 
 #endif

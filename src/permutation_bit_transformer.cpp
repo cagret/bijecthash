@@ -19,7 +19,7 @@ uint64_t PermutationBitTransformer::_applyBitwisePermutation(uint64_t encoded_km
         size_t bit_index_in_nucleotide = i % 2;
         size_t permuted_nucleotide_index = permutation[nucleotide_index];
         size_t permuted_bit_index = permuted_nucleotide_index * 2 + bit_index_in_nucleotide;
-        
+
         uint64_t bit = (encoded_kmer >> (this->_kmer_length * 2 - 1 - i)) & 1ULL;
         permuted_kmer |= (bit << (this->_kmer_length * 2 - 1 - permuted_bit_index));
     }
@@ -56,31 +56,34 @@ vector<size_t> PermutationBitTransformer::_computeReversePermutation(const vecto
 }
 
 Transformer::EncodedKmer PermutationBitTransformer::operator()(const std::string &kmer) const {
-    uint64_t bin_kmer_encoded = _encode(kmer.c_str(), kmer.size());
-    size_t suffix_length = kmer.size() - settings.prefix_length;
+  uint64_t bin_kmer_encoded = _encode(kmer.c_str(), kmer.size());
+  size_t suffix_length = kmer.size() - settings.prefix_length;
 #ifdef DEBUG
-    cerr << "[######### DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "Bin_kmer_encoded k-mer: '" << bin_kmer_encoded << "'" << endl;
+  cerr << "[######### DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "Bin_kmer_encoded k-mer: '" << bin_kmer_encoded << "'" << endl;
 #endif
-    uint64_t permuted = _applyBitwisePermutation(bin_kmer_encoded, _permutation);
+  uint64_t permuted = _applyBitwisePermutation(bin_kmer_encoded, _permutation);
+#if defined(DEBUG) || not(defined(NDEBUG))
+  uint64_t unpermuted_kmer = _applyBitwisePermutation(permuted, _reverse_permutation);
 #ifdef DEBUG
   io_mutex.lock();
   cerr << "[________ DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
        << "Permuted k-mer:   '" << permuted << "'" << endl;
-  uint64_t unpermuted_kmer = _applyBitwisePermutation(permuted, _reverse_permutation);
   cerr << "[######### DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "Unpermuted k-mer: '" << bin_kmer_encoded << "'" << endl;
+       << "Unpermuted k-mer: '" << unpermuted_kmer << "'" << endl;
   io_mutex.unlock();
 #endif
-    EncodedKmer e;
-    e.prefix = permuted >> (2 * suffix_length);
-    e.suffix = permuted & ((1ull << (2 * suffix_length)) - 1);
-#ifdef DEBUG
-    cerr << "[_________ DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "prefix'" << e.prefix << "'" 
-         << "prefix'" << e.suffix << "'" << endl;
+  assert(bin_kmer_encoded == unpermuted_kmer);
 #endif
-    return e;
+  EncodedKmer e;
+  e.prefix = permuted >> (2 * suffix_length);
+  e.suffix = permuted & ((1ull << (2 * suffix_length)) - 1);
+#ifdef DEBUG
+  cerr << "[_________ DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+       << "prefix'" << e.prefix << "'"
+       << "prefix'" << e.suffix << "'" << endl;
+#endif
+  return e;
 }
 
 
@@ -88,11 +91,11 @@ string PermutationBitTransformer::operator()(const EncodedKmer &e) const {
     size_t suffix_length = this->_kmer_length - this->settings.prefix_length;
 #ifdef DEBUG
     cerr << "[######### DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "prefix_length: '" << settings.prefix_length << "'" 
-         << "kmer_length: '" << this->_kmer_length << "'" 
+         << "prefix_length: '" << settings.prefix_length << "'"
+         << "kmer_length: '" << this->_kmer_length << "'"
          << "suffix_length: '" << suffix_length << "'"
-         << "prefix_length: '" << settings.prefix_length << "'" 
-         << "prefix: '" << e.prefix << "'" 
+         << "prefix_length: '" << settings.prefix_length << "'"
+         << "prefix: '" << e.prefix << "'"
 	 << "suffix: '" << e.suffix << "'" << endl;
 #endif
     uint64_t combined = (e.prefix << (2 * suffix_length)) | e.suffix;

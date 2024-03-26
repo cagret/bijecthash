@@ -78,3 +78,9 @@ Transformer::Transformer(const Settings &s, const string &description):
   assert(s.prefix_length <= (4 * sizeof(uint64_t)));
   assert((s.length - s.prefix_length) <= (4 * sizeof(uint64_t)));
 }
+
+string Transformer::getTransformedKmer(const Transformer::EncodedKmer &e) const {
+  string kmer = _decode(e.prefix, settings.prefix_length);
+  kmer += _decode(e.suffix, settings.length - settings.prefix_length);
+  return kmer;
+}
