@@ -29,6 +29,17 @@ private:
   static std::atomic_size_t _running;
 
   /**
+   * Average of the longuest common prefix between two consecutive transformed k-mers.
+   */
+  double _average_lcp;
+
+  /**
+   * Variance of the longuest common prefix between two consecutive
+   * transformed k-mers.
+   */
+  double _variance_lcp;
+
+  /**
    * The circular queue feed by this k-mer collector.
    */
   CircularQueue<std::string> &_queue;
