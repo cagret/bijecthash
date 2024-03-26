@@ -19,7 +19,8 @@ const vector<string> ProgramOptions::available_methods =
    "zigzag",
    "inthash",
    "minimizer",
-   "GAB[=a,b]"
+   "GAB[=a,b]",
+   "composition=(t2*t1)"
   };
 
 const Settings ProgramOptions::default_settings = Settings(21 /* length */,

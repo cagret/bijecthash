@@ -1,6 +1,7 @@
 #include "settings.hpp"
 
 #include "canonical_transformer.hpp"
+#include "composition_transformer.hpp"
 #include "identity_transformer.hpp"
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
@@ -81,6 +82,45 @@ shared_ptr<const Transformer> Settings::_string2transformer(const string &name) 
     }
 
     t = make_shared<const PermutationTransformer>(*this, p, "ZigZag");
+  } else if (name.substr(0,11) == "composition") {
+    if (name[11] == '=') {
+      size_t count = (name[12] == '(');
+      size_t p = 13;
+      size_t comma = 0;
+      size_t n = name.length();
+      string t1_name;
+      string t2_name;
+      while ((p < n) && count) {
+        switch (name[p]) {
+        case '(':
+          ++count;
+          break;
+        case ')':
+          --count;
+          break;
+        case '*':
+          if (count == 1) {
+            assert(t1_name.empty());
+            t1_name = name.substr(13, p - 13);
+            comma = p;
+          }
+          break;
+        default:
+        break;
+        }
+        ++p;
+      }
+      assert(count == 0);
+      assert(p == n);
+      assert(comma + 1 < n);
+      t2_name = name.substr(comma + 1, n - comma - 2);
+      shared_ptr<const Transformer> t1 = _string2transformer(t1_name);
+      shared_ptr<const Transformer> t2 = _string2transformer(t2_name);
+      t = make_shared<const CompositionTransformer>(*this, t1, t2);
+    } else {
+      cerr << "Error: unable to parse the Composition method parameters." << endl;
+      exit(1);
+    }
   } else {
     cerr << "Error: Unsupported transformation method '" << name << "'." << endl;
     exit(1);

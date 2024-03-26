@@ -36,6 +36,7 @@ PROGS = BijectHash BijectHash_with_checks BijectHash_full_debug #benchmark
 BijectHash_SOURCES = \
   circular_queue.hpp							\
   canonical_transformer.hpp canonical_transformer.cpp			\
+  composition_transformer.hpp composition_transformer.cpp		\
   file_reader.hpp file_reader.cpp					\
   gab_transformer.hpp gab_transformer.cpp				\
   lyndon_transformer.hpp lyndon_transformer.cpp				\
