@@ -15,6 +15,40 @@
  */
 class KmerCollector {
 
+public:
+
+  /**
+   * Structure to handle Longuest Common prefixes statistics.
+   */
+  struct LcpStats {
+    /**
+     * The total number of k-mers used to compute the statistics.
+     */
+    size_t nb_kmers;
+
+    /**
+     * The average length of the longuest common prefix between two
+     * consecutive transformed k-mers (and overlapping k-mers in the
+     * data).
+     */
+    double average;
+
+    /**
+     * The observed variance of the length the longuest common prefix
+     * between two consecutive transformed k-mers (and overlapping
+     * k-mers in the data).
+     */
+    double variance;
+
+    /**
+     * Builds a default LCP statistics structure where all values are
+     * set to 0.
+     */
+    inline LcpStats(): nb_kmers(0), average(0), variance(0) {
+    }
+
+  };
+
 private:
 
   /**
@@ -29,15 +63,9 @@ private:
   static std::atomic_size_t _running;
 
   /**
-   * Average of the longuest common prefix between two consecutive transformed k-mers.
+   * Longuest Common prefixes statistics.
    */
-  double _average_lcp;
-
-  /**
-   * Variance of the longuest common prefix between two consecutive
-   * transformed k-mers.
-   */
-  double _variance_lcp;
+  LcpStats &_lcp_stats;
 
   /**
    * The circular queue feed by this k-mer collector.
@@ -84,10 +112,14 @@ public:
    * \param filename The name of the file to read.
    *
    * \param queue The queue to feed with k-mers.
+   *
+   * \param lcp_stats The variable to fill with the LCP computed
+   * statistics.
    */
   KmerCollector(const Settings &settings,
                 const std::string &filename,
-                CircularQueue<std::string> &queue);
+                CircularQueue<std::string> &queue,
+                LcpStats &lcp_stats);
 
   /**
    * Start the dedicated thread.

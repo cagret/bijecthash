@@ -127,11 +127,13 @@ struct infos {
   //chrono::milliseconds time;
   long int time;
   long int memory;
+  vector<KmerCollector::LcpStats> lcp_stats;
 };
 
 infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filenames) {
   const Settings &s = kmer_index.settings;
 
+  infos time_mem_stats;
   struct rusage rusage_start, rusage_end;
   getrusage(RUSAGE_SELF, &rusage_start);
   //auto start = chrono::high_resolution_clock::now();
@@ -139,6 +141,7 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
   CircularQueue<string> kmer_queue(s.queue_size);
   vector<KmerCollector> collectors;
   collectors.reserve(filenames.size());
+  time_mem_stats.lcp_stats.reserve(filenames.size());
   vector<KmerProcessor> processors;
   size_t nb_threads = thread::hardware_concurrency();
   if (nb_threads > 3 * filenames.size()) {
@@ -166,7 +169,8 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
 #endif
 
   for (auto &filename: filenames) {
-    collectors.emplace_back(s, filename, kmer_queue);
+    time_mem_stats.lcp_stats.emplace_back();
+    collectors.emplace_back(s, filename, kmer_queue, time_mem_stats.lcp_stats.back());
     collectors.back().run();
   }
 
@@ -195,12 +199,11 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
   //auto end = chrono::high_resolution_clock::now();
   //struct rusage rusage_end;
   getrusage(RUSAGE_SELF, &rusage_end);
-  infos time_mem;
   //time_mem.time = chrono::duration_cast<chrono::milliseconds>(end - start);
-  time_mem.time = rusage_end.ru_utime.tv_usec - rusage_start.ru_utime.tv_usec;
-  time_mem.memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
+  time_mem_stats.time = rusage_end.ru_utime.tv_usec - rusage_start.ru_utime.tv_usec;
+  time_mem_stats.memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
 
-  return time_mem;
+  return time_mem_stats;
 
 }
 
@@ -219,10 +222,15 @@ int main(int argc, char* argv[]) {
   cerr << endl;
 
   KmerIndex index(settings);
-  infos time_mem = makeIndexMultiThread(index, filenames);
+  infos time_mem_stats = makeIndexMultiThread(index, filenames);
   map<string, double> stats = index.statistics();
 
-  cout << "#XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)";
+  cout << "#XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)\tNbFiles";
+  for (size_t i = 0; i < time_mem_stats.lcp_stats.size(); ++i) {
+    cout << '\t' << "File_" << (i + 1) << "_LCP_nb_values"
+         << '\t' << "File_" << (i + 1) << "_LCP_avg"
+         << '\t' << "File_" << (i + 1) << "_LCP_var";
+  }
   for (auto &info: stats) {
     const string &kw = info.first;
     cout << '\t' << kw.substr(kw.find(' ') + 1);
@@ -233,9 +241,15 @@ int main(int argc, char* argv[]) {
        << '\t' << settings.length
        << '\t' << settings.prefix_length
        << '\t' << index.transformer().description
-       //<< '\t' << time_mem.time.count()
-       << '\t' << time_mem.time
-       << '\t' << time_mem.memory;
+       //<< '\t' << time_mem_stats.time.count()
+       << '\t' << time_mem_stats.time
+       << '\t' << time_mem_stats.memory
+       << '\t' << filenames.size();
+  for (auto &lcp_stat: time_mem_stats.lcp_stats) {
+    cout << '\t' << lcp_stat.nb_kmers
+         << '\t' << lcp_stat.average
+         << '\t' << lcp_stat.variance;
+  }
   for (auto &info: stats) {
     cout << '\t' << info.second;
   }

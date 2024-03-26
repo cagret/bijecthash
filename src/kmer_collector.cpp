@@ -16,8 +16,9 @@ atomic_size_t KmerCollector::_running = 0;
 
 KmerCollector::KmerCollector(const Settings &settings,
                              const string &filename,
-                             CircularQueue<string> &queue):
-  _queue(queue),
+                             CircularQueue<string> &queue,
+                             LcpStats &lcp_stats):
+  _lcp_stats(lcp_stats), _queue(queue),
   id(++_counter), settings(settings), filename(filename)
 {
   ++_running;
@@ -264,16 +265,21 @@ void KmerCollector::_run() {
     prev_transformed_kmer = current_transformed_kmer;
   }
 
-  _average_lcp = double(LCP_avg) / nb_kmers;
-  _variance_lcp = double(LCP_var) / nb_kmers;
-  _variance_lcp -= _average_lcp * _average_lcp;
+  _lcp_stats.nb_kmers = nb_kmers;
+  _lcp_stats.average = double(LCP_avg) / nb_kmers;
+  _lcp_stats.variance = double(LCP_var) / nb_kmers;
+  _lcp_stats.variance -= _lcp_stats.average * _lcp_stats.average;
+
+#ifdef DEBUG
   io_mutex.lock();
   cerr << "[thread " << this_thread::get_id() << "]:"
        << "KmerCollector_" << id << ":"
        << "file '" << filename << "':"
-       << "LCP ~ N(" << _average_lcp << ", " << _variance_lcp << ")"
+       << "LCP ~ N(" << _lcp_stats.average << ", " << _lcp_stats.variance << ")"
+       << " computed using " << _lcp_stats.nb_kmers << " k-mers." << endl
        << endl;
   io_mutex.unlock();
+#endif
 
   --_running;
 #ifdef DEBUG
