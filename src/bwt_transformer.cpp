@@ -36,11 +36,6 @@ Transformer::EncodedKmer BwtTransformer::operator()(const std::string& kmer) con
     assert(bwt_pos < 64); // BWT_pos can be encoded in only 6 bits
    
 
-#ifdef DEBUG
-    std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << " BWT rotation: '" << bwt_rotation << "'" << std::endl;
-#endif
-
     encoded.prefix = _encode(result.c_str(), settings.prefix_length);
     encoded.suffix = _encode(result.c_str()+settings.prefix_length, settings.length - settings.prefix_length);
     encoded.suffix |= bwt_pos << 58;
