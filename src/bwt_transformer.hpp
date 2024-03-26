@@ -16,33 +16,35 @@
 class BwtTransformer : public Transformer {
 
 public:
-    /**
-     * Constructs a BwtTransformer with a specified bwt length.
-     *
-     * \param k The length of the bwt.
-     */
-    BwtTransformer(const Settings &settings);
-    /**
-     * Encodes a given k-mer into a prefix/suffix code using a bwt.
-     *
-     * Each derived class must overload this operator.
-     *
-     * \param kmer The k-mer to encode.
-     *
-     * \return Returns the EncodedKmer corresponding to the given k-mer.
-     */
-    virtual EncodedKmer operator()(const std::string &kmer) const override;
-    
-    /**
-     * Decodes a given encoded k-mer back to its original string representation.
-     *
-     * Each derived class must overload this operator.
-     *
-     * \param e The encoded k-mer to decode.
-     *
-     * \return Returns the k-mer corresponding to the given encoding.
-     */
-    virtual std::string operator()(const EncodedKmer &e) const override;
+
+  /**
+   * Constructs a BwtTransformer with a specified bwt length.
+   *
+   * \param settings The global settings.
+   */
+  BwtTransformer(const Settings &settings);
+
+  /**
+   * Encodes a given k-mer into a prefix/suffix code using a bwt.
+   *
+   * Each derived class must overload this operator.
+   *
+   * \param kmer The k-mer to encode.
+   *
+   * \return Returns the EncodedKmer corresponding to the given k-mer.
+   */
+  virtual EncodedKmer operator()(const std::string &kmer) const override;
+
+  /**
+   * Decodes a given encoded k-mer back to its original string representation.
+   *
+   * Each derived class must overload this operator.
+   *
+   * \param e The encoded k-mer to decode.
+   *
+   * \return Returns the k-mer corresponding to the given encoding.
+   */
+  virtual std::string operator()(const EncodedKmer &e) const override;
 
 };
 

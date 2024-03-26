@@ -100,7 +100,7 @@ public:
   /**
    * Get the transformer method to use.
    *
-   * \return Returns the transformer method to use.
+   * \param method The transformation method name to use.
    */
   void setMethod(const std::string &method);
 

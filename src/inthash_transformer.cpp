@@ -19,6 +19,7 @@ IntHashTransformer::IntHashTransformer(const Settings &s):
 
 Transformer::EncodedKmer IntHashTransformer::operator()(const std::string &kmer) const {
   EncodedKmer e;
+  assert(kmer.size() == settings.length);
   if (settings.length <= 32) {
     uint64_t v = _encode(kmer.c_str(), settings.length);
 #ifdef DEBUG

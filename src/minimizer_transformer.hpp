@@ -17,9 +17,10 @@ public:
   /**
    * Constructs a MinimizerTransformer with a specified minimizer length.
    *
-   * \param k The length of the minimizer.
+   * \param settings The global settings.
    */
   MinimizerTransformer(const Settings &settings);
+
   /**
    * Encodes a given k-mer into a prefix/suffix code using a minimizer.
    *
@@ -47,11 +48,9 @@ private:
   /**
    * Internal method to calculate the xorshift hash of a substring.
    *
-   * \param s The string to hash.
-   * \param start The starting index of the substring.
-   * \param end The ending index of the substring.
+   * \param x The value to hash hash.
    *
-   * \return The hash of the substring.
+   * \return The hash of the given value.
    */
   uint64_t xorshift(uint64_t x) const;
 

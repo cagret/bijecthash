@@ -1,3 +1,193 @@
+2024-03-26  DoccY <alban.mancheron@lirmm.fr>
+
+	* doc/Doxyfile, src/bwt_transformer.hpp,
+	src/inthash_transformer.cpp, src/minimizer_transformer.hpp,
+	src/permutation_bit_transformer.cpp,
+	src/permutation_bit_transformer.hpp, src/settings.hpp:
+	Update code documentation and fix PermutationBitTransformer.
+	For now, only BWT and minizer transformers are totally buggy.
+	The composition transformer seems to work fine for k <= 32 but is still buggy for k > 32.
+	
+	
+2024-03-26  DoccY <alban.mancheron@lirmm.fr>
+
+	* :
+	commit 0b8c7ce49a9cce1a04c92e38404ae93d00809ff3
+	Author: DoccY <alban.mancheron@lirmm.fr>
+	Date:   Tue Mar 26 04:23:23 2024 +0100
+	
+	
+2024-03-26  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/composition_transformer.cpp,
+	src/composition_transformer.hpp, src/program_options.cpp,
+	src/settings.cpp:
+	Add the possibility to compose transformers.
+	
+	
+2024-03-26  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/canonical_transformer.cpp, src/gab_transformer.cpp,
+	src/gab_transformer.hpp, src/identity_transformer.cpp,
+	src/inthash_transformer.cpp, src/inthash_transformer.hpp,
+	src/kmer_collector.cpp, src/lyndon_transformer.cpp, src/main.cpp,
+	src/permutation_bit_transformer.cpp, src/program_options.cpp,
+	src/settings.cpp, src/settings.hpp, src/transformer.cpp,
+	src/transformer.hpp:
+	Code refactoring and lots of bug fixes.
+	
+	
+2024-03-26  Clement <cagret@mailo.com>
+
+	* src/minimizer_transformer.cpp:
+	Assertion 'decoded == kmer' failed.
+	
+	
+2024-03-25  Clement <cagret@mailo.com>
+
+	* src/Makefile, src/bwt_transformer.cpp, src/bwt_transformer.hpp,
+	src/minimizer_transformer.cpp, src/minimizer_transformer.hpp,
+	src/settings.cpp:
+	Need to debug BWT
+	
+	
+2024-03-25  DoccY <alban.mancheron@lirmm.fr>
+
+	* run_methods.sh:
+	Exporting fasta file path may be needed according to the Bash configuration.
+	
+	
+2024-03-25  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/canonical_transformer.cpp,
+	src/canonical_transformer.hpp, src/program_options.cpp,
+	src/settings.cpp, src/settings.hpp:
+	Adding canonical k-mer transformation.
+	
+	
+2024-03-25  Clement <cagret@mailo.com>
+
+	* src/minimizer_transformer.cpp, src/minimizer_transformer.hpp:
+	Fix minimiser transform
+	
+	
+2024-03-25  Clement <cagret@mailo.com>
+
+	* run_methods.sh:
+	Change nb bins default 1024
+	
+	
+2024-03-25  Clement <cagret@mailo.com>
+
+	* src/lyndon_transformer.cpp, src/lyndon_transformer.hpp,
+	src/minimizer_transformer.cpp, src/transformer.hpp:
+	Update transformer interfaces and implementations
+	
+	This commit includes updates to the Lyndon and minimizer transformer interfaces and their corresponding implementations. Changes aim to improve performance and maintainability.
+	
+	
+2024-03-22  cagret <cagret@mailo.com>
+
+	* src/minimizer_transformer.cpp, src/minimizer_transformer.hpp,
+	src/transformer.hpp:
+	TODO : DEBUG minimizer
+	
+	
+2024-03-22  cagret <cagret@mailo.com>
+
+	* src/minimizer_transformer.cpp:
+	Debugging progress on minimizer transformer
+	
+	
+2024-03-21  cagret <cagret@mailo.com>
+
+	* src/minimizer_transformer.cpp, src/minimizer_transformer.hpp:
+	add debug to minimizer TODO : debug
+	
+	
+2024-03-21  cagret <cagret@mailo.com>
+
+	* run_methods.sh, src/main.cpp,
+	src/permutation_bit_transformer.cpp,
+	src/permutation_bit_transformer.hpp,
+	src/permutation_transformer.cpp, src/settings.cpp:
+	Fix prefix and suffix extraction and combination in PermutationBitTransformer
+	
+	The PermutationBitTransformer class had issues with the way the prefix and
+	suffix were extracted from the permuted k-mer and combined to form the final
+	k-mer. This commit fixes these issues.
+	
+	Changes:
+	- In the operator() function that takes a std::string as input:
+	  - Fixed the calculation of e.suffix by using the correct suffix length.
+	    The suffix length is now calculated as kmer.size() - settings.prefix_length.
+	    The suffix is obtained by masking the permuted k-mer with
+	    ((1ull << (2 * suffix_length)) - 1).
+	
+	- In the operator() function that takes an EncodedKmer as input:
+	  - Fixed the combination of the prefix and suffix to form the original k-mer.
+	    The prefix is now left-shifted by 2 * suffix_length positions before being
+	    combined with the suffix using the bitwise OR operator.
+	
+	These changes ensure that the prefix and suffix are correctly extracted from
+	the permuted k-mer, combined to form the original k-mer, and then decoded back
+	into the original DNA string.
+	
+	
+2024-03-21  cagret <cagret@mailo.com>
+
+	* src/Makefile, src/minimizer_transformer.cpp,
+	src/minimizer_transformer.hpp, src/program_options.cpp,
+	src/settings.cpp:
+	feat: Implement minimizer transformer
+	
+	- Add minimizer_transformer.cpp and minimizer_transformer.hpp
+	- Modify run_methods.sh, Makefile, permutation_bit_transformer.cpp,
+	  permutation_transformer.cpp, program_options.cpp, and settings.cpp
+	- Remove untracked files: <q, res, res75, reschry, Zone.Identifier files
+	
+	
+2024-03-18  cagret <cagret@mailo.com>
+
+	* run_methods.sh:
+	add BijectHash_with_checks to run_methods
+	
+	
+2024-03-18  cagret <cagret@mailo.com>
+
+	* src/Makefile, src/settings.cpp:
+	Remove BWT
+	
+	
+2024-03-18  cagret <cagret@mailo.com>
+
+	* src/bwt_transformer.cpp, src/bwt_transformer.hpp,
+	src/transformer.hpp:
+	Revise Burrows-Wheeler Transform logic in BWTTransformer class => remove cpp and hpp
+	
+	
+2024-03-18  cagret <cagret@mailo.com>
+
+	* src/lyndon_transformer.cpp, src/lyndon_transformer.hpp,
+	src/transformer.hpp:
+	Store Lyndon rotation index in EncodedKmer for inverse rotation
+	
+	To be able to perform the inverse rotation and retrieve the original k-mer,
+	the Lyndon rotation index 'j' is now stored in the 'EncodedKmer' structure.
+	
+	Changes:
+	- Add 'rotation_index' field to 'EncodedKmer' structure in 'transformer.hpp'
+	  to store the Lyndon rotation index.
+	- In 'LyndonTransformer::operator()(const string &kmer)', store the Lyndon
+	  rotation index 'j' in 'e.rotation_index' before returning the 'EncodedKmer'.
+	- In 'LyndonTransformer::operator()(const Transformer::EncodedKmer &e)', use
+	  'e.rotation_index' to perform the inverse rotation and retrieve the original
+	  k-mer.
+	
+	Note: This change modifies the 'EncodedKmer' structure, so make sure to update
+	any code that uses this structure.
+	
+	
 2024-03-18  DoccY <alban.mancheron@lirmm.fr>
 
 	* .gitignore, run_methods.sh, src/Makefile, src/kmer_index.cpp,

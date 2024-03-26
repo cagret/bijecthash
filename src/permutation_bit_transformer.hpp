@@ -17,16 +17,15 @@
 class PermutationBitTransformer: public Transformer {
 
 private:
-  size_t _kmer_length;
 
   /**
    * This applies the given permutation to the bits of the given string.
    *
-   * \param s The string to permute (interpreted as a bit sequence).
+   * \param encoded_kmer The value to permute (interpreted as a bit sequence).
    *
-   * \param p The permutation of the bits to apply.
+   * \param permutation The permutation of the bits to apply.
    *
-   * \return Returns the permuted string (interpreted as a bit sequence).
+   * \return Returns the permuted value (interpreted as a bit sequence).
    */
   uint64_t _applyBitwisePermutation(uint64_t encoded_kmer, const std::vector<size_t> &permutation) const;
 
@@ -42,6 +41,22 @@ protected:
    * from the permuted one.
    */
   const std::vector<size_t> _reverse_permutation;
+
+
+  /**
+   * Precomputed binary mask for retrieving the whole k-mer.
+   */
+  const uint64_t _kmer_mask;
+
+  /**
+   * Precomputed shift offset for retrieving the prefix.
+   */
+  const uint64_t _prefix_shift;
+
+  /**
+   * Precomputed binary mask for retrieving the suffix.
+   */
+  const uint64_t _suffix_mask;
 
   /**
    * This method generates a random permutation of the range [0; k[.
