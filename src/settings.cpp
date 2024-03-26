@@ -6,6 +6,7 @@
 #include "inthash_transformer.hpp"
 #include "gab_transformer.hpp"
 #include "minimizer_transformer.hpp"
+#include "bwt_transformer.hpp"
 #include "lyndon_transformer.hpp"
 #include "permutation_transformer.hpp"
 #include "permutation_bit_transformer.hpp"
@@ -42,6 +43,8 @@ shared_ptr<const Transformer> Settings::_string2transformer(const string &name) 
     t = make_shared<const IntHashTransformer>(*this);
   } else if (name == "minimizer") {
     t = make_shared<const MinimizerTransformer>(*this);
+  } else if (name == "bwt") {
+    t = make_shared<const BwtTransformer>(*this);
   } else if (name.substr(0,3) == "GAB") {
     uint64_t a = 0, b = 0;
     if (name[3] == '=') {
