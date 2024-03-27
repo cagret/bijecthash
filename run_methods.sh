@@ -12,7 +12,7 @@ export fasta_path=$fasta_path
 
 k1_values=(8 9 10 11 12 13)
 # Liste des méthodes à exécuter
-methods=(identity canonical random_bits random_nucl cyclic lyndon bwt inverse zigzag inthash minimizer GAB 'composition=(random_nucl*canonical)' 'composition=(lyndon*canonical)' 'composition=(random_bits*canonical)' 'composition=(bwt*canonical)' 'composition=(zigzag*canonical)' 'composition=(inthash*canonical)' 'composition=(minimizer*canonical)' 'composition=(GAB*canonical)')
+methods=(identity random_bits random_nucl cyclic lyndon bwt inverse zigzag inthash minimizer GAB 'composition=(random_nucl*canonical)' 'composition=(lyndon*canonical)' 'composition=(random_bits*canonical)' 'composition=(bwt*canonical)' 'composition=(zigzag*canonical)' 'composition=(inthash*canonical)' 'composition=(minimizer*canonical)' 'composition=(GAB*canonical)' 'composition=(identity*canonical)' 'composition=(inverse*canonical)' 'composition=(cyclic*canonical)')
 
 rm -f result.txt
 
@@ -24,7 +24,7 @@ run_method() {
     temp_file=$(mktemp)
     echo "k= $k"
     echo "k1= $k1"
-    ./src/BijectHash "$fasta_path" --quiet --nb-bins 1000 --length "$k" --method "$method" --prefix-length "$k1" >> "$temp_file"
+    ./src/BijectHash "$fasta_path" --quiet --nb-bins 5 --length "$k" --method "$method" --prefix-length "$k1" >> "$temp_file"
     cat "$temp_file" >> result.txt
     rm "$temp_file"
 }
