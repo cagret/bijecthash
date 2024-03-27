@@ -2,7 +2,7 @@
 
 # Vérification du nombre d'arguments
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 <fasta_path> [-p num_processes]"
+  echo "Usage: $0 <fasta_path> [-p num_processes] [-c]"
     exit 1
 fi
 
@@ -12,7 +12,11 @@ export fasta_path=$fasta_path
 
 k1_values=(8 9 10 11 12 13)
 # Liste des méthodes à exécuter
-methods=(identity random_bits random_nucl cyclic lyndon bwt inverse zigzag inthash minimizer GAB 'composition=(random_nucl*canonical)' 'composition=(lyndon*canonical)' 'composition=(random_bits*canonical)' 'composition=(bwt*canonical)' 'composition=(zigzag*canonical)' 'composition=(inthash*canonical)' 'composition=(minimizer*canonical)' 'composition=(GAB*canonical)' 'composition=(identity*canonical)' 'composition=(inverse*canonical)' 'composition=(cyclic*canonical)')
+if [ "$3" == "-c" ]; then
+    methods=('composition=(random_nucl*canonical)' 'composition=(lyndon*canonical)' 'composition=(random_bits*canonical)' 'composition=(bwt*canonical)' 'composition=(zigzag*canonical)' 'composition=(inthash*canonical)' 'composition=(minimizer*canonical)' 'composition=(GAB*canonical)' 'composition=(identity*canonical)' 'composition=(inverse*canonical)' 'composition=(cyclic*canonical)')
+else
+    methods=(identity random_bits random_nucl cyclic lyndon bwt inverse zigzag inthash minimizer GAB)
+fi
 
 rm -f result.txt
 
