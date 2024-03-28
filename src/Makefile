@@ -57,7 +57,9 @@ BijectHash_SOURCES = \
   settings.hpp settings.cpp						\
   transformer.hpp transformer.cpp
 
-BijectHash_with_checks_SOURCES = $(BijectHash_SOURCES)
+BijectHash_with_checks_SOURCES = \
+  $(BijectHash_SOURCES) \
+  queue_watcher.hpp queue_watcher.tpp
 BijectHash_with_checks_CXXFLAGS = -DWATCH_QUEUE -UNDEBUG
 
 BijectHash_full_debug_SOURCES = $(BijectHash_SOURCES)

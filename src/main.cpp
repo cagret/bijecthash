@@ -7,7 +7,7 @@
 #include "kmer_processor.hpp"
 
 #ifdef WATCH_QUEUE
-#  include "locker.hpp"
+#  include "queue_watcher.hpp"
 #endif
 
 #include <libgen.h>
@@ -23,106 +23,6 @@
 
 using namespace std;
 
-#ifdef WATCH_QUEUE
-void threadsWatcher(const CircularQueue<string> &queue) {
-
-  double mean = 0;
-  double var = 0;
-  double nb = 0;
-  auto delay = 100ns;
-  int disp = 1024 - 1;
-  size_t running_collectors;
-  size_t s;
-  do {
-    running_collectors = KmerCollector::running();
-  } while (!running_collectors);
-  size_t running_processors = KmerProcessor::running();
-  while (running_collectors > 0) {
-    s = queue.size();
-    mean += s;
-    var += s * s;
-    if (++disp & 1024) {
-      const int v = (s * 100.0 / queue.capacity);
-      assert(v >= 0);
-      assert(v <= 100.);
-      io_mutex.lock();
-      cerr << "\033[squeue size: [" << string(v / 2, '=') << string(50-v/2, ' ') << "]"
-           << " (" << v << "%)\033[K\033[u";
-      io_mutex.unlock();
-      disp = 0;
-    }
-    ++nb;
-#ifdef DEBUG
-    io_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "[thread " << this_thread::get_id() << "]:"
-         << "Watcher:" << running_collectors << " / " << KmerCollector::counter() << " running collectors"
-         << " and " << running_processors << " / " << KmerProcessor::counter() << " running processors"
-         << ", queue size: " << s << endl;
-    io_mutex.unlock();
-#endif
-    this_thread::yield();
-    this_thread::sleep_for(delay);
-    running_collectors = KmerCollector::running();
-    running_processors = KmerProcessor::running();
-  }
-
-  while (running_processors > 0) {
-    s = queue.size();
-    mean += s;
-    var += s * s;
-    ++nb;
-#ifdef DEBUG
-    io_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "[thread " << this_thread::get_id() << "]:"
-         << "Watcher:" << running_collectors << " / " << KmerCollector::counter() << " running collectors"
-         << " and " << running_processors << " / " << KmerProcessor::counter() << " running processors"
-         << ", queue size: " << s << endl;
-    assert(KmerCollector::running() == 0);
-    io_mutex.unlock();
-#endif
-    this_thread::yield();
-    this_thread::sleep_for(delay);
-    running_processors = KmerProcessor::running();
-  }
-
-  s = queue.size();
-  if (nb != 0) {
-    mean /= nb;
-    var /= nb;
-    var -= mean * mean;
-  }
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "[thread " << this_thread::get_id() << "]:"
-       << "Watcher:" << KmerCollector::running() << " / " << KmerCollector::counter() << " running collectors"
-       << " and " << KmerProcessor::running() << " / " << KmerProcessor::counter() << " running processors"
-       << ", queue size: " << s << endl;
-  io_mutex.unlock();
-#endif
-  assert(s == 0);
-  assert(KmerCollector::running() == 0);
-  assert(KmerCollector::running() == 0);
-  io_mutex.lock();
-  cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "[thread " << this_thread::get_id() << "]:"
-       << "Watcher:"
-       << "nb of samples: " << nb << endl;
-  cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "[thread " << this_thread::get_id() << "]:"
-       << "Watcher:"
-       << "queue size average: " << mean << endl;
-  cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "[thread " << this_thread::get_id() << "]:"
-       << "Watcher:"
-       << "queue size variance: " << var << endl;
-  assert(nb != 0);
-  io_mutex.unlock();
-}
-#endif
-
 struct infos {
   //chrono::milliseconds time;
   long int time;
@@ -136,7 +36,6 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
   infos time_mem_stats;
   struct rusage rusage_start, rusage_end;
   getrusage(RUSAGE_SELF, &rusage_start);
-  //auto start = chrono::high_resolution_clock::now();
 
   CircularQueue<string> kmer_queue(s.queue_size);
   vector<KmerCollector> collectors;
@@ -165,7 +64,7 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
   processors.reserve(nb_threads);
 
 #ifdef WATCH_QUEUE
-  thread watcher(threadsWatcher, cref(kmer_queue));
+  thread watcher(queueWatcher<string>, cref(kmer_queue));
 #endif
 
   for (auto &filename: filenames) {
@@ -196,10 +95,7 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
        << kmer_queue << endl;
 #endif
 
-  //auto end = chrono::high_resolution_clock::now();
-  //struct rusage rusage_end;
   getrusage(RUSAGE_SELF, &rusage_end);
-  //time_mem.time = chrono::duration_cast<chrono::milliseconds>(end - start);
   time_mem_stats.time = rusage_end.ru_utime.tv_usec - rusage_start.ru_utime.tv_usec;
   time_mem_stats.memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
 
