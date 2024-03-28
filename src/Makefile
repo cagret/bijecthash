@@ -7,7 +7,7 @@ CXX = g++
 LD = g++
 
 # Compiling options
-override CXXFLAGS += -Wall -Wextra -ansi -pedantic -I. -fopenmp -O3 -std=c++17 # For C++
+override CXXFLAGS += -Wall -Wextra -ansi -pedantic -I. -O3 -std=c++17 # For C++
 
 # Uncomment to enable queue evolution observation.
 #override CXXFLAGS += -DWATCH_QUEUE
