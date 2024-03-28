@@ -1,8 +1,10 @@
 #ifndef __CIRCULAR_QUEUE_HPP__
 #define __CIRCULAR_QUEUE_HPP__
 
+#include <iostream>
 #include <atomic>
 #include <vector>
+
 #include <locker.hpp>
 
 /**
@@ -130,7 +132,7 @@ public:
    * queue is full).
    */
   bool push(const T &t) {
-    LockerGuardian g(_mutex);
+    LockerGuardian<> g(_mutex);
 #ifdef DEBUG
     io_mutex.lock();
     std::cerr << "Try to enqueue some element on queue of size " << _size.load()
@@ -175,7 +177,7 @@ public:
    * queue is full).
    */
   bool emplace(const T &&t) {
-    LockerGuardian g(_mutex);
+    LockerGuardian<> g(_mutex);
     if (full()) return false;
     size_t p = _last.load();
     _data[p++] = std::move(t);
@@ -194,7 +196,7 @@ public:
    * queue is empty).
    */
   bool pop(T &t) {
-    LockerGuardian g(_mutex);
+    LockerGuardian<> g(_mutex);
 #ifdef DEBUG
     io_mutex.lock();
     std::cerr << "Try to dequeue some element on queue of size " << _size.load()
@@ -265,8 +267,8 @@ public:
    * \param os The output stream on which to print this queue.
    */
   void toStream(std::ostream &os) const {
-    LockerGuardian g1(_mutex);
-    LockerGuardian g2(io_mutex);
+    LockerGuardian<> g1(_mutex);
+    LockerGuardian<> g2(io_mutex);
     os << "CircularQueue:\n";
     size_t n = _size.load();
     for (size_t i = 0; i < n; ++i) {
