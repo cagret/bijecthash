@@ -10,6 +10,10 @@
 #  include "queue_watcher.hpp"
 #endif
 
+#ifdef ENABLE_CACHE_STATISTICS
+#  include "cache_statistics.hpp"
+#endif
+
 #include <libgen.h>
 #include <cassert>
 #include <iostream>
@@ -27,6 +31,9 @@ struct infos {
   //chrono::milliseconds time;
   long int time;
   long int memory;
+#ifdef ENABLE_CACHE_STATISTICS
+  CacheStatistics cache_stats;
+#endif
   vector<KmerCollector::LcpStats> lcp_stats;
 };
 
@@ -34,8 +41,14 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
   const Settings &s = kmer_index.settings;
 
   infos time_mem_stats;
+
+
   struct rusage rusage_start, rusage_end;
   getrusage(RUSAGE_SELF, &rusage_start);
+
+#ifdef ENABLE_CACHE_STATISTICS
+  time_mem_stats.cache_stats.start();
+#endif
 
   CircularQueue<string> kmer_queue(s.queue_size);
   vector<KmerCollector> collectors;
@@ -95,9 +108,17 @@ infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filename
        << kmer_queue << endl;
 #endif
 
+#ifdef ENABLE_CACHE_STATISTICS
+  time_mem_stats.cache_stats.stop();
+#endif
+
   getrusage(RUSAGE_SELF, &rusage_end);
   time_mem_stats.time = rusage_end.ru_utime.tv_usec - rusage_start.ru_utime.tv_usec;
   time_mem_stats.memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
+
+#ifdef ENABLE_CACHE_STATISTICS
+  time_mem_stats.cache_stats.update();
+#endif
 
   return time_mem_stats;
 
@@ -127,6 +148,11 @@ int main(int argc, char* argv[]) {
          << '\t' << "File_" << (i + 1) << "_LCP_avg"
          << '\t' << "File_" << (i + 1) << "_LCP_var";
   }
+#ifdef ENABLE_CACHE_STATISTICS
+  for (const auto &info: time_mem_stats.cache_stats) {
+    cout << '\t' << info.first;
+  }
+#endif
   for (auto &info: stats) {
     const string &kw = info.first;
     cout << '\t' << kw.substr(kw.find(' ') + 1);
@@ -146,6 +172,11 @@ int main(int argc, char* argv[]) {
          << '\t' << lcp_stat.average
          << '\t' << lcp_stat.variance;
   }
+#ifdef ENABLE_CACHE_STATISTICS
+  for (auto &info: time_mem_stats.cache_stats) {
+    cout << '\t' << info.second;
+  }
+#endif
   for (auto &info: stats) {
     cout << '\t' << info.second;
   }

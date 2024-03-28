@@ -31,7 +31,7 @@ DEPDIR = .dep
 #################
 
 # Binaries to build
-PROGS = BijectHash BijectHash_with_checks BijectHash_full_debug #benchmark
+PROGS = BijectHash BijectHash_with_cache_stats BijectHash_with_checks BijectHash_full_debug #benchmark
 
 BijectHash_SOURCES = \
   circular_queue.hpp							\
@@ -56,6 +56,11 @@ BijectHash_SOURCES = \
   program_options.hpp program_options.cpp				\
   settings.hpp settings.cpp						\
   transformer.hpp transformer.cpp
+
+BijectHash_with_cache_stats_SOURCES = \
+  $(BijectHash_SOURCES) \
+  cache_statistics.hpp cache_statistics.cpp
+BijectHash_with_cache_stats_CXXFLAGS = -DENABLE_CACHE_STATISTICS
 
 BijectHash_with_checks_SOURCES = \
   $(BijectHash_SOURCES) \

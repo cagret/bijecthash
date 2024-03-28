@@ -12,6 +12,7 @@ a.out
 benchmark
 benchmark_hash
 BijectHash
+BijectHash_with_cache_stats
 BijectHash_with_checks
 BijectHash_full_debug
 doc/docs
