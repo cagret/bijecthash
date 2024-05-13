@@ -1,0 +1,264 @@
+#!/bin/bash
+###############################################################################
+#                                                                             #
+#  Copyright © 2016-2023 -- LIRMM/CNRS/UM                                     #
+#                           (Laboratoire d'Informatique, de Robotique et de   #
+#                           Microélectronique de Montpellier /                #
+#                           Centre National de la Recherche Scientifique /    #
+#                           Université de Montpellier)                        #
+#                                                                             #
+#  Auteurs/Authors: Alban MANCHERON  <alban.mancheron@lirmm.fr>               #
+#                                                                             #
+#  -------------------------------------------------------------------------  #
+#                                                                             #
+#  Ce logiciel permet de gérer le versionnage sémantique d'un fichier.        #
+#                                                                             #
+#  Ce logiciel est régi  par la licence CeCILL  soumise au droit français et  #
+#  respectant les principes  de diffusion des logiciels libres.  Vous pouvez  #
+#  utiliser, modifier et/ou redistribuer ce programme sous les conditions de  #
+#  la licence CeCILL  telle que diffusée par le CEA,  le CNRS et l'INRIA sur  #
+#  le site "http://www.cecill.info".                                          #
+#                                                                             #
+#  En contrepartie de l'accessibilité au code source et des droits de copie,  #
+#  de modification et de redistribution accordés par cette licence, il n'est  #
+#  offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,  #
+#  seule une responsabilité  restreinte pèse  sur l'auteur du programme,  le  #
+#  titulaire des droits patrimoniaux et les concédants successifs.            #
+#                                                                             #
+#  À  cet égard  l'attention de  l'utilisateur est  attirée sur  les risques  #
+#  associés  au chargement,  à  l'utilisation,  à  la modification  et/ou au  #
+#  développement  et à la reproduction du  logiciel par  l'utilisateur étant  #
+#  donné  sa spécificité  de logiciel libre,  qui peut le rendre  complexe à  #
+#  manipuler et qui le réserve donc à des développeurs et des professionnels  #
+#  avertis  possédant  des  connaissances  informatiques  approfondies.  Les  #
+#  utilisateurs  sont donc  invités  à  charger  et  tester  l'adéquation du  #
+#  logiciel  à leurs besoins  dans des conditions  permettant  d'assurer  la  #
+#  sécurité de leurs systêmes et ou de leurs données et,  plus généralement,  #
+#  à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.         #
+#                                                                             #
+#  Le fait  que vous puissiez accéder  à cet en-tête signifie  que vous avez  #
+#  pris connaissance  de la licence CeCILL,  et que vous en avez accepté les  #
+#  termes.                                                                    #
+#                                                                             #
+#  -------------------------------------------------------------------------  #
+#                                                                             #
+#  This software allows to manage the semantic versioning of some file.       #
+#                                                                             #
+#  This software is governed by the CeCILL license under French law and       #
+#  abiding by the rules of distribution of free software. You can use,        #
+#  modify and/ or redistribute the software under the terms of the CeCILL     #
+#  license as circulated by CEA, CNRS and INRIA at the following URL          #
+#  "http://www.cecill.info".                                                  #
+#                                                                             #
+#  As a counterpart to the access to the source code and rights to copy,      #
+#  modify and redistribute granted by the license, users are provided only    #
+#  with a limited warranty and the software's author, the holder of the       #
+#  economic rights, and the successive licensors have only limited            #
+#  liability.                                                                 #
+#                                                                             #
+#  In this respect, the user's attention is drawn to the risks associated     #
+#  with loading, using, modifying and/or developing or reproducing the        #
+#  software by the user in light of its specific status of free software,     #
+#  that may mean that it is complicated to manipulate, and that also          #
+#  therefore means that it is reserved for developers and experienced         #
+#  professionals having in-depth computer knowledge. Users are therefore      #
+#  encouraged to load and test the software's suitability as regards their    #
+#  requirements in conditions enabling the security of their systems and/or   #
+#  data to be ensured and, more generally, to use and operate it in the same  #
+#  conditions as regards security.                                            #
+#                                                                             #
+#  The fact that you are presently reading this means that you have had       #
+#  knowledge of the CeCILL license and that you accept its terms.             #
+#                                                                             #
+###############################################################################
+DIRNAME=$(dirname "$(readlink -m "$0")")
+PROG_NAME=$(basename "$0")
+PROG_DIR=$(dirname "$(readlink -m "$0")")
+MAIN_DIR=$(dirname "$PROG_DIR")
+PROJECT_VERSION_FILE="version"
+VERSION_FILE_PREFIX="version."
+STORE="[project root]/$(basename "$DIRNAME")"
+TIMESTAMP=false
+FORCE_UPDATE=auto
+CREATE_FILE=auto
+
+if [ $# -ge 1 -a "$1" = "--timestamp" ]; then
+    TIMESTAMP=true
+    shift
+fi
+if [ $# -ge 1 -a "$1" = "--force-update" ]; then
+    FORCE_UPDATE=true
+    shift
+fi
+if [ $# -ge 1 -a "$1" = "--no-create" ]; then
+    CREATE_FILE=false
+    shift
+fi
+if [ $# -ge 1 -a "$1" = "--force-creation" ]; then
+    CREATE_FILE=true
+    shift
+fi
+if [ $# -eq 1 -a "$1" != "--help" -a "$1" != "-h" ]; then
+    [ "$1" != "--" ] && FILE="$1"
+    shift
+fi
+if [ $# -gt 0 -a -z "$FILE" ]; then
+    cat<<EOF
+
+usage: $(basename $0) [--timestamp] [--force-update] [--no-create|--force-creation] [<filename>]
+       $(basename $0) -h|--help
+
+This script retrieve version informations of file/project.
+
+If no file name is given, the version information corresponds to the current
+project and the target file where informations are stored is
+"$STORE/$PROJECT_VERSION_FILE".
+
+If some file name is given, then the version information corresponds to the
+given file in the project and the target file becomes
+"$STORE/$VERSION_FILE_PREFIX<normalized-filename>".
+
+If the target file exists and the '--force-update' option is not provided,
+the version information is read from the target file.
+
+If the file doesn't exist or if the '--force-update' option is given, the
+version information is computed from the git history if available.
+
+If the target file doesn't exist or if the version information has been
+updated (option '--force-update'), the target file is created unless option
+'--no-create' is provided.
+
+If the '--force-creation' option is provided, file rewriting is forced.
+
+The '--timestamp' option simply appends the last commit timestamp next to the
+version number.
+
+EOF
+exit 0
+fi
+
+cd "$MAIN_DIR"
+
+if [ -n "$FILE" ]; then
+    VERSION_FILE=$(readlink -m "$FILE")
+    VERSION_FILE="${VERSION_FILE#"$(dirname "$DIRNAME")"/}"
+    VERSION_FILE="$(echo "$VERSION_FILE_PREFIX$VERSION_FILE" | tr / .)"
+else
+    VERSION_FILE="$PROJECT_VERSION_FILE"
+fi
+
+VERSION_FILE="$DIRNAME/$VERSION_FILE"
+
+NO_VERSION="[unknown]"
+NO_COMMIT_DATE="(unknown)"
+GIT="$(which git)"
+
+## The following code is adapted from
+## http://git.kernel.org/cgit/git/git.git/tree/GIT-VERSION-GEN?id=HEAD
+FLAG=""
+FLAG_DIRTY_VALUE="-dirty"
+COMMIT_DATE=""
+COMMIT_DATE_FORMAT="%ci"
+VN="$NO_VERSION"
+
+
+# Try to extract the value of the given key (first arg) in the version file.
+# Echo the value if key is found (and parseable) or the default value
+# (second arg or 0 if missing)
+function getFileConfig() {
+    [ $# = 1 ] && default=0 || default=$2
+    val=$default
+    if [ -f "$VERSION_FILE" ]; then
+	val=$(grep "^[ ]*$1[ ]*:" "$VERSION_FILE" | sed 's,^[ ]*'$1'[ ]*:[ ]*,,')
+	[ -z "$val" ] && val=$default
+    fi
+    echo $val
+}
+
+# First see if there is a file named "$VERSION_FILE" (included in release tarballs),
+# then try git commands.
+[ "$FORCE_UPDATE" = "auto"  -a -f "$VERSION_FILE" ] && FORCE_UPDATE=false
+
+
+if [ "$FORCE_UPDATE" = "true" -o ! -f "$VERSION_FILE" ]; then
+    [ "$CREATE_FILE" = "auto" ] && CREATE_FILE=true
+    if [ -d "${GIT_DIR:-.git}" -o -f .git ]; then
+	if [ -z "$GIT" ]; then
+	    echo "Warning: command 'git' not found." >&2
+	else
+	    if [ -n "$FILE" ]; then
+		$GIT update-index -q --refresh
+		if [ -e "$FILE" ]; then
+		    VN=$($GIT log --max-count=1 --pretty="%h" HEAD -- "$FILE")
+		    COMMIT_DATE=$($GIT log --max-count=1 --pretty="$COMMIT_DATE_FORMAT" HEAD -- "$FILE")
+		    [ -z "$(git diff-index --name-only HEAD -- "$FILE")" ] || FLAG="$FLAG_DIRTY_VALUE"
+		else
+		    echo "Warning: file '$FILE' not found." >&2
+		fi
+	    else
+		VN="$($GIT describe --tags --always)"
+		COMMIT_DATE=$($GIT log --max-count=1 --pretty="$COMMIT_DATE_FORMAT" HEAD)
+		[ -z "$(git diff-index --name-only HEAD)" ] || FLAG="$FLAG_DIRTY_VALUE"
+	    fi
+	fi
+    else
+	echo "Warning: git repository not found in current directory (see GIT_DIR in git documentation)." >&2
+    fi
+    VN="$VN$FLAG"
+    [ -z "$VN" ] && VN="$NO_VERSION"
+else
+    VN=$(getFileConfig "VERSION" "$NO_VERSION")
+    COMMIT_DATE=$(getFileConfig "COMMIT_DATE" "$NO_COMMIT_DATE")
+fi
+
+if [ "$CREATE_FILE" = "true" ]; then
+    if [ -n "$FILE" ]; then
+	FILE_OR_PROJECT="file '${FILE#$MAIN_DIR/}'"
+    else
+	FILE_OR_PROJECT="project"
+	if [ -f "$VERSION_FILE" ]; then
+	    LIB_CURRENT=$(getFileConfig "LIB_CURRENT")
+	    LIB_REVISION=$(getFileConfig "LIB_REVISION")
+	    LIB_AGE=$(getFileConfig "LIB_AGE")
+	    LIB_VERSION=$(getFileConfig "LIB_VERSION" "")
+	fi
+    fi
+    cat <<EOF > "${VERSION_FILE}.new"
+# Generated by $PROG_NAME
+# Date: $(date --rfc-2822)
+
+# Version of the $FILE_OR_PROJECT
+VERSION: $VN
+
+# Commit date of the $FILE_OR_PROJECT
+COMMIT_DATE: $COMMIT_DATE
+
+EOF
+
+    if [ -n "$LIB_VERSION" ]; then
+	cat <<EOF >> "${VERSION_FILE}.new"
+# Most recent interface number that the main library implements.
+LIB_CURRENT: $LIB_CURRENT
+
+# Implementation number of the current interface the main library implements.
+LIB_REVISION: $LIB_REVISION
+
+# Difference between the newest and oldest interfaces that the main library implements.
+LIB_AGE: $LIB_AGE
+
+# Main library version number according to the libtool policy.
+LIB_VERSION: $LIB_VERSION
+EOF
+    fi
+    if ! test -f "${VERSION_FILE}" || ! diff -I "^#" -q "${VERSION_FILE}" "${VERSION_FILE}.new" > /dev/null; then
+        mv "${VERSION_FILE}.new" "${VERSION_FILE}"
+    else
+    	rm -f "${VERSION_FILE}.new"
+    fi
+fi
+
+[ "$TIMESTAMP" = "true" ] && VN="$VN ($COMMIT_DATE)"
+
+echo $VN
+
+exit 0

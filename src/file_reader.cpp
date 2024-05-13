@@ -1,12 +1,60 @@
-#include "file_reader.hpp"
-#include <cassert>
-#include <iostream>
+/******************************************************************************
+*                                                                             *
+*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*                           (Laboratoire d'Informatique, de Robotique et de   *
+*                           Microélectronique de Montpellier /                *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Montpellier)                        *
+*                           CRIStAL/CNRS/UL                                   *
+*                           (Centre de Recherche en Informatique, Signal et   *
+*                           Automatique de Lille /                            *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Lille)                              *
+*                                                                             *
+*  Auteurs/Authors:                                                           *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Annie   CHATEAU    <annie.chateau@lirmm.fr>               *
+*                   Antoine LIMASSET   <antoine.limasset@univ-lille.fr>       *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                   Camille MARCHET    <camille.marchet@univ-lille.fr>        *
+*                                                                             *
+*  Programmeurs/Programmers:                                                  *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                                                                             *
+*  -------------------------------------------------------------------------  *
+*                                                                             *
+*  This file is part of BijectHash.                                           *
+*                                                                             *
+*  BijectHash is free software: you can redistribute it and/or modify it      *
+*  under the terms of the GNU General Public License as published by the      *
+*  Free Software Foundation, either version 3 of the License, or (at your     *
+*  option) any later version.                                                 *
+*                                                                             *
+*  BijectHash is distributed in the hope that it will be useful, but WITHOUT  *
+*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or      *
+*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for   *
+*  more details.                                                              *
+*                                                                             *
+*  You should have received a copy of the GNU General Public License along    *
+*  with BijectHash. If not, see <https://www.gnu.org/licenses/>.              *
+*                                                                             *
+******************************************************************************/
 
-#include <locker.hpp>
+#include "file_reader.hpp"
+
+#include "common.hpp"
+#include "locker.hpp"
+
+#include <iostream>
 
 using namespace std;
 
-FileReader::FileReader(const Settings &s, const string &filename): _settings(s) {
+BEGIN_BIJECTHASH_NAMESPACE
+
+FileReader::FileReader(size_t kmer_length, const string &filename, bool verbose):
+  _k(kmer_length), _filename(), verbose(verbose)
+{
   open(filename);
 }
 
@@ -42,7 +90,7 @@ void FileReader::close() {
   _current_sequence_description.clear();
   _current_sequence_length = 0;
   _current_kmer.clear();
-  _current_kmer.reserve(_settings.length);
+  _current_kmer.reserve(_k);
   _kmer_id_offset = 0;
   _current_kmer_id = 0;
 }
@@ -53,22 +101,17 @@ bool FileReader::_nextKmerFromFasta() {
   assert(isOpen());
 
   size_t k = _current_kmer.length();
-  if (k >= _settings.length) {
-    _current_kmer.erase(0, k -_settings.length + 1);
+  if (k >= _k) {
+    _current_kmer.erase(0, k - _k + 1);
     k = _current_kmer.length();
-    assert(k == _settings.length - 1);
+    assert(k == _k - 1);
   }
 
-  while (_is && (k < _settings.length)) {
+  while (_is && (k < _k)) {
 
     char c = _is.get();
-    bool warn = _settings.verbose;
-#ifdef DEBUG
-    io_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "Processing char '" << c << "'" << endl;
-    io_mutex.unlock();
-#endif
+    bool warn = verbose;
+    DEBUG_MSG("Processing char '" << c << "'");
     ++_column;
     if (_current_sequence_description.empty()) {
       // Expects a new sequence description header
@@ -106,7 +149,7 @@ bool FileReader::_nextKmerFromFasta() {
       case 'T':
         _current_kmer += toupper(c);
         ++k;
-        if (++_current_sequence_length >= _settings.length) {
+        if (++_current_sequence_length >= _k) {
           ++_current_kmer_id;
         }
         break;
@@ -134,7 +177,7 @@ bool FileReader::_nextKmerFromFasta() {
       case 'N':
         _current_kmer.clear();
         k = 0;
-        if (_settings.verbose) {
+        if (verbose) {
           io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
@@ -144,12 +187,12 @@ bool FileReader::_nextKmerFromFasta() {
                << endl;
           io_mutex.unlock();
         }
-        if (++_current_sequence_length >= _settings.length) {
+        if (++_current_sequence_length >= _k) {
           ++_current_kmer_id;
         }
         break;
       default:
-        if (_settings.verbose) {
+        if (verbose) {
           io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
@@ -162,8 +205,8 @@ bool FileReader::_nextKmerFromFasta() {
         warn = false;
       }
     }
-    warn &= (k < _settings.length);
-    warn &= (_current_sequence_length >= _settings.length);
+    warn &= (k < _k);
+    warn &= (_current_sequence_length >= _k);
     if (warn) {
       io_mutex.lock();
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
@@ -174,27 +217,19 @@ bool FileReader::_nextKmerFromFasta() {
     }
   }
 
-  if (k != _settings.length) {
+  if (k != _k) {
     _current_sequence_description.clear();
     _current_sequence_length = 0;
     _current_kmer.clear();
     _kmer_id_offset = 0;
     _current_kmer_id = 0;
+  } else {
+    DEBUG_MSG("current sequence description: " << getCurrentSequenceDescription());
+    DEBUG_MSG("current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")");
+    DEBUG_MSG("k = " << k << " and _k = " << _k);
   }
-#ifdef DEBUG
-  else {
-    io_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "current sequence description: " << getCurrentSequenceDescription() << endl;
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl;
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "k = " << k << " and _settings.length = " << _settings.length << endl;
-    io_mutex.unlock();
-  }
-#endif
 
-  return (k == _settings.length);
+  return (k == _k);
 
 }
 
@@ -204,36 +239,26 @@ bool FileReader::_nextKmerFromFastq() {
   assert(isOpen());
 
   size_t k = _current_kmer.length();
-  if (k >= _settings.length) {
-    _current_kmer.erase(0, k -_settings.length + 1);
+  if (k >= _k) {
+    _current_kmer.erase(0, k -_k + 1);
     k = _current_kmer.length();
-    assert(k == _settings.length - 1);
+    assert(k == _k - 1);
   }
   int state = !_current_sequence_description.empty();
 
   size_t nb = 0;
 
-  while (_is && (k < _settings.length)) {
+  while (_is && (k < _k)) {
 
     char c = _is.get();
-    bool warn = _settings.verbose;
-#ifdef DEBUG
-    io_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "Processing char '" << c << "'" << endl;
-    io_mutex.unlock();
-#endif
+    bool warn = verbose;
+    DEBUG_MSG("Processing char '" << c << "'");
     ++_column;
 
     switch (state) {
 
     case 0: {
-#ifdef DEBUG
-      io_mutex.lock();
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "State 0 (expecting sequence header)" << endl;
-      io_mutex.unlock();
-#endif
+      DEBUG_MSG("State 0 (expecting sequence header)");
       assert(_current_sequence_description.empty());
       // Expects a new sequence description header
       assert(c == '@');
@@ -250,12 +275,7 @@ bool FileReader::_nextKmerFromFastq() {
     }
 
     case 1: {
-#ifdef DEBUG
-      io_mutex.lock();
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "State 1 (processing nucl. sequence)" << endl;
-      io_mutex.unlock();
-#endif
+      DEBUG_MSG("State 1 (processing nucl. sequence)");
       switch (c) {
       case '\n':
         ++_line;
@@ -280,7 +300,7 @@ bool FileReader::_nextKmerFromFastq() {
       case 'T':
         _current_kmer += toupper(c);
         ++k;
-        if (++_current_sequence_length >= _settings.length) {
+        if (++_current_sequence_length >= _k) {
           ++_current_kmer_id;
         }
         break;
@@ -308,7 +328,7 @@ bool FileReader::_nextKmerFromFastq() {
       case 'N':
         _current_kmer.clear();
         k = 0;
-        if (_settings.verbose) {
+        if (verbose) {
           io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
@@ -318,12 +338,12 @@ bool FileReader::_nextKmerFromFastq() {
                << endl;
           io_mutex.unlock();
         }
-        if (++_current_sequence_length >= _settings.length) {
+        if (++_current_sequence_length >= _k) {
           ++_current_kmer_id;
         }
         break;
       default:
-        if (_settings.verbose) {
+        if (verbose) {
           io_mutex.lock();
           cerr << "Warning: "
                << "file '" << _filename
@@ -339,18 +359,13 @@ bool FileReader::_nextKmerFromFastq() {
     }
 
     case 2: {
-#ifdef DEBUG
-      io_mutex.lock();
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "State 2 (sequence separator)" << endl;
-      io_mutex.unlock();
-#endif
+      DEBUG_MSG("State 2 (sequence separator)");
       assert(c == '+');
       assert(_column == 1);
       string desc;
       getline(_is, desc);
       _column += desc.length();
-      if (_settings.verbose && !(desc.empty() || (desc == _current_sequence_description))) {
+      if (verbose && !(desc.empty() || (desc == _current_sequence_description))) {
         io_mutex.lock();
         cerr << "Warning: "
              << "file '" << _filename
@@ -365,12 +380,7 @@ bool FileReader::_nextKmerFromFastq() {
     }
 
     case 3: {
-#ifdef DEBUG
-      io_mutex.lock();
-      cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-           << "State 3 (processing quality for the remaining " << nb << "symbols)" << endl;
-      io_mutex.unlock();
-#endif
+      DEBUG_MSG("State 3 (processing quality for the remaining " << nb << "symbols)");
       if (c == '\n') {
         ++_line;
         _column = 0;
@@ -381,7 +391,7 @@ bool FileReader::_nextKmerFromFastq() {
       } else if (c > ' ') {
         assert(nb);
           --nb;
-      } else if (_settings.verbose && (c != ' ') && (c != -1)) {
+      } else if (verbose && (c != ' ') && (c != -1)) {
         io_mutex.lock();
         cerr << "Warning: "
              << "file '" << _filename
@@ -408,8 +418,8 @@ bool FileReader::_nextKmerFromFastq() {
     }
 
     warn &= (state == 1);
-    warn &= (k < _settings.length);
-    warn &= (_current_sequence_length >= _settings.length);
+    warn &= (k < _k);
+    warn &= (_current_sequence_length >= _k);
     if (warn) {
       io_mutex.lock();
       cerr << "The k-mer with absolute ID " << getCurrentKmerID()
@@ -420,25 +430,19 @@ bool FileReader::_nextKmerFromFastq() {
     }
   }
 
-  if (k != _settings.length) {
+  if (k != _k) {
     _current_sequence_description.clear();
     _current_sequence_length = 0;
     _current_kmer.clear();
     _kmer_id_offset = 0;
     _current_kmer_id = 0;
+  } else {
+    DEBUG_MSG("current sequence description: " << getCurrentSequenceDescription());
+    DEBUG_MSG("current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")");
+    DEBUG_MSG("k = " << k << " and _k = " << _k);
   }
-#ifdef DEBUG
-  else {
-    io_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "current sequence description: " << getCurrentSequenceDescription() << endl;
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "current kmer: " << getCurrentKmer() << " (abs. ID: " << getCurrentKmerID() << ", rel. ID: " << getCurrentKmerID(false) << ")" << endl;
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "k = " << k << " and _settings.length = " << _settings.length << endl;
-    io_mutex.unlock();
-  }
-#endif
 
-  return (k == _settings.length);
+  return (k == _k);
 }
+
+END_BIJECTHASH_NAMESPACE

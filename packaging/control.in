@@ -1,0 +1,17 @@
+Package:	@PACKAGE@
+Version:	@PACKAGE_VERSION@
+Section:	libs
+Priority:	optional
+Architecture:	@ARCH@
+Essential:	no
+Depends:	libc6, libc6-dev, libstdc++6
+Recommends:	pkg-config, man-db, g++
+Suggests:	
+Conflicts:
+Installed-Size: @INSTALLED_SIZE@
+Maintainer:	DoccY <@PACKAGE_BUGREPORT@>
+Provides:	@PACKAGE@
+Description:	Blabla
+ .
+ blabla
+ .

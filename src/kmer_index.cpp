@@ -1,11 +1,56 @@
+/******************************************************************************
+*                                                                             *
+*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*                           (Laboratoire d'Informatique, de Robotique et de   *
+*                           Microélectronique de Montpellier /                *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Montpellier)                        *
+*                           CRIStAL/CNRS/UL                                   *
+*                           (Centre de Recherche en Informatique, Signal et   *
+*                           Automatique de Lille /                            *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Lille)                              *
+*                                                                             *
+*  Auteurs/Authors:                                                           *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Annie   CHATEAU    <annie.chateau@lirmm.fr>               *
+*                   Antoine LIMASSET   <antoine.limasset@univ-lille.fr>       *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                   Camille MARCHET    <camille.marchet@univ-lille.fr>        *
+*                                                                             *
+*  Programmeurs/Programmers:                                                  *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                                                                             *
+*  -------------------------------------------------------------------------  *
+*                                                                             *
+*  This file is part of BijectHash.                                           *
+*                                                                             *
+*  BijectHash is free software: you can redistribute it and/or modify it      *
+*  under the terms of the GNU General Public License as published by the      *
+*  Free Software Foundation, either version 3 of the License, or (at your     *
+*  option) any later version.                                                 *
+*                                                                             *
+*  BijectHash is distributed in the hope that it will be useful, but WITHOUT  *
+*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or      *
+*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for   *
+*  more details.                                                              *
+*                                                                             *
+*  You should have received a copy of the GNU General Public License along    *
+*  with BijectHash. If not, see <https://www.gnu.org/licenses/>.              *
+*                                                                             *
+******************************************************************************/
+
 #include "kmer_index.hpp"
 
-#include <cassert>
-#include <thread>
-#include <iostream>
+#include "common.hpp"
+
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
+
+BEGIN_BIJECTHASH_NAMESPACE
 
 /////////////////////////
 // KmerIndex::Subindex //
@@ -28,22 +73,12 @@ size_t KmerIndex::Subindex::size() const {
 }
 
 bool KmerIndex::Subindex::insert(const value_type& value) {
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << "(" << value << "):" << this << "."
-       <<  " The subindex size was " << base_t::size()
-       << endl;
-  io_mutex.unlock();
-#endif
+  DEBUG_MSG("(" << value << "):" << this << "." << endl
+            << MSG_DBG_HEADER <<  "The subindex size was " << base_t::size());
   _rw_lock.requestWriteAccess();
   pair<base_t::iterator, bool> res = set<uint64_t>::insert(value);
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << "(" << value << "):" << this << "."
-       <<  " Now, subindex size is " << base_t::size()
-       << endl;
-  io_mutex.unlock();
-#endif
+  DEBUG_MSG("(" << value << "):" << this << "." << endl
+            <<  MSG_DBG_HEADER << "Now, subindex size is " << base_t::size());
   _rw_lock.releaseWriteAccess();
   return res.second;
 }
@@ -96,18 +131,10 @@ bool KmerIndex::insert(const string &kmer) {
   Transformer::EncodedKmer encoded = (*_transformer)(kmer);
 #if defined(DEBUG) || not(defined(NDEBUG))
   string decoded = (*_transformer)(encoded);
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "[thread " << this_thread::get_id() << "]:"
-       << "original kmer: '" << kmer << "'" << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "[thread " << this_thread::get_id() << "]:"
-       << "decoded kmer:  '" << decoded << "'" << endl;
-  io_mutex.unlock();
 #endif
+  DEBUG_MSG("original kmer: '" << kmer << "'" << endl
+            << MSG_DBG_HEADER << "decoded kmer:  '" << decoded << "'");
   assert(decoded == kmer);
-#endif
   bool res = _subindexes[encoded.prefix].insert(encoded.suffix);
   if (res) {
     ++_size;
@@ -197,3 +224,5 @@ void KmerIndex::toStream(ostream &os) const {
   }
   _rw_lock.releaseReadAccess();
 }
+
+END_BIJECTHASH_NAMESPACE

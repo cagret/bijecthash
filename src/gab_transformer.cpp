@@ -1,14 +1,58 @@
+/******************************************************************************
+*                                                                             *
+*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*                           (Laboratoire d'Informatique, de Robotique et de   *
+*                           Microélectronique de Montpellier /                *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Montpellier)                        *
+*                           CRIStAL/CNRS/UL                                   *
+*                           (Centre de Recherche en Informatique, Signal et   *
+*                           Automatique de Lille /                            *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Lille)                              *
+*                                                                             *
+*  Auteurs/Authors:                                                           *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Annie   CHATEAU    <annie.chateau@lirmm.fr>               *
+*                   Antoine LIMASSET   <antoine.limasset@univ-lille.fr>       *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                   Camille MARCHET    <camille.marchet@univ-lille.fr>        *
+*                                                                             *
+*  Programmeurs/Programmers:                                                  *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                                                                             *
+*  -------------------------------------------------------------------------  *
+*                                                                             *
+*  This file is part of BijectHash.                                           *
+*                                                                             *
+*  BijectHash is free software: you can redistribute it and/or modify it      *
+*  under the terms of the GNU General Public License as published by the      *
+*  Free Software Foundation, either version 3 of the License, or (at your     *
+*  option) any later version.                                                 *
+*                                                                             *
+*  BijectHash is distributed in the hope that it will be useful, but WITHOUT  *
+*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or      *
+*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for   *
+*  more details.                                                              *
+*                                                                             *
+*  You should have received a copy of the GNU General Public License along    *
+*  with BijectHash. If not, see <https://www.gnu.org/licenses/>.              *
+*                                                                             *
+******************************************************************************/
+
 #include "gab_transformer.hpp"
 
-#include <cassert>
-#include <random>
+#include "common.hpp"
 
 #ifdef DEBUG
 #  include <bitset>
-#  include "locker.hpp"
 #endif
+#include <random>
 
 using namespace std;
+
+BEGIN_BIJECTHASH_NAMESPACE
 
 // The following functions (_f64() and _multiplicativeInverse()) are
 // adapted from
@@ -33,7 +77,7 @@ uint64_t _multiplicativeInverse(uint64_t a, size_t sigma) {
   // a * rev_a = 1 mod 2^sigma
   //
   // is equivalent to solving the extended euclidian algorithm for:
-  //settings.prefix_length * 2
+  // prefix_length * 2
   // a * rev_a + 2^sigma * y = gcd(a, 2^sigma)
   assert(a & 1);
   uint64_t x = (3 * a) ^ 2; // 5 bits
@@ -42,18 +86,10 @@ uint64_t _multiplicativeInverse(uint64_t a, size_t sigma) {
   x = _f64(a, x); // 40 bits
   x = _f64(a, x); // 80 bits
   uint64_t mask = ((sigma < 64) ? ((1ull << sigma) - 1) : uint64_t(-1));
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "a = " << a << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "a' = " << x << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "a * a' = " << (a * x) << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "(a * a') & " << bitset<64>(mask) << " = " << ((a * x) & mask) << endl;
-  io_mutex.unlock();
-#endif
+  DEBUG_MSG("a = " << a << endl
+            << MSG_DBG_HEADER << "a' = " << x << endl
+            << MSG_DBG_HEADER << "a * a' = " << (a * x) << endl
+            << MSG_DBG_HEADER << "(a * a') & " << bitset<64>(mask) << " = " << ((a * x) & mask));
   assert(((a * x) & mask) == 1);
   return x & mask;
 }
@@ -81,14 +117,14 @@ static uint64_t _setCorrectBitMask(uint64_t v, uint64_t mask) {
   return v & mask;
 }
 
-GaBTransformer::GaBTransformer(const Settings &s, uint64_t a, uint64_t b):
-  Transformer(s, "GaB"),
-  _rotation_offset(settings.length > 32 ? 32 : settings.length),
-  _rotation_mask((1ull << settings.length) - 1ull),
+GaBTransformer::GaBTransformer(size_t kmer_length, size_t prefix_length, uint64_t a, uint64_t b):
+  Transformer(kmer_length, prefix_length, "GaB"),
+  _rotation_offset(kmer_length > 32 ? 32 : kmer_length),
+  _rotation_mask((1ull << kmer_length) - 1ull),
   _kmer_mask((_rotation_mask << _rotation_offset) | _rotation_mask),
-  _prefix_shift((((settings.length > 32) ? 32 : settings.length) - settings.prefix_length) << 1),
-  _suffix_mask((settings.length > 32) ? ((1ull << ((settings.length - 32) << 1)) - 1) : ((1ull << ((settings.length - settings.prefix_length) << 1)) - 1)),
-  _a(_setCorrectOddCoefficient(a)), _rev_a(_multiplicativeInverse(_a, settings.length > 32 ? 64 : 2 * settings.length)), _b(_setCorrectBitMask(b, _kmer_mask))
+  _prefix_shift((((kmer_length > 32) ? 32 : kmer_length) - prefix_length) << 1),
+  _suffix_mask((kmer_length > 32) ? ((1ull << ((kmer_length - 32) << 1)) - 1) : ((1ull << (suffix_length << 1)) - 1)),
+  _a(_setCorrectOddCoefficient(a)), _rev_a(_multiplicativeInverse(_a, kmer_length > 32 ? 64 : 2 * kmer_length)), _b(_setCorrectBitMask(b, _kmer_mask))
 {
   string *desc_ptr = const_cast<string *>(&(this->description));
   *desc_ptr += "(" + to_string(_a) + "," + to_string(_b) + ")";
@@ -100,96 +136,73 @@ uint64_t GaBTransformer::_rotate(uint64_t s) const {
 }
 
 uint64_t GaBTransformer::_G(uint64_t s) const {
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "s = " << s << ", "
-       << "_a = " << _a << ", "
-       << "_b = " << _b << endl;
-  uint64_t rotation = _rotate(s);
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "_rotate(s) = " << rotation << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "_rotate(s) ^ _b = " << (rotation ^ _b) << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "_a * (_rotate(s) ^ _b) = " << (_a * (rotation ^ _b)) << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "(_a * (_rotate(s) ^ _b)) & _kmer_mask = " << ((_a * (rotation ^ _b)) & _kmer_mask) << endl;
-  io_mutex.unlock();
-#endif
+  DEBUG_MSG("s = " << s << ", " << "_a = " << _a << ", " << "_b = " << _b;
+            uint64_t rotation = _rotate(s);
+            cerr << MSG_DBG_HEADER << "_rotate(s) = " << rotation << endl
+            << MSG_DBG_HEADER << "_rotate(s) ^ _b = " << (rotation ^ _b) << endl
+            << MSG_DBG_HEADER << "_a * (_rotate(s) ^ _b) = " << (_a * (rotation ^ _b)) << endl
+            << MSG_DBG_HEADER << "(_a * (_rotate(s) ^ _b)) & _kmer_mask = " << ((_a * (rotation ^ _b)) & _kmer_mask));
   return ((_a * (_rotate(s) ^ _b)) & _kmer_mask);
 }
 
 uint64_t GaBTransformer::_G_rev(uint64_t s) const {
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "s = " << s << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "_rev_a * s = " << "(" << _rev_a << " * " << s << ") = " << (_rev_a * s) << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "(_rev_a * s) & _kmer_mask = " << ((_rev_a * s) & _kmer_mask) << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "((_rev_a * s) & _kmer_mask) ^ _b = " << (((_rev_a * s) & _kmer_mask) ^ _b) << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "_rotate(((_rev_a * s) & _kmer_mask) ^ _b) = " << _rotate(((_rev_a * s) & _kmer_mask) ^ _b) << endl;
-  io_mutex.unlock();
-#endif
+  DEBUG_MSG("s = " << s << endl
+            << MSG_DBG_HEADER << "_rev_a * s = " << "(" << _rev_a << " * " << s << ") = " << (_rev_a * s) << endl
+            << MSG_DBG_HEADER << "(_rev_a * s) & _kmer_mask = " << ((_rev_a * s) & _kmer_mask) << endl
+            << MSG_DBG_HEADER << "((_rev_a * s) & _kmer_mask) ^ _b = " << (((_rev_a * s) & _kmer_mask) ^ _b) << endl
+            << MSG_DBG_HEADER << "_rotate(((_rev_a * s) & _kmer_mask) ^ _b) = " << _rotate(((_rev_a * s) & _kmer_mask) ^ _b));
   return _rotate(((_rev_a * s) & _kmer_mask) ^ _b);
 }
 
 Transformer::EncodedKmer GaBTransformer::operator()(const std::string &kmer) const {
   EncodedKmer e;
-  if (settings.length <= 32) {
-    uint64_t v = _encode(kmer.c_str(), settings.length);
+  if (kmer_length <= 32) {
+    uint64_t v = _encode(kmer.c_str(), kmer_length);
 #ifdef DEBUG
     uint64_t orig = v;
 #endif
     v = _G(v);
 #ifdef DEBUG
     uint64_t rev_v = _G_rev(v);
-    io_mutex.lock();
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "orig = " << orig << endl;
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "v = " << v << endl;
-    cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-         << "rev_v = " << rev_v << endl;
+    DEBUG_MSG("orig = " << orig << endl
+              << MSG_DBG_HEADER << "v = " << v << endl
+              << MSG_DBG_HEADER << "rev_v = " << rev_v);
     assert(orig == rev_v);
-    io_mutex.unlock();
 #endif
     e.prefix = v >> _prefix_shift;
     e.suffix = v & _suffix_mask;
   } else {
     uint64_t prefix = _encode(kmer.c_str(), 32);
-    uint64_t suffix = _encode(kmer.c_str() + 32, settings.length - 32);
+    uint64_t suffix = _encode(kmer.c_str() + 32, kmer_length - 32);
     uint64_t prefix_transformed = _G(prefix);
     e.prefix = prefix_transformed >> _prefix_shift;
-    e.suffix = prefix_transformed << (settings.prefix_length << 1) | suffix;
+    e.suffix = prefix_transformed << (prefix_length << 1) | suffix;
   }
   return e;
 }
 
 std::string GaBTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  if (settings.length <= 32) {
+  if (kmer_length <= 32) {
     uint64_t v = (e.prefix << _prefix_shift) | e.suffix;
     v = _G_rev(v);
-    return _decode(v, settings.length);
+    return _decode(v, kmer_length);
   } else {
-    uint64_t u = (e.prefix << _prefix_shift) | (e.suffix >> (settings.prefix_length << 1));
+    uint64_t u = (e.prefix << _prefix_shift) | (e.suffix >> (prefix_length << 1));
     u = _G_rev(u);
     uint64_t v = e.suffix & _suffix_mask;
-    return _decode(u, 32) + _decode(v, settings.length - 32);
+    return _decode(u, 32) + _decode(v, kmer_length - 32);
   }
 }
 
 std::string GaBTransformer::getTransformedKmer(const Transformer::EncodedKmer &e) const {
-  if (settings.length <= 32) {
+  if (kmer_length <= 32) {
     uint64_t v = (e.prefix << _prefix_shift) | e.suffix;
-    return _decode(v, settings.length);
+    return _decode(v, kmer_length);
   } else {
-    uint64_t u = (e.prefix << _prefix_shift) | (e.suffix >> (settings.prefix_length << 1));
+    uint64_t u = (e.prefix << _prefix_shift) | (e.suffix >> (prefix_length << 1));
     uint64_t v = e.suffix & _suffix_mask;
-    return _decode(u, 32) + _decode(v, settings.length - 32);
+    return _decode(u, 32) + _decode(v, kmer_length - 32);
   }
 }
+
+END_BIJECTHASH_NAMESPACE

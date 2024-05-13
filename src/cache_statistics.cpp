@@ -1,4 +1,49 @@
+/******************************************************************************
+*                                                                             *
+*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*                           (Laboratoire d'Informatique, de Robotique et de   *
+*                           Microélectronique de Montpellier /                *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Montpellier)                        *
+*                           CRIStAL/CNRS/UL                                   *
+*                           (Centre de Recherche en Informatique, Signal et   *
+*                           Automatique de Lille /                            *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Lille)                              *
+*                                                                             *
+*  Auteurs/Authors:                                                           *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Annie   CHATEAU    <annie.chateau@lirmm.fr>               *
+*                   Antoine LIMASSET   <antoine.limasset@univ-lille.fr>       *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                   Camille MARCHET    <camille.marchet@univ-lille.fr>        *
+*                                                                             *
+*  Programmeurs/Programmers:                                                  *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                                                                             *
+*  -------------------------------------------------------------------------  *
+*                                                                             *
+*  This file is part of BijectHash.                                           *
+*                                                                             *
+*  BijectHash is free software: you can redistribute it and/or modify it      *
+*  under the terms of the GNU General Public License as published by the      *
+*  Free Software Foundation, either version 3 of the License, or (at your     *
+*  option) any later version.                                                 *
+*                                                                             *
+*  BijectHash is distributed in the hope that it will be useful, but WITHOUT  *
+*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or      *
+*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for   *
+*  more details.                                                              *
+*                                                                             *
+*  You should have received a copy of the GNU General Public License along    *
+*  with BijectHash. If not, see <https://www.gnu.org/licenses/>.              *
+*                                                                             *
+******************************************************************************/
+
 #include "cache_statistics.hpp"
+
+#include "common.hpp"
 
 #include <iostream>
 // For getting cache performances (see perf_event_open() manpage for
@@ -12,6 +57,8 @@
 #include <cstring> /* strerror() */
 
 using namespace std;
+
+BEGIN_BIJECTHASH_NAMESPACE
 
 static uint32_t PERF_AVAILABLE_CACHE_LEVEL[] = {PERF_COUNT_HW_CACHE_L1D, PERF_COUNT_HW_CACHE_LL};
 static uint32_t PERF_AVAILABLE_CACHE_OP[] = {PERF_COUNT_HW_CACHE_OP_READ, PERF_COUNT_HW_CACHE_OP_WRITE, PERF_COUNT_HW_CACHE_OP_PREFETCH};
@@ -141,12 +188,9 @@ CacheStatistics::CacheStatistics(): _fd(-1), _started(false), _cache_evt_id_labe
         bool res =
 #endif
           _createPerfEventWatcher(config);
-#ifdef DEBUG
-        cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << "(" << value << "):" << this << "."
-             << "cache event watcher "
-             << (res ? "successfully initialized" : "initialization failure")
-             << "." << endl;
-#endif
+        DEBUG_MSG("Cache event watcher "
+                  << (res ? "successfully initialized" : "initialization failure")
+                  << ".");
       }
     }
   }
@@ -188,14 +232,11 @@ void CacheStatistics::update() {
   if (read(_fd, &cache_data, sizeof(cache_data)) == -1) {
     cerr << "Error while reading cache statistics using file descriptor " << _fd << ": " << strerror(errno) << endl;
   } else {
-#ifdef DEBUG
-    cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << "(" << value << "):" << this << "."
-         << "[cache data] {"
-         << "number of records = " << cache_data.nr << ", "
-         << "time enabled = " << cache_data.time_enabled << ", "
-         << "time running = " << cache_data.time_running
-         << "}" << endl;
-#endif
+    DEBUG_MSG("[cache data] {"
+              << "number of records = " << cache_data.nr << ", "
+              << "time enabled = " << cache_data.time_enabled << ", "
+              << "time running = " << cache_data.time_running
+              << "}");
     for (size_t i = 0; i < cache_data.nr; ++i) {
       const uint64_t id = cache_data.values[i].id;
       const string label = _cache_evt_id_labels[id];
@@ -207,3 +248,5 @@ void CacheStatistics::update() {
     start();
   }
 }
+
+END_BIJECTHASH_NAMESPACE

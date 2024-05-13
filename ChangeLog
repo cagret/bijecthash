@@ -1,6 +1,160 @@
+2024-05-13  DoccY <alban.mancheron@lirmm.fr>
+
+	* .gitignore, AUTHORS, LICENSE => COPYING, INSTALL, LICENSE.md,
+	Makefile, Makefile.am, Makefile.in, NEWS, TODO, aclocal.m4,
+	aminclude_static.am, boiteMoustache.py, config/compile,
+	config/config.guess, config/config.h.in, config/config.sub,
+	config/depcomp, config/fix-timestamp.sh, config/git-release,
+	config/git-version-gen, config/install-sh, config/ltmain.sh,
+	config/m4/ax_ac_append_to_file.m4,
+	config/m4/ax_ac_print_to_file.m4,
+	config/m4/ax_add_am_macro_static.m4,
+	config/m4/ax_am_macros_static.m4,
+	config/m4/ax_append_compile_flags.m4, config/m4/ax_append_flag.m4,
+	config/m4/ax_append_link_flags.m4,
+	config/m4/ax_check_compile_flag.m4, config/m4/ax_check_gnu_make.m4,
+	config/m4/ax_check_link_flag.m4, config/m4/ax_code_coverage.m4,
+	config/m4/ax_compare_version.m4,
+	config/m4/ax_compiler_flags_ldflags.m4,
+	config/m4/ax_cxx_compile_stdcxx.m4, config/m4/ax_file_escapes.m4,
+	config/m4/ax_prog_doxygen.m4, config/m4/ax_pthread.m4,
+	config/m4/ax_require_defined.m4, config/m4/libtool.m4,
+	config/m4/ltoptions.m4, config/m4/ltsugar.m4,
+	config/m4/ltversion.m4, config/m4/lt~obsolete.m4, config/m4/pkg.m4,
+	config/missing, config/test-driver, config/version,
+	config/version.config.git-release, config/version.configure.ac,
+	configure, configure.ac, decile.py, doc/Makefile, doc/Makefile.am,
+	doc/Makefile.in, doc/{Doxyfile => doxygen.cfg.in},
+	doc/mainpage.dox.in, doc/plugin_compilation.dox, extra/Makefile.am,
+	extra/Makefile.in, extra/boiteMoustache.py, extra/decile.py,
+	extra/run_methods.sh, packaging/Makefile.am, packaging/Makefile.in,
+	packaging/control.in, packaging/libkmer-reader.pc.in,
+	packaging/libkmer-transformers.pc.in, packaging/postinst.in,
+	packaging/prerm.in, resources/Makefile, resources/Makefile.am,
+	resources/Makefile.in, resources/seq.py, run_methods.sh,
+	src/Makefile, src/Makefile.am, src/Makefile.in, src/benchmark.cpp,
+	src/{main.cpp => biject_hash.cpp}, src/bwt_transformer.cpp,
+	src/bwt_transformer.hpp, src/cache_statistics.cpp,
+	src/cache_statistics.hpp, src/canonical_transformer.cpp,
+	src/canonical_transformer.hpp, src/circular_queue.hpp,
+	src/common.hpp, src/composition_transformer.cpp,
+	src/composition_transformer.hpp, src/file_reader.cpp,
+	src/file_reader.hpp, src/gab_transformer.cpp,
+	src/gab_transformer.hpp, src/identity_transformer.cpp,
+	src/identity_transformer.hpp, src/inthash.c,
+	src/inthash_transformer.cpp, src/inthash_transformer.hpp,
+	src/kmer_collector.cpp, src/kmer_collector.hpp, src/kmer_index.cpp,
+	src/kmer_index.hpp, src/kmer_processor.cpp, src/kmer_processor.hpp,
+	src/locker.cpp, src/locker.hpp, src/lyndon_transformer.cpp,
+	src/lyndon_transformer.hpp, src/minimizer_transformer.cpp,
+	src/minimizer_transformer.hpp, src/permutation_bit_transformer.cpp,
+	src/permutation_bit_transformer.hpp,
+	src/permutation_transformer.cpp, src/permutation_transformer.hpp,
+	src/permutations.cpp, src/permutations.hpp,
+	src/program_options.cpp, src/program_options.hpp,
+	src/queue_watcher.hpp, src/queue_watcher.tpp, src/settings.cpp,
+	src/settings.hpp, src/transformer.cpp, src/transformer.hpp,
+	tests/Makefile.am, tests/Makefile.in:
+	Rewrite the compilation/installation process to use autotools.
+	This leads to the creation of two libraries:
+	- the kmer-transformers library (which aims to apply transformers to k-mer strings)
+	- the kmer-reader library (which allow to read k-mers from fasta/fastq files using a producer/consumer design pattern)
+	
+	
+2024-03-28  DoccY <alban.mancheron@lirmm.fr>
+
+	* .gitignore, src/Makefile, src/cache_statistics.cpp,
+	src/cache_statistics.hpp, src/main.cpp:
+	Add a cache event monitoring version of BijectHash (the BijectHash_with_cache_stats).
+	This requires to have the `CAP_SYS_ADMIN` permsissions in order to gather cache event informations.
+	Thus, user should ensure having `kernel.perf_event_paranoid` with at most level 2.
+	Getting the current configured value can be achieved by running either `sysctl kernel.perf_event_paranoid` or `cat /proc/sys/kernel/perf_event_paranoid`.
+	Setting the value to level 2 can be achieved by running either `sudo sysctl kernel.perf_event_paranoid=2` or `echo 2 | sudo tee /proc/sys/kernel/perf_event_paranoid`.
+	You should reset the initial level after having run your experiments.
+	
+	
+2024-03-28  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/circular_queue.hpp:
+	Fix some compilation issues with the CircularQueue class.
+	
+	
+2024-03-28  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile:
+	Remove the linking to openmp whichi is not necessary.
+	
+	
+2024-03-28  DoccY <alban.mancheron@lirmm.fr>
+
+	* src/Makefile, src/main.cpp, src/queue_watcher.hpp,
+	src/queue_watcher.tpp:
+	Move the circuar queue watcher in a dedicated file in order to make the main.cpp file reading easier.
+	
+	
+2024-03-27  Clement <cagret@mailo.com>
+
+	* run_methods.sh:
+	Fix -c option
+	
+	
+2024-03-27  Clement <cagret@mailo.com>
+
+	* run_methods.sh:
+	add -c option to run canonical only
+	
+	
+2024-03-27  Clement <cagret@mailo.com>
+
+	* run_methods.sh:
+	full canonical run methodes
+	
+	
+2024-03-26  Clement <cagret@mailo.com>
+
+	* run_methods.sh:
+	update runmethodes
+	
+	
 2024-03-26  DoccY <alban.mancheron@lirmm.fr>
 
-	* doc/Doxyfile, src/bwt_transformer.hpp,
+	* src/kmer_collector.cpp, src/kmer_collector.hpp, src/main.cpp:
+	Add the LCP statistics on the program output.
+	
+	
+2024-03-26  Clement <cagret@mailo.com>
+
+	* src/bwt_transformer.cpp:
+	minor fix
+	
+	
+2024-03-26  Clement <cagret@mailo.com>
+
+	* src/bwt_transformer.cpp, src/kmer_collector.cpp:
+	Fix BWT, remove kmer_collector
+	
+	
+2024-03-26  Clement <cagret@mailo.com>
+
+	* src/bwt_transformer.cpp:
+	BWT as Lyndon
+	
+	
+2024-03-26  Clement <cagret@mailo.com>
+
+	* src/bwt_transformer.cpp:
+	Debugging bwt still decoded != kmer
+	
+	
+2024-03-26  Clement <cagret@mailo.com>
+
+	* src/minimizer_transformer.cpp:
+	Decode fixed
+	
+	
+2024-03-26  DoccY <alban.mancheron@lirmm.fr>
+
+	* ChangeLog, doc/Doxyfile, src/bwt_transformer.hpp,
 	src/inthash_transformer.cpp, src/minimizer_transformer.hpp,
 	src/permutation_bit_transformer.cpp,
 	src/permutation_bit_transformer.hpp, src/settings.hpp:
@@ -190,8 +344,8 @@
 	
 2024-03-18  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, run_methods.sh, src/Makefile, src/kmer_index.cpp,
-	src/program_options.cpp, src/settings.cpp:
+	* .gitignore, ChangeLog, run_methods.sh, src/Makefile,
+	src/kmer_index.cpp, src/program_options.cpp, src/settings.cpp:
 	Adding two version of BujectHash in the default compilation target:
 	- BijectHash_with_checks: Performs assertion checks and monitor the circular queue.
 	- BijectHash_full_debug: Print lots of debugging information (and performs more assertion checks).
@@ -271,7 +425,7 @@
 	
 2024-03-12  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/gab_transformer.cpp, src/gab_transformer.hpp,
+	* ChangeLog, src/gab_transformer.cpp, src/gab_transformer.hpp,
 	src/kmer_index.hpp, src/main.cpp, src/program_options.cpp,
 	src/settings.cpp:
 	Update the Gab transformer in order to accept custom parameters for the multiplier and the mask.
@@ -280,7 +434,7 @@
 	
 2024-03-11  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/Makefile:
+	* ChangeLog, src/Makefile:
 	Deactivate debug and circular queue watcher and remove assertion checking in the default makefile options.
 	
 	
@@ -349,7 +503,7 @@
 	
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/Makefile, src/circular_queue.hpp, src/main.cpp,
+	* ChangeLog, src/Makefile, src/circular_queue.hpp, src/main.cpp,
 	src/permutation_transformer.cpp, src/transformer.cpp:
 	Using multiple producer-multiple consumer design pattern to read/transform the k-mers.
 	Code is currently not well structured but seems to work pretty well.
@@ -357,7 +511,7 @@
 	
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/benchmark.cpp, src/permutations.cpp:
+	* ChangeLog, src/benchmark.cpp, src/permutations.cpp:
 	Remove trailing spaces.
 	
 	

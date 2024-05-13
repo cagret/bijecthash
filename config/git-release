@@ -1,0 +1,602 @@
+#!/bin/bash
+###############################################################################
+#                                                                             #
+#  Copyright © 2016-2023 -- LIRMM/CNRS/UM                                     #
+#                           (Laboratoire d'Informatique, de Robotique et de   #
+#                           Microélectronique de Montpellier /                #
+#                           Centre National de la Recherche Scientifique /    #
+#                           Université de Montpellier)                        #
+#                                                                             #
+#  Auteurs/Authors: Alban MANCHERON  <alban.mancheron@lirmm.fr>               #
+#                                                                             #
+#  -------------------------------------------------------------------------  #
+#                                                                             #
+#  Ce logiciel permet  de gérer le marquage  des versions logicielles et des  #
+#  éventuelles librairies versionnées dans un dépôt git.                      #
+#                                                                             #
+#  Ce logiciel est régi  par la licence CeCILL  soumise au droit français et  #
+#  respectant les principes  de diffusion des logiciels libres.  Vous pouvez  #
+#  utiliser, modifier et/ou redistribuer ce programme sous les conditions de  #
+#  la licence CeCILL  telle que diffusée par le CEA,  le CNRS et l'INRIA sur  #
+#  le site "http://www.cecill.info".                                          #
+#                                                                             #
+#  En contrepartie de l'accessibilité au code source et des droits de copie,  #
+#  de modification et de redistribution accordés par cette licence, il n'est  #
+#  offert aux utilisateurs qu'une garantie limitée.  Pour les mêmes raisons,  #
+#  seule une responsabilité  restreinte pèse  sur l'auteur du programme,  le  #
+#  titulaire des droits patrimoniaux et les concédants successifs.            #
+#                                                                             #
+#  À  cet égard  l'attention de  l'utilisateur est  attirée sur  les risques  #
+#  associés  au chargement,  à  l'utilisation,  à  la modification  et/ou au  #
+#  développement  et à la reproduction du  logiciel par  l'utilisateur étant  #
+#  donné  sa spécificité  de logiciel libre,  qui peut le rendre  complexe à  #
+#  manipuler et qui le réserve donc à des développeurs et des professionnels  #
+#  avertis  possédant  des  connaissances  informatiques  approfondies.  Les  #
+#  utilisateurs  sont donc  invités  à  charger  et  tester  l'adéquation du  #
+#  logiciel  à leurs besoins  dans des conditions  permettant  d'assurer  la  #
+#  sécurité de leurs systêmes et ou de leurs données et,  plus généralement,  #
+#  à l'utiliser et l'exploiter dans les mêmes conditions de sécurité.         #
+#                                                                             #
+#  Le fait  que vous puissiez accéder  à cet en-tête signifie  que vous avez  #
+#  pris connaissance  de la licence CeCILL,  et que vous en avez accepté les  #
+#  termes.                                                                    #
+#                                                                             #
+#  -------------------------------------------------------------------------  #
+#                                                                             #
+#  This software allow to manage tags for distribute software and library     #
+#  releases inside a git repository.                                          #
+#                                                                             #
+#  This software is governed by the CeCILL license under French law and       #
+#  abiding by the rules of distribution of free software. You can use,        #
+#  modify and/ or redistribute the software under the terms of the CeCILL     #
+#  license as circulated by CEA, CNRS and INRIA at the following URL          #
+#  "http://www.cecill.info".                                                  #
+#                                                                             #
+#  As a counterpart to the access to the source code and rights to copy,      #
+#  modify and redistribute granted by the license, users are provided only    #
+#  with a limited warranty and the software's author, the holder of the       #
+#  economic rights, and the successive licensors have only limited            #
+#  liability.                                                                 #
+#                                                                             #
+#  In this respect, the user's attention is drawn to the risks associated     #
+#  with loading, using, modifying and/or developing or reproducing the        #
+#  software by the user in light of its specific status of free software,     #
+#  that may mean that it is complicated to manipulate, and that also          #
+#  therefore means that it is reserved for developers and experienced         #
+#  professionals having in-depth computer knowledge. Users are therefore      #
+#  encouraged to load and test the software's suitability as regards their    #
+#  requirements in conditions enabling the security of their systems and/or   #
+#  data to be ensured and, more generally, to use and operate it in the same  #
+#  conditions as regards security.                                            #
+#                                                                             #
+#  The fact that you are presently reading this means that you have had       #
+#  knowledge of the CeCILL license and that you accept its terms.             #
+#                                                                             #
+###############################################################################
+
+## VARIABLES
+
+DEBUG=false
+
+# About the current program
+PROG_NAME=$(basename "${0}")
+PROG_DIR=$(dirname "$(readlink -m "${0}")")
+MAIN_DIR=$(dirname "${PROG_DIR}")
+PROG_GITID=$(GIT_DIR="${MAIN_DIR}/.git" "${PROG_DIR}/git-version-gen" --force-update "${PROG_DIR}/${PROG_NAME}")
+# About the options
+DRY_RUN=
+CREATE_FILE_ONLY=false
+FORCE_YES=
+ORIG_TAG=
+TAG=
+ORIG_COMMIT_DATE=
+COMMIT_DATE=
+ORIG_LIB_VERSION=
+LIB_VERSION=false
+ORIG_INTERFACE_NUMBER=
+ORIG_REVISION_NUMBER=
+ORIG_OLDEST_COMPATIBLE_INTERFACE=
+INTERFACE_NUMBER=
+REVISION_NUMBER=
+OLDEST_COMPATIBLE_INTERFACE=
+INC_MAJOR=
+INC_MINOR=
+INC_MICRO=
+COMMANDS_TO_RUN=
+# Some usefull variables
+MSG_OK='echo -e \t\t[Ok]'
+MSG_NO='echo -e \t\t[No]'
+MSG_NF='echo -e \t\t[Not Found]'
+VERSION_FILE="${PROG_DIR}/version"
+
+## FUNCTIONS
+
+# Print global variables (if some argument is given to the function, echo the argument too)
+function PrintVariables() {
+    [ "${DEBUG}" = "true" ] || return
+    echo "==========================================================================="
+    [ -n "${1}" ] && echo "${1}"
+cat <<EOF
+PROG_NAME=${PROG_NAME}
+PROG_DIR=${PROG_DIR}
+MAIN_DIR=${MAIN_DIR}
+PROG_GITID=${PROG_GITID}
+DRY_RUN=${DRY_RUN}
+FORCE_YES=${FORCE_YES}
+ORIG_TAG=${ORIG_TAG}
+TAG=${TAG}
+ORIG_LIB_VERSION=${ORIG_LIB_VERSION}
+LIB_VERSION=${LIB_VERSION}
+ORIG_INTERFACE_NUMBER=${ORIG_INTERFACE_NUMBER}
+ORIG_REVISION_NUMBER=${ORIG_REVISION_NUMBER}
+ORIG_OLDEST_COMPATIBLE_INTERFACE=${ORIG_OLDEST_COMPATIBLE_INTERFACE}
+ORIG_COMMIT_DATE=${ORIG_COMMIT_DATE}
+INTERFACE_NUMBER=${INTERFACE_NUMBER}
+REVISION_NUMBER=${REVISION_NUMBER}
+OLDEST_COMPATIBLE_INTERFACE=${OLDEST_COMPATIBLE_INTERFACE}
+COMMIT_DATE=${COMMIT_DATE}
+INC_MAJOR=${INC_MAJOR}
+INC_MINOR=${INC_MINOR}
+INC_MICRO=${INC_MICRO}
+COMMANDS_TO_RUN=${COMMANDS_TO_RUN}
+MSG_OK=${MSG_OK}
+MSG_NO=${MSG_NO}
+MSG_NF=${MSG_NF}
+VERSION_FILE=${VERSION_FILE}
+===========================================================================
+EOF
+}
+
+# Check if the program given as argument is available
+check_prog() {
+    echo -n "Checking for program '${1}' availability..."
+    CUR_PROG=$(which "${1}")
+    if [ -z "${CUR_PROG}" ]; then
+	${MSG_NF}
+	exit 1
+    else
+	${MSG_OK}
+    fi
+}
+
+# Display a bug message
+bug() {
+    cat<<EOF
+
+It seemes that there is a Bug in the program '${PROG_NAME}' at line ${1}.
+Please contact the author (run ${PROG_NAME} --version for more informations).
+
+EOF
+    exit 1
+}
+
+# This function should be called just after a run_cmd invokation.
+# If the last exit code isn't 0, then an informative message is displayed
+# and the program exits.
+# If a line number is given as function argument, then it is echoed on error.
+check_res() {
+    if [ "${LAST_CODE}" -ne "0" ]; then
+	echo "Command '${LAST_CMD}' exited abnormally"
+	[ "$#" -gt "0" ] && echo "If you think this is a bug, see program ${PROG_NAME} at line ${1}."
+	exit ${LAST_CODE}
+    fi
+    LAST_CODE=0
+    LAST_CMD=
+}
+
+# Display version + copyrights
+version() {
+   cat<<EOF
+
+${PROG_NAME} (git id: ${PROG_GITID})
+
+Copyright © 2016-2023 -- LIRMM/CNRS/UM
+                         (Laboratoire d'Informatique, de Robotique et de
+                         Microélectronique de Montpellier /
+                         Centre National de la Recherche Scientifique /
+                         Université de Montpellier)
+
+Auteur/Author: Alban MANCHERON  <alban.mancheron@lirmm.fr>
+
+EOF
+#' For Xemacs
+}
+
+# Display help
+usage() {
+    version
+    cat<<EOF
+usage: ${PROG_NAME} [options]
+
+where options can be:
+
+ * standard options:
+   -t | --tag <tag>		Use the given git tag to make the new release.
+   -d | --date <date>		Set the commit_date to <date>.
+   -M | --major			Increment the major version number and set
+				minor and micro numbers to 0 (if they already
+				exists).
+   -m | --minor			Increment the minor version number and set
+				micro number to 0 (if it already exists).
+   -u | --micro			Increment the micro version number.
+   -L | --libversion		Also computes the library version tags.
+   -I | --interface <num>	Set the most recent interface number that this
+				library implements to <num>.
+   -R | --revision <num>	Set the implementation number of the current
+				interface to <num>.
+   -C | --compatibility <num>	Set the oldest interfaces that this library
+				implements to <num>.
+
+   Be aware that these seven options can be combined together.
+   Option '--tag' is processed first, then '--major', then '--minor', then
+   '--micro', then '--interface', then '--revision' and finally
+   '--compatibility'.
+   If none of these options is given, then it is equivalent to give the last
+   git tag as argument to '--tag' plus option '--micro'.
+   If '--interface' is not given, the interface number is incremented only if
+   the major version number has grown, otherwise it is conserved.
+   If '--revision' is not given, it is reset to 1 if the interface number is
+   modified, if the interface number is not modified, then the revision is
+   incremented if the version number has "grown", and it is not changed
+   otherwise.
+   If '--compatibility' is not given, it is conserved as is.
+
+ * Other options:
+        --create-file-only	Only create the file but don't release the project
+   -x | --exec <cmd>		Execute the given command before tagging
+				(cumulative).
+   -n | --dry-run		Don't perform anything but print actions.
+   -y | --force-yes		Assume yes for any question.
+   -h | --help			Display this help then exit.
+   -v | --version		Display ${PROG} version then exit.
+
+EOF
+}
+
+# Run or display command according to DRY_RUN parameter.
+run_cmd() {
+    if [ "${DRY_RUN}" = "true" ]; then
+	echo "[DRY-RUN] $@"
+    else
+	eval "$@"
+    fi
+    LAST_CODE="$?"
+    LAST_CMD="$@"
+    return $?
+}
+
+# Try to extract the value of the given key (first arg) in the version file.
+# Echo the value if key is found (and parseable) or the default value
+# (second arg or 0 if missing)
+function getFileConfig() {
+    [ $# = 1 ] && default=0 || default=${2}
+    val=${default}
+    if [ -f "${VERSION_FILE}" ]; then
+	val=$(grep "^[ ]*${1}[ ]*:" "${VERSION_FILE}" | sed 's,^[ ]*'${1}'[ ]*:[ ]*,,')
+	[ -z "${val}" ] && val=${default}
+    fi
+    echo ${val}
+}
+
+# This function set numbers vMajor, vMinor and vMicro as well as vPrefix, vSep1 and vSep2
+# (the version prefix and the number separators) with respect to the given version string
+function decomposeVersionNumbers() {
+    if [ -z "${1}" ]; then
+	echo "Error: unable to determine a correct release number."
+	bug ${LINENO}
+    fi
+    ARG="${1}"
+    CHECK=$(echo "${ARG}-" | sed 's,^[^0-9]*\([0-9]\+[\.-]\)\{3\}.*$,,')
+    vPrefix=$(echo "${ARG}-" | sed 's,^\([^0-9]*\)[0-9]\+[\.-].*$,\1,')
+    vSep1=
+    vSep2=
+    if [ -z "${CHECK}" ]; then # ARG is of the form <prefix><Major><sep1><Minor><sep2><Micor>...
+	vMajor=$(echo "${ARG}-" | sed 's,^[^0-9]*\([0-9]\+\)[\.-].*$,\1,')
+	vSep1=$(echo "${ARG}-" | sed 's,^[^0-9]*[0-9]\+\([\.-]\).*$,\1,')
+	vMinor=$(echo "${ARG}-" | sed 's,^[^0-9]*[0-9]\+[\.-]\([0-9]\+\)[\.-].*$,\1,')
+	vSep2=$(echo "${ARG}-" | sed 's,^[^0-9]*[0-9]\+[\.-][0-9]\+\([\.-]\).*$,\1,')
+	vMicro=$(echo "${ARG}-" | sed 's,^[^0-9]*[0-9]\+[\.-][0-9]\+[\.-]\([0-9]\+\)[\.-].*$,\1,')
+    else # ARG is of the form <prefix><Major><sep><Minor>...
+	# Trying to decompose it into major, minor numbers
+	CHECK=$(echo "${ARG}-" | sed 's,^[^0-9]*\([0-9]\+[\.-]\)\{2\}.*$,,')
+	if [ -z "${CHECK}" ]; then
+	    vMajor=$(echo "${ARG}-" | sed 's,^[^0-9]*\([0-9]\+\)[\.-].*$,\1,')
+	    vSep1=$(echo "${ARG}-" | sed 's,^[^0-9]*[0-9]\+\([\.-]\).*$,\1,')
+	    vMinor=$(echo "${ARG}-" | sed 's,^[^0-9]*[0-9]\+[\.-]\([0-9]\+\)[\.-].*$,\1,')
+	    vMicro=
+	else  # ARG is of the form <prefix><Major>...
+            # Trying to extract a major number
+	    CHECK=$(echo "${ARG}-" | sed 's,^[^0-9]*[0-9]\+[\.-].*$,,')
+	    if [ -z "${CHECK}" ]; then
+		vMajor=$(echo "${ARG}-" | sed 's,^[^0-9]*\([0-9]\+\)[\.-].*$,\1,')
+		vMinor=
+		vMicro=
+	    else
+		echo "Error: unable to determine a correct release number from ${ARG}."
+		exit 1
+	    fi
+	fi
+    fi
+}
+
+## PROGRAM
+
+PrintVariables "Start:"
+
+cd "${MAIN_DIR}" || bug ${LINENO}
+
+echo "********** Checking environment **********"
+# Check if a git directory exists
+echo -n "Checking if we are under git version control..."
+if [ -d ${GIT_DIR:-.git} -o -f .git ]; then
+    ${MSG_OK}
+else
+    ${MSG_NO}
+    exit 1
+fi
+
+# Check required program availability
+check_prog "git"
+check_prog "${PROG_DIR}/git-version-gen"
+check_prog "sed"
+
+function checkArg() {
+    if [ -n "${3}" ]; then
+	eval "${2}=${3}"
+    else
+	echo -e "\n${1} option requires an argument.\n";
+	exit 1;
+    fi
+}
+
+# Parse options
+while [ $# -gt 0 ]; do
+    case ${1} in
+	-x|--exec) shift; COMMANDS_TO_RUN="${COMMANDS_TO_RUN}${1};";;
+        -n|--dry-run) DRY_RUN=true;;
+           --create-file-only) CREATE_FILE_ONLY=true;;
+        -y|--force-yes) FORCE_YES=true;;
+        -v|--version) version; exit 0;;
+	-h|--help) usage; exit 0;;
+        -t|--tag) checkArg "${1}" "TAG" "${2}"; shift;;
+        -d|--date) checkArg "${1}" "COMMIT_DATE" "${2}"; shift;;
+	-L|--libversion) LIB_VERSION=true;;
+        -M|--major) INC_MAJOR=true;;
+	-m|--minor) INC_MINOR=true;;
+	-u|--micro) INC_MICRO=true;;
+        -I|--interface) checkArg "${1}" INTERFACE_NUMBER "${2}"; shift;;
+        -R|--revision) checkArg "${1}" REVISION_NUMBER "${2}"; shift;;
+	-C|--compatibility) checkArg "${1}" OLDEST_COMPATIBLE_INTERFACE "${2}"; shift;;
+	*) usage; echo -e "\nUnknown option '${1}'.\n"; exit 0;;
+    esac
+    shift;
+done
+
+PrintVariables "After processing options"
+
+# Save original tag if any
+ORIG_TAG=$(getFileConfig VERSION "")
+ORIG_LIB_VERSION=$(getFileConfig LIB_VERSION "")
+
+# Compute tag if not given.
+if [ -z "${TAG}" ]; then
+    if [ -z "${INC_MAJOR}" -a -z "${INC_MINOR}" -a -z "${INC_MICRO}" ]; then
+	INC_MAJOR=false
+	INC_MINOR=false
+	INC_MICRO=maybe
+    fi
+    echo -en "No tag given.\nCheck if an existing version file exists..."
+    TAG=${ORIG_TAG}
+fi
+
+if [ -z "${TAG}" ]; then
+    ${MSG_NF}
+    echo -n "Computing the tag value... "
+    if [ "${DRY_RUN}" = "true" ]; then
+	TAG="v1.2.3-4-abcd0123"
+	echo -e "\n[DRY-RUN] Run program 'git-version-gen' (for this dry-run exemple, we use '${TAG}')"
+    else
+	TAG=$("${PROG_DIR}/git-version-gen" --force-update)
+    fi
+fi
+
+if [ -z "${TAG}" ]; then
+    ${MSG_NF}
+    [ "${INC_MICRO}" = "maybe" ] && INC_MICRO=false
+    TAG=v0.0.0
+    echo "Setting tag to ${TAG}"
+else
+    [ "${INC_MICRO}" = "maybe" ] && INC_MICRO=true
+    ${MSG_OK}
+fi
+
+echo "********** Environment checked **********"
+echo
+
+# At this point, TAG must have a value...
+# Trying to decompose it.
+decomposeVersionNumbers "${TAG}"
+MAJOR=${vMajor}
+MINOR=${vMinor}
+MICRO=${vMicro}
+SEP1=${vSep1}
+SEP2=${vSep2}
+PREFIX=${vPrefix}
+
+# Adjust version number according to given options
+if [ "${INC_MAJOR}" = "true" ]; then
+    MAJOR=$((MAJOR+1))
+    [ -z "${MINOR}" ] || MINOR=0 # Reset MINOR if it was present in the tag
+    [ -z "${MICRO}" ] || MICRO=0 # Reset MICRO if it was present in the tag
+fi
+
+if [ "${INC_MINOR}" = "true" ]; then
+    MINOR=$((MINOR+1))
+    [ -z "${MICRO}" ] || MICRO=0 # Reset MICRO if it was present in the tag
+fi
+
+if [ "${INC_MICRO}" = "true" ]; then
+    [ -z "${MINOR}" ] && MINOR=0 # Set MINOR to 0 if it was NOT present in the tag
+    MICRO=$((MICRO+1))
+fi
+
+[ -z "${MINOR}" ] || SEP1=${SEP1:-.}
+[ -z "${MICRO}" ] || SEP2=${SEP2:-${SEP1}}
+
+TAG=${PREFIX}${MAJOR}${SEP1}${MINOR}${SEP2}${MICRO}
+
+PrintVariables "Before libversion computation"
+
+# Optionaly compute library version according to libtool policy
+if [ "${LIB_VERSION}" = "true" ]; then
+
+    # First, get previous library version
+    ORIG_INTERFACE_NUMBER=$(getFileConfig LIB_CURRENT)
+    ORIG_REVISION_NUMBER=$(getFileConfig LIB_REVISION)
+    ORIG_OLDEST_COMPATIBLE_INTERFACE=$(getFileConfig LIB_AGE)
+    ORIG_OLDEST_COMPATIBLE_INTERFACE="$((ORIG_INTERFACE_NUMBER - ORIG_OLDEST_COMPATIBLE_INTERFACE))"
+
+    # Compare previous and new versions (and set missing values to 0 for convenience)
+    if [ -z "${ORIG_TAG}" ]; then
+	ORIG_TAG=v0.0.0
+    fi
+    decomposeVersionNumbers "${ORIG_TAG}"
+    [ -z "${MAJOR}" ] && MAJOR=0
+    [ -z "${MINOR}" ] && MINOR=0
+    [ -z "${MICRO}" ] && MICRO=0
+    [ -z "${vMajor}" ] && vMajor=0
+    [ -z "${vMinor}" ] && vMinor=0
+    [ -z "${vMicro}" ] && vMicro=0
+
+    HAS_GROWN=
+    if [ -z "${INTERFACE_NUMBER}" ]; then
+	# Check if Major as grown
+	if [ ${MAJOR} -gt ${vMajor} ]; then
+	    INTERFACE_NUMBER=$((ORIG_INTERFACE_NUMBER+1))
+	    HAS_GROWN=reset
+	else
+	    INTERFACE_NUMBER=${ORIG_INTERFACE_NUMBER}
+	fi
+    fi
+
+    if [ -z "${REVISION_NUMBER}" ]; then
+	[ -z "${HAS_GROWN}" -a ${MAJOR} -gt ${vMajor} ] && HAS_GROWN=reset
+	[ -z "${HAS_GROWN}" -a ${MAJOR} -eq ${vMajor} -a ${MINOR} -gt ${vMinor} ] && HAS_GROWN=true
+	[ -z "${HAS_GROWN}" -a ${MAJOR} -eq ${vMajor} -a ${MINOR} -eq ${vMinor} -a ${MICRO} -gt ${vMicro} ] && HAS_GROWN=true
+	if [ "${HAS_GROWN}" = "true" ]; then
+	    REVISION_NUMBER=$((ORIG_REVISION_NUMBER + 1))
+	else
+	    if [ "${HAS_GROWN}" = "reset" ]; then
+		REVISION_NUMBER=1
+	    else
+		REVISION_NUMBER=${ORIG_REVISION_NUMBER}
+	    fi
+	fi
+    fi
+
+    if [ -z "${OLDEST_COMPATIBLE_INTERFACE}" ]; then
+	OLDEST_COMPATIBLE_INTERFACE=$((ORIG_OLDEST_COMPATIBLE_INTERFACE))
+    fi
+
+    LIB_VERSION="${INTERFACE_NUMBER}:${REVISION_NUMBER}:$((INTERFACE_NUMBER - OLDEST_COMPATIBLE_INTERFACE))"
+
+fi
+
+# Save original commit date if any
+ORIG_COMMIT_DATE=$(getFileConfig COMMIT_DATE "")
+[ -z "${COMMIT_DATE}" ] && COMMIT_DATE="$(git log --max-count=1 --pretty="%ci" HEAD || true)"
+[ -z "${COMMIT_DATE}" ] && COMMIT_DATE="${ORIG_COMMIT_DATE}"
+
+PrintVariables "After computation"
+
+[ "${FORCE_YES}" = "true" ] && rep='y' || rep='?'
+while [ -n "${rep}" -a "${rep}" != "y" -a "${rep}" != "Y" -a "${rep}" != "n" -a "${rep}" != "N" ]; do
+    [ "${DRY_RUN}" = "true" ] && dr_tag="[DRY-RUN] " || dr_tag=""
+    echo -n "${dr_tag}Current release tag is '${ORIG_TAG}'"
+    [ "${LIB_VERSION}" != "false" ] && echo -n " (and libversion ${ORIG_LIB_VERSION})"
+    echo
+    echo -n "${dr_tag}Do you want to tag this a new release with '${TAG}'"
+    [ "${LIB_VERSION}" != "false" ] && echo -n " (and libversion ${LIB_VERSION})"
+    echo -n " [y/N] ? "
+    read rep
+done
+if [ "${rep}" != "y" -a "${rep}" != "Y" ]; then
+    cat<<EOF
+
+Aborting...
+Notice that you can set the tag with option '--tag'
+(run ${PROG_NAME} --help for more informations).
+
+EOF
+    exit 0
+fi
+
+
+VERSION=${TAG}
+LIB_CURRENT=${INTERFACE_NUMBER}
+LIB_REVISION=${REVISION_NUMBER}
+LIB_AGE=$((INTERFACE_NUMBER - OLDEST_COMPATIBLE_INTERFACE))
+
+
+PrintVariables "Before file creation/update"
+
+_tags="VERSION COMMIT_DATE"
+
+if [ "${LIB_VERSION}" != "false" ]; then
+  _tags="${_tags} LIB_CURRENT LIB_REVISION LIB_AGE LIB_VERSION"
+else
+  LIB_VERSION=""
+fi
+
+for v in ${_tags}; do
+    run_cmd '
+if test -f "'${VERSION_FILE}'" && grep -q "'${v}'" "'${VERSION_FILE}'"; then
+    sed -i "s,^'${v}':.*$,'${v}': $'${v}'," "'${VERSION_FILE}'"
+else
+    echo -e "'${v}': $'${v}'" >> "'${VERSION_FILE}'"
+fi'
+    check_res $((LINENO-1))
+done
+
+run_cmd '"${PROG_DIR}/git-version-gen" --force-creation > /dev/null'
+check_res $((LINENO-1))
+
+run_cmd 'grep -q "# Modified by " "${VERSION_FILE}" > /dev/null || sed -i "s,^# Generated by .*$,\0\n# Modified by '${PROG_NAME}' (git id: '${PROG_GITID}')," "'${VERSION_FILE}'"'
+check_res $((LINENO-1))
+
+[ "${CREATE_FILE_ONLY}" = "true" ] && exit 0
+
+# Make release
+run_cmd 'touch -c configure.ac' # Option -c ensure that it will not be created if it doesn't exist
+check_res $((LINENO-1))
+run_cmd 'touch -c configure.in' # Option -c ensure that it will not be created if it doesn't exist
+check_res $((LINENO-1))
+run_cmd 'autoreconf'
+check_res $((LINENO-1))
+run_cmd 'configure'
+check_res $((LINENO-1))
+run_cmd 'make distclean'
+check_res $((LINENO-1))
+run_cmd 'git add -- config/version.config.git-release'
+check_res $((LINENO-1))
+run_cmd 'git add -- config/version.configure.ac'
+check_res $((LINENO-1))
+run_cmd 'git add -- configure'
+check_res $((LINENO-1))
+run_cmd 'git add -- config/version'
+check_res $((LINENO-1))
+run_cmd 'git add -- aminclude_static.am'
+check_res $((LINENO-1))
+run_cmd 'git commit -m "New project release: '${TAG}'"'
+check_res $((LINENO-1))
+if [ -n "${COMMANDS_TO_RUN}" ]; then
+    echo "${COMMANDS_TO_RUN}" | \
+	while read -d';' cmd; do
+	    run_cmd ${cmd}
+	    check_res
+        done
+fi
+run_cmd 'git tag -a "${TAG}" -m "New project release: '${TAG}'"'
+check_res $((LINENO-1))
+
+exit 0

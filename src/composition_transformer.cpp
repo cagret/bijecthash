@@ -1,20 +1,58 @@
+/******************************************************************************
+*                                                                             *
+*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*                           (Laboratoire d'Informatique, de Robotique et de   *
+*                           Microélectronique de Montpellier /                *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Montpellier)                        *
+*                           CRIStAL/CNRS/UL                                   *
+*                           (Centre de Recherche en Informatique, Signal et   *
+*                           Automatique de Lille /                            *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Lille)                              *
+*                                                                             *
+*  Auteurs/Authors:                                                           *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Annie   CHATEAU    <annie.chateau@lirmm.fr>               *
+*                   Antoine LIMASSET   <antoine.limasset@univ-lille.fr>       *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                   Camille MARCHET    <camille.marchet@univ-lille.fr>        *
+*                                                                             *
+*  Programmeurs/Programmers:                                                  *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                                                                             *
+*  -------------------------------------------------------------------------  *
+*                                                                             *
+*  This file is part of BijectHash.                                           *
+*                                                                             *
+*  BijectHash is free software: you can redistribute it and/or modify it      *
+*  under the terms of the GNU General Public License as published by the      *
+*  Free Software Foundation, either version 3 of the License, or (at your     *
+*  option) any later version.                                                 *
+*                                                                             *
+*  BijectHash is distributed in the hope that it will be useful, but WITHOUT  *
+*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or      *
+*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for   *
+*  more details.                                                              *
+*                                                                             *
+*  You should have received a copy of the GNU General Public License along    *
+*  with BijectHash. If not, see <https://www.gnu.org/licenses/>.              *
+*                                                                             *
+******************************************************************************/
+
 #include "composition_transformer.hpp"
 
+#include "common.hpp"
 #include "identity_transformer.hpp"
-
-#include <cassert>
-
-#ifdef DEBUG
-#include <iostream>
-#include "locker.hpp"
-#endif
 
 using namespace std;
 
-CompositionTransformer::CompositionTransformer(const Settings &s, shared_ptr<const Transformer> &t1, shared_ptr<const Transformer> &t2, const std::string &description):
-  Transformer(s, description), _t1(t1), _t2(t2)
+BEGIN_BIJECTHASH_NAMESPACE
+
+CompositionTransformer::CompositionTransformer(size_t kmer_length, size_t prefix_length, shared_ptr<const Transformer> &t1, shared_ptr<const Transformer> &t2, const string &description):
+  Transformer(kmer_length, prefix_length, description), _t1(t1), _t2(t2)
 {
-  // assert(settings.length <= 32);
   if (description.empty()) {
     string *desc_ptr = const_cast<string *>(&(this->description));
     desc_ptr->clear();
@@ -24,37 +62,27 @@ CompositionTransformer::CompositionTransformer(const Settings &s, shared_ptr<con
     *desc_ptr += t2->description;
     *desc_ptr += ")";
   }
-#ifdef DEBUG
-  io_mutex.lock();
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "description: '" << description << "'" << endl;
-  cerr << endl;
-  io_mutex.unlock();
-#endif
+  DEBUG_MSG("description: '" << description << "'");
 }
 
-Transformer::EncodedKmer CompositionTransformer::operator()(const std::string &kmer) const {
+Transformer::EncodedKmer CompositionTransformer::operator()(const string &kmer) const {
   EncodedKmer e1 = (*_t1)(kmer);
   string s1 = _t1->getTransformedKmer(e1);
   EncodedKmer e2 = (*_t2)(s1);
 #ifdef DEBUG
   string orig_kmer = (*this)(e2);
   string s2 = _t2->getTransformedKmer(e2);
-  io_mutex.lock();
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "_t1(" << kmer << "):   '" << s1 << "'" << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "_t2(" << s1 << "): '" << s2 << "'" << endl;
-  cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-       << "orig_kmer: '" << orig_kmer << "'" << endl;
-
+  DEBUG_MSG("_t1(" << kmer << "):   '" << s1 << "'");
+  DEBUG_MSG("_t2(" << s1 << "): '" << s2 << "'");
+  DEBUG_MSG("orig_kmer: '" << orig_kmer << "'");
   if (orig_kmer != kmer) {
+    io_mutex.lock();
     cerr << "Error: the unpermuted k-mer"
          << " differs from the original k-mer"
          << endl;
+    io_mutex.unlock();
     exit(1);
   }
-  io_mutex.unlock();
 #endif
   return e2;
 }
@@ -62,25 +90,27 @@ Transformer::EncodedKmer CompositionTransformer::operator()(const std::string &k
 string CompositionTransformer::operator()(const Transformer::EncodedKmer &e) const {
   // string s2 = (*_t2)(e);
   // EncodedKmer e1;
-  // e1.prefix = _encode(s2.c_str(), settings.prefix_length);
-  // e1.suffix = _encode(s2.c_str() + settings.prefix_length, settings.length - settings.prefix_length);
+  // e1.prefix = _encode(s2.c_str(), prefix_length);
+  // e1.suffix = _encode(s2.c_str() + prefix_length, suffix_length);
   // string s1 = (*_t1)(e1);
   string s2 = (*_t2)(e);
-  EncodedKmer e1 = IdentityTransformer(settings)(s2);
+  EncodedKmer e1 = IdentityTransformer(kmer_length, prefix_length)(s2);
   string s1 = (*_t1)(e1);
   return s1;
 }
 
 string CompositionTransformer::getTransformedKmer(const Transformer::EncodedKmer &e) const {
   string s2 = _t2->getTransformedKmer(e);
-  EncodedKmer e1 = IdentityTransformer(settings)(s2);
+  EncodedKmer e1 = IdentityTransformer(kmer_length, prefix_length)(s2);
   string s1 = _t1->getTransformedKmer(e1);
   return s1;
 }
 
 shared_ptr<const CompositionTransformer> operator*(shared_ptr<const Transformer> &t2, shared_ptr<const Transformer> &t1) {
-  assert(t1->settings.length == t2->settings.length);
-  assert(t1->settings.prefix_length == t2->settings.prefix_length);
-  shared_ptr<const CompositionTransformer> t = make_shared<const CompositionTransformer>(CompositionTransformer(t1->settings, t1, t2));
+  assert(t1->kmer_length == t2->kmer_length);
+  assert(t1->prefix_length == t2->prefix_length);
+  shared_ptr<const CompositionTransformer> t = make_shared<const CompositionTransformer>(CompositionTransformer(t1->kmer_length, t1->prefix_length, t1, t2));
   return t;
 }
+
+END_BIJECTHASH_NAMESPACE

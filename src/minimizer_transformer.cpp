@@ -1,10 +1,60 @@
-#include "minimizer_transformer.hpp"
-#include <cassert>
+/******************************************************************************
+*                                                                             *
+*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*                           (Laboratoire d'Informatique, de Robotique et de   *
+*                           Microélectronique de Montpellier /                *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Montpellier)                        *
+*                           CRIStAL/CNRS/UL                                   *
+*                           (Centre de Recherche en Informatique, Signal et   *
+*                           Automatique de Lille /                            *
+*                           Centre National de la Recherche Scientifique /    *
+*                           Université de Lille)                              *
+*                                                                             *
+*  Auteurs/Authors:                                                           *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Annie   CHATEAU    <annie.chateau@lirmm.fr>               *
+*                   Antoine LIMASSET   <antoine.limasset@univ-lille.fr>       *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                   Camille MARCHET    <camille.marchet@univ-lille.fr>        *
+*                                                                             *
+*  Programmeurs/Programmers:                                                  *
+*                   Clément AGRET      <cagret@mailo.com>                     *
+*                   Alban   MANCHERON  <alban.mancheron@lirmm.fr>             *
+*                                                                             *
+*  -------------------------------------------------------------------------  *
+*                                                                             *
+*  This file is part of BijectHash.                                           *
+*                                                                             *
+*  BijectHash is free software: you can redistribute it and/or modify it      *
+*  under the terms of the GNU General Public License as published by the      *
+*  Free Software Foundation, either version 3 of the License, or (at your     *
+*  option) any later version.                                                 *
+*                                                                             *
+*  BijectHash is distributed in the hope that it will be useful, but WITHOUT  *
+*  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or      *
+*  FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for   *
+*  more details.                                                              *
+*                                                                             *
+*  You should have received a copy of the GNU General Public License along    *
+*  with BijectHash. If not, see <https://www.gnu.org/licenses/>.              *
+*                                                                             *
+******************************************************************************/
 
-MinimizerTransformer::MinimizerTransformer(const Settings &s) :
-  Transformer(s, "Minimizer") {
-    assert(settings.length-settings.prefix_length <=30);
-  }
+#include "minimizer_transformer.hpp"
+
+#include "common.hpp"
+
+#include <limits>
+
+using namespace std;
+
+BEGIN_BIJECTHASH_NAMESPACE
+
+MinimizerTransformer::MinimizerTransformer(size_t kmer_length, size_t prefix_length) :
+  Transformer(kmer_length, prefix_length, "Minimizer") {
+  assert(suffix_length <= 30);
+}
 
 uint64_t MinimizerTransformer::xorshift(uint64_t x) const {
   x ^= x >> 12;
@@ -13,72 +63,61 @@ uint64_t MinimizerTransformer::xorshift(uint64_t x) const {
   return x * 0x2545F4914F6CDD1D;
 }
 
-Transformer::EncodedKmer MinimizerTransformer::operator()(const std::string& kmer) const {
+Transformer::EncodedKmer MinimizerTransformer::operator()(const string& kmer) const {
   Transformer::EncodedKmer encoded;
-  uint64_t min_hash = std::numeric_limits<uint64_t>::max();
+  uint64_t min_hash = numeric_limits<uint64_t>::max();
   size_t minimizer_pos = 0;
-  size_t min_size = settings.prefix_length;
-  assert(kmer.size() == settings.length);
+  assert(kmer.size() == kmer_length);
 
-  for (size_t i = 0; i + min_size <= kmer.size(); ++i) {
-    uint64_t hash = xorshift(_encode(kmer.c_str() + i, min_size));
+  for (size_t i = 0; i + prefix_length <= kmer_length; ++i) {
+    uint64_t hash = xorshift(_encode(kmer.c_str() + i, prefix_length));
     if (hash < min_hash) {
       min_hash = hash;
       minimizer_pos = i;
     }
   }
-  assert(minimizer_pos + min_size <= kmer.size());
+  assert(minimizer_pos + prefix_length <= kmer_length);
 
-  size_t suffix_length = settings.length - settings.prefix_length;
+  string before = kmer.substr(0, minimizer_pos);
+  string minimizer = kmer.substr(minimizer_pos, prefix_length);
+  string after = kmer.substr(minimizer_pos + prefix_length);
 
-  std::string before = kmer.substr(0, minimizer_pos);
-  std::string minimizer = kmer.substr(minimizer_pos, min_size);
-  std::string after = kmer.substr(minimizer_pos + min_size);
+  DEBUG_MSG("Minimizer: '" << minimizer << "', Before: '" << before << "', After: '" << after << "'");
 
-#ifdef DEBUG
-  std::cerr << "[DEBUG-ENCODE] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-    << " Minimizer: '" << minimizer << "', Before: '" << before << "', After: '" << after <<"'"<< std::endl;
-#endif
+  string transformed = minimizer + before + after;
 
-  std::string transformed = minimizer + before + after;
+  DEBUG_MSG("Transformed: '" << transformed << "', "
+            << "Prefix:  '" << transformed.c_str() << "', Prefix length: '" << prefix_length << "', "
+            << "Suffix:'" << transformed.c_str() + prefix_length << "', Suffix Length: '" << suffix_length << "', "
+            << "Minimiser pos: '" << minimizer_pos << (64 - 6) << "'");
 
-#ifdef DEBUG
-  std::cerr << "[DEBUG-ENCODE] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-    << " Transformed : '" << transformed << "', Prefix:  '" << transformed.c_str() <<"'Prefix lenght :'"<< settings.prefix_length
-    <<"', Suffix :'" << transformed.c_str() + settings.prefix_length << "', Suffix Lenght : '" << suffix_length
-    <<"', Minimiser pos : '"<<minimizer_pos << (64 - 6)<<"'" <<std::endl;
-#endif
-
-  encoded.prefix = _encode(transformed.c_str(), settings.prefix_length);
-  encoded.suffix = _encode(transformed.c_str() + settings.prefix_length, suffix_length);
+  encoded.prefix = _encode(transformed.c_str(), prefix_length);
+  encoded.suffix = _encode(transformed.c_str() + prefix_length, suffix_length);
   encoded.suffix |= minimizer_pos << (64 - 6);
 
   return encoded;
 }
 
 
-std::string MinimizerTransformer::operator()(const Transformer::EncodedKmer& encoded) const {
+string MinimizerTransformer::operator()(const Transformer::EncodedKmer& encoded) const {
   size_t minimizer_pos = encoded.suffix >> (64 - 6);
-  size_t min_size = settings.prefix_length;
 
-  std::string decoded;
-  decoded.reserve(settings.length);
+  string decoded;
+  decoded.reserve(kmer_length);
 
-  std::string prefix = _decode(encoded.prefix, settings.prefix_length);
+  string prefix = _decode(encoded.prefix, prefix_length);
   decoded += prefix;
 
-  size_t suffix_length = settings.length - min_size;
-  std::string suffix = _decode(encoded.suffix, suffix_length);
+  string suffix = _decode(encoded.suffix, suffix_length);
   decoded += suffix;
 
-  std::string minimizer = decoded.substr(0, min_size);
-  std::string before = decoded.substr(min_size, minimizer_pos);
-  std::string after = decoded.substr(minimizer_pos+min_size);
+  string minimizer = decoded.substr(0, prefix_length);
+  string before = decoded.substr(prefix_length, minimizer_pos);
+  string after = decoded.substr(minimizer_pos + prefix_length);
 
-#ifdef DEBUG
-  std::cerr << "[DEBUG-DECODE] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-    << " Minimizer: '" << minimizer << "', Before: '" << before << "', After: '" << after <<"'"<< std::endl;
-#endif
+  DEBUG_MSG(" Minimizer: '" << minimizer << "', Before: '" << before << "', After: '" << after << "'");
 
   return before + minimizer + after;
 }
+
+END_BIJECTHASH_NAMESPACE
