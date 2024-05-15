@@ -86,9 +86,9 @@ uint64_t _multiplicativeInverse(uint64_t a, size_t sigma) {
   x = _f64(a, x); // 40 bits
   x = _f64(a, x); // 80 bits
   uint64_t mask = ((sigma < 64) ? ((1ull << sigma) - 1) : uint64_t(-1));
-  DEBUG_MSG("a = " << a << endl
-            << MSG_DBG_HEADER << "a' = " << x << endl
-            << MSG_DBG_HEADER << "a * a' = " << (a * x) << endl
+  DEBUG_MSG("a = " << a << '\n'
+            << MSG_DBG_HEADER << "a' = " << x << '\n'
+            << MSG_DBG_HEADER << "a * a' = " << (a * x) << '\n'
             << MSG_DBG_HEADER << "(a * a') & " << bitset<64>(mask) << " = " << ((a * x) & mask));
   assert(((a * x) & mask) == 1);
   return x & mask;
@@ -138,18 +138,18 @@ uint64_t GaBTransformer::_rotate(uint64_t s) const {
 uint64_t GaBTransformer::_G(uint64_t s) const {
   DEBUG_MSG("s = " << s << ", " << "_a = " << _a << ", " << "_b = " << _b;
             uint64_t rotation = _rotate(s);
-            cerr << MSG_DBG_HEADER << "_rotate(s) = " << rotation << endl
-            << MSG_DBG_HEADER << "_rotate(s) ^ _b = " << (rotation ^ _b) << endl
-            << MSG_DBG_HEADER << "_a * (_rotate(s) ^ _b) = " << (_a * (rotation ^ _b)) << endl
+            cerr << MSG_DBG_HEADER << "_rotate(s) = " << rotation << '\n'
+            << MSG_DBG_HEADER << "_rotate(s) ^ _b = " << (rotation ^ _b) << '\n'
+            << MSG_DBG_HEADER << "_a * (_rotate(s) ^ _b) = " << (_a * (rotation ^ _b)) << '\n'
             << MSG_DBG_HEADER << "(_a * (_rotate(s) ^ _b)) & _kmer_mask = " << ((_a * (rotation ^ _b)) & _kmer_mask));
   return ((_a * (_rotate(s) ^ _b)) & _kmer_mask);
 }
 
 uint64_t GaBTransformer::_G_rev(uint64_t s) const {
-  DEBUG_MSG("s = " << s << endl
-            << MSG_DBG_HEADER << "_rev_a * s = " << "(" << _rev_a << " * " << s << ") = " << (_rev_a * s) << endl
-            << MSG_DBG_HEADER << "(_rev_a * s) & _kmer_mask = " << ((_rev_a * s) & _kmer_mask) << endl
-            << MSG_DBG_HEADER << "((_rev_a * s) & _kmer_mask) ^ _b = " << (((_rev_a * s) & _kmer_mask) ^ _b) << endl
+  DEBUG_MSG("s = " << s << '\n'
+            << MSG_DBG_HEADER << "_rev_a * s = " << "(" << _rev_a << " * " << s << ") = " << (_rev_a * s) << '\n'
+            << MSG_DBG_HEADER << "(_rev_a * s) & _kmer_mask = " << ((_rev_a * s) & _kmer_mask) << '\n'
+            << MSG_DBG_HEADER << "((_rev_a * s) & _kmer_mask) ^ _b = " << (((_rev_a * s) & _kmer_mask) ^ _b) << '\n'
             << MSG_DBG_HEADER << "_rotate(((_rev_a * s) & _kmer_mask) ^ _b) = " << _rotate(((_rev_a * s) & _kmer_mask) ^ _b));
   return _rotate(((_rev_a * s) & _kmer_mask) ^ _b);
 }
@@ -164,8 +164,8 @@ Transformer::EncodedKmer GaBTransformer::operator()(const std::string &kmer) con
     v = _G(v);
 #ifdef DEBUG
     uint64_t rev_v = _G_rev(v);
-    DEBUG_MSG("orig = " << orig << endl
-              << MSG_DBG_HEADER << "v = " << v << endl
+    DEBUG_MSG("orig = " << orig << '\n'
+              << MSG_DBG_HEADER << "v = " << v << '\n'
               << MSG_DBG_HEADER << "rev_v = " << rev_v);
     assert(orig == rev_v);
 #endif

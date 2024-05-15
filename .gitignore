@@ -28,6 +28,8 @@ src/.libs/
 tests/.deps/
 tests/.libs
 tests/*.trs
+tests/test_kmer_reader
+tests/test_lcp_stats
 
 */ChangeLog
 

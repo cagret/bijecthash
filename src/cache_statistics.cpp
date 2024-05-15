@@ -195,10 +195,10 @@ CacheStatistics::CacheStatistics(): _fd(-1), _started(false), _cache_evt_id_labe
     }
   }
   if (_cache_evt_id_labels.empty()) {
-     cerr << "WARNING: Unable to open file descriptors to collect cache statistics." << endl
+     cerr << "WARNING: Unable to open file descriptors to collect cache statistics." << '\n'
          << "Please, check the system kernel 'perf_event_paranoid' parameter"
          << " (by running something like 'sysctl kernel.perf_event_paranoid'"
-         << " or 'cat /proc/sys/kernel/perf_event_paranoid')." << endl
+         << " or 'cat /proc/sys/kernel/perf_event_paranoid')." << '\n'
          << "This parameter value should be set to at most 2 in order to be able"
          << " to collect cache statistics." << endl;
   }

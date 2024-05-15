@@ -62,7 +62,7 @@
 ########################
 
 # aminclude_static.am generated automatically by Autoconf
-# from AX_AM_MACROS_STATIC on Mon May 13 20:15:32 CEST 2024
+# from AX_AM_MACROS_STATIC on Tue May 14 09:35:25 CEST 2024
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -1051,8 +1051,8 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
-@CODE_COVERAGE_ENABLED_FALSE@clean-local:
 @CODE_COVERAGE_ENABLED_FALSE@distclean-local:
+@CODE_COVERAGE_ENABLED_FALSE@clean-local:
 clean: clean-recursive
 
 clean-am: clean-generic clean-libtool clean-local mostlyclean-am

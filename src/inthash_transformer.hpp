@@ -121,7 +121,7 @@ namespace bijecthash {
      *
      * \return Returns the k-mer corresponding to the given encoding.
      */
-    virtual std::string getTransformedKmer(const EncodedKmer &e) const;
+    virtual std::string getTransformedKmer(const EncodedKmer &e) const override;
 
   };
 

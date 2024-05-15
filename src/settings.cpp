@@ -73,10 +73,13 @@ Settings::Settings(size_t length, size_t prefix_length, const std::string &metho
   assert(prefix_length < 14);
   assert(prefix_length < length);
   assert(length - prefix_length <= 64);
+  DEBUG_MSG("ICI");
   _transformer = _string2transformer(method);
+  DEBUG_MSG("ICI");
 }
 
 shared_ptr<const Transformer> Settings::_string2transformer(const string &name) const {
+  DEBUG_MSG("ICI");
   shared_ptr<const Transformer> t(NULL);
   if (name == "identity") {
     t = make_shared<const IdentityTransformer>(length, prefix_length);
@@ -180,7 +183,9 @@ void Settings::setMethod(const string &method) {
 }
 
 shared_ptr<const Transformer> Settings::transformer() const {
+  DEBUG_MSG("ICI");
   if (!_transformer) {
+    DEBUG_MSG("ICI");
     shared_ptr<const Transformer> _t = const_pointer_cast<const Transformer>(_transformer);
     _t = _string2transformer(_method);
    }
@@ -188,12 +193,12 @@ shared_ptr<const Transformer> Settings::transformer() const {
 }
 
 ostream &operator<<(ostream &os, const Settings &s) {
-  os << "- length: " << s.length << " nucleotides" << endl
-     << "- prefix_length: " << s.prefix_length << " nucleotides" << endl
-     << "- method: " << s.getMethod() << " => " << s.transformer()->description << endl
-     << "- nb_bins: " << s.nb_bins << " bins" << endl
-     << "- queue_size: " << s.queue_size << " k-mers" << endl
-     << "- tag: " << s.tag << endl
+  os << "- length: " << s.length << " nucleotides\n"
+     << "- prefix_length: " << s.prefix_length << " nucleotides\n"
+     << "- method: " << s.getMethod() << " => " << s.transformer()->description << '\n'
+     << "- nb_bins: " << s.nb_bins << " bins\n"
+     << "- queue_size: " << s.queue_size << " k-mers\n"
+     << "- tag: " << s.tag << '\n'
      << "- verbosity: " << (s.verbose ? "verbose" : "quiet") << endl;
   return os;
 }

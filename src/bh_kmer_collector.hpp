@@ -41,54 +41,65 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_PROCESSOR_HPP__
-#define __KMER_PROCESSOR_HPP__
+#ifndef __BH_KMER_COLLECTOR_HPP__
+#define __BH_KMER_COLLECTOR_HPP__
 
-#include <string>
-
-#include <threaded_processor_helper.hpp>
-
+#include <kmer_collector.hpp>
+#include <lcp_stats.hpp>
+#include <settings.hpp>
 
 namespace bijecthash {
 
   /**
-   * A k-mer processor helper that load k-mers from a circular queue.
+   * A k-mer collector helper that stores k-mers in a circular queue
+   * and computes the LCP between consecutive k-mer transformations.
    *
-   * This helper class allows to run the k-mer processor in a dedicated
+   * This helper class allows to run the k-mer collector in a dedicated
    * thread.
    */
-  class KmerProcessor: public ThreadedProcessorHelper<KmerProcessor, std::string> {
+  class BhKmerCollector: public KmerCollector {
 
   private:
 
     /**
-     * Load the k-mers from the queue and process them.
-     *
-     * This method will exit only when there is no more running k-mer
-     * collector (see KmerCollector class) AND if the queue is empty. If
-     * one of these two condition is not met, it waits.
+     * Longuest Common prefixes statistics.
      */
-    void _run() override final;
+    LcpStats _lcp_stats;
 
     /**
-     * Perform some processing on the given k-mer after having been
-     * dequeued.
+     * The k-mer transformer used.
+     */
+    std::shared_ptr<const Transformer> _transformer;
+
+    /**
+     * The previously encoded k-mer (needed to computing the LCP statistics)
+     */
+    Transformer::EncodedKmer _prev_transformed_kmer;
+
+    /**
+     * Perform some processing on the given k-mer before enqueuing it.
      *
-     * By default, this does nothing but any derived class should
+     * By default, this does nothing but any derived class can
      * override this method.
      *
-     * \param kmer The k-mer to process after having been dequeued.
+     * \param kmer The k-mer to process before enqueuing it.
      */
-    virtual void _process(std::string &kmer);
+    virtual void _process(std::string &kmer) override;
 
   public:
 
     /**
-     * Builds a k-mer processor.
+     * Builds a k-mer collector.
      *
-     * \param queue The queue storing the k-mers to process.
+     * \param settings The settings to use for the file collector.
+     *
+     * \param filename The name of the file to parse (see open() method).
+     *
+     * \param queue The queue to feed with k-mers.
      */
-    KmerProcessor(CircularQueue<std::string> &queue);
+    BhKmerCollector(const Settings &s, const std::string &filename, CircularQueue<std::string> &queue);
+
+    LcpStats getLcpStats(bool reset = false);
 
   };
 

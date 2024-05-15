@@ -41,54 +41,50 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_PROCESSOR_HPP__
-#define __KMER_PROCESSOR_HPP__
+#ifndef __BH_KMER_PROCESSOR_HPP__
+#define __BH_KMER_PROCESSOR_HPP__
 
 #include <string>
 
-#include <threaded_processor_helper.hpp>
+#include <kmer_processor.hpp>
+#include <bh_kmer_index.hpp>
 
 
 namespace bijecthash {
 
   /**
-   * A k-mer processor helper that load k-mers from a circular queue.
+   * A k-mer processor helper that load k-mers from a circular queue
+   * and store them in a k-mer index.
    *
    * This helper class allows to run the k-mer processor in a dedicated
    * thread.
    */
-  class KmerProcessor: public ThreadedProcessorHelper<KmerProcessor, std::string> {
+  class BhKmerProcessor: public KmerProcessor {
 
   private:
 
     /**
-     * Load the k-mers from the queue and process them.
-     *
-     * This method will exit only when there is no more running k-mer
-     * collector (see KmerCollector class) AND if the queue is empty. If
-     * one of these two condition is not met, it waits.
+     * The (thread-safe) k-mer index.
      */
-    void _run() override final;
+    BhKmerIndex &_index;
 
     /**
-     * Perform some processing on the given k-mer after having been
-     * dequeued.
-     *
-     * By default, this does nothing but any derived class should
-     * override this method.
+     * Store the given k-mer in the k-mer index.
      *
      * \param kmer The k-mer to process after having been dequeued.
      */
-    virtual void _process(std::string &kmer);
+    virtual void _process(std::string &kmer) override;
 
   public:
 
     /**
-     * Builds a k-mer processor.
+     * Builds a Bijecthash k-mer processor.
+     *
+     * \param index The (thread-safe) k-mer index.
      *
      * \param queue The queue storing the k-mers to process.
      */
-    KmerProcessor(CircularQueue<std::string> &queue);
+    BhKmerProcessor(BhKmerIndex &index, CircularQueue<std::string> &queue);
 
   };
 

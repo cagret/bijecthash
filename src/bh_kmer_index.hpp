@@ -41,8 +41,8 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_INDEX_HPP__
-#define __KMER_INDEX_HPP__
+#ifndef __BH_KMER_INDEX_HPP__
+#define __BH_KMER_INDEX_HPP__
 
 #include <atomic>
 #include <cstdint>
@@ -70,7 +70,7 @@ namespace bijecthash {
    *
    * This k-mer index class is expected to thread safe.
    */
-  class KmerIndex {
+  class BhKmerIndex {
 
   private:
 
@@ -87,9 +87,9 @@ namespace bijecthash {
       mutable ReadWriteLock _rw_lock;
 
       /**
-       * The KmerIndex class needs to access the _rw_lock.
+       * The BhKmerIndex class needs to access the _rw_lock.
        */
-      friend KmerIndex;
+      friend BhKmerIndex;
 
     public:
 
@@ -161,7 +161,7 @@ namespace bijecthash {
     /**
      * The sub-indexes
      */
-    std::vector<KmerIndex::Subindex> _subindexes;
+    std::vector<BhKmerIndex::Subindex> _subindexes;
 
     /**
      * The number of indexed k-mers (not the size of the vector)
@@ -185,7 +185,7 @@ namespace bijecthash {
      *
      * \param s The settings to use for initialize this index.
      */
-    KmerIndex(const Settings &s);
+    BhKmerIndex(const Settings &s);
 
     /**
      * Creates an index by copying the given index.
@@ -194,7 +194,7 @@ namespace bijecthash {
      *
      * \param index The k-mer index to clone.
      */
-    KmerIndex(const KmerIndex &index);
+    BhKmerIndex(const BhKmerIndex &index);
 
     /**
      * The assignment operator.
@@ -203,7 +203,7 @@ namespace bijecthash {
      *
      * \return Returns this index.
      */
-    KmerIndex &operator=(const KmerIndex &index);
+    BhKmerIndex &operator=(const BhKmerIndex &index);
 
     /**
      * Check if index is empty.
@@ -290,7 +290,7 @@ namespace bijecthash {
    *
    * \return Returns the updated output stream.
    */
-  inline std::ostream &operator<<(std::ostream &os, const KmerIndex &index) {
+  inline std::ostream &operator<<(std::ostream &os, const BhKmerIndex &index) {
     index.toStream(os);
     return os;
   }

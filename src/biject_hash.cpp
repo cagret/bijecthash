@@ -41,23 +41,21 @@
 *                                                                             *
 ******************************************************************************/
 
+#include "bh_kmer_collector.hpp"
+#include "bh_kmer_index.hpp"
+#include "bh_kmer_processor.hpp"
 #ifdef ENABLE_CACHE_STATISTICS
 #  include "cache_statistics.hpp"
 #endif
-#include "circular_queue.hpp"
 #include "common.hpp"
-#include "kmer_collector.hpp"
-#include "kmer_index.hpp"
-#include "kmer_processor.hpp"
+#include "lcp_stats.hpp"
 #include "program_options.hpp"
-#ifdef WATCH_QUEUE
-#  include "queue_watcher.hpp"
-#endif
+#include "queue_watcher.hpp"
 #include "settings.hpp"
+#include "threaded_reader_writer.hpp"
 #include "transformer.hpp"
 
 #include <libgen.h>
-#include <cassert>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -77,116 +75,132 @@ struct infos {
 #ifdef ENABLE_CACHE_STATISTICS
   CacheStatistics cache_stats;
 #endif
-  vector<KmerCollector::LcpStats> lcp_stats;
+  LcpStats lcp_stats;
 };
 
-infos makeIndexMultiThread(KmerIndex &kmer_index, const vector<string> &filenames) {
-  const Settings &s = kmer_index.settings;
+typedef ThreadedReaderWriter<BhKmerProcessor, BhKmerCollector, string> BijectHashBaseClass;
+class BijectHash: public BijectHashBaseClass {
 
-  infos time_mem_stats;
+private:
 
-
-  struct rusage rusage_start, rusage_end;
-  getrusage(RUSAGE_SELF, &rusage_start);
-
-#ifdef ENABLE_CACHE_STATISTICS
-  time_mem_stats.cache_stats.start();
+  BhKmerIndex &_index;
+  infos _time_mem_stats;
+#ifdef WATCH_QUEUE
+  thread _watcher;
 #endif
 
-  CircularQueue<string> kmer_queue(s.queue_size);
-  vector<KmerCollector> collectors;
-  collectors.reserve(filenames.size());
-  time_mem_stats.lcp_stats.reserve(filenames.size());
-  vector<KmerProcessor> processors;
-  size_t nb_threads = thread::hardware_concurrency();
-  if (nb_threads > 3 * filenames.size()) {
-    // Don't use more than 2 processor for 1 collector
-    nb_threads = 2 * filenames.size();
-  } else {
-    // If there is less than 2 processor for 1 collector...
-    if (nb_threads > 2 * filenames.size()) {
-      // If there is more than 1 processor for 1 collector, use all of available threads.
-      nb_threads -= filenames.size();
-    } else {
-      // Use at least 1 collector for 1 processor.
-      nb_threads = filenames.size();
+  virtual void _pre() override {
+
+#ifdef WATCH_QUEUE
+    _watcher = std::thread(queueWatcher<KmerProcessor, KmerCollector, string>, std::cref(_queue));
+#endif
+    struct rusage rusage_start;
+    getrusage(RUSAGE_SELF, &rusage_start);
+    _time_mem_stats.time = rusage_start.ru_utime.tv_usec;
+    _time_mem_stats.memory = rusage_start.ru_maxrss;
+#ifdef ENABLE_CACHE_STATISTICS
+    _time_mem_stats.cache_stats.start();
+#endif
+
+    DEBUG_MSG("Ready to run");
+
+  }
+
+  virtual void _post() override {
+
+#ifdef WATCH_QUEUE
+      _watcher.join();
+#endif
+
+      assert(_queue.empty());
+
+#ifdef ENABLE_CACHE_STATISTICS
+    _time_mem_stats.cache_stats.stop();
+#endif
+
+    struct rusage rusage_end;
+    getrusage(RUSAGE_SELF, &rusage_end);
+
+    _time_mem_stats.time = rusage_end.ru_utime.tv_usec - _time_mem_stats.time;
+    _time_mem_stats.memory = rusage_end.ru_maxrss - _time_mem_stats.memory;
+
+#ifdef ENABLE_CACHE_STATISTICS
+    _time_mem_stats.cache_stats.update();
+#endif
+
+    DEBUG_MSG("Statistics computation done");
+
+  }
+
+public:
+
+  BijectHash(BhKmerIndex &index, const vector<string> &filenames):
+    BijectHashBaseClass(index.settings.queue_size, 0, 0),
+    _index(index)
+  {
+
+    const Settings &s = index.settings;
+    _writers.reserve(filenames.size());
+    for (auto &filename: filenames) {
+      _writers.emplace_back(s, filename, _queue);
     }
+
+    size_t nb_threads = thread::hardware_concurrency();
+    if (nb_threads > 3 * filenames.size()) {
+      // Don't use more than 2 processor for 1 collector
+      nb_threads = 2 * filenames.size();
+    } else {
+      // If there is less than 2 processor for 1 collector...
+      if (nb_threads > 2 * filenames.size()) {
+        // If there is more than 1 processor for 1 collector, use all of available threads.
+        nb_threads -= filenames.size();
+      } else {
+        // Use at least 1 collector for 1 processor.
+        nb_threads = filenames.size();
+      }
+    }
+    // And always use one more thread.
+    ++nb_threads;
+    cerr << "Using " << nb_threads << " k-mer processor(s) [heuristic]"
+         << " for " << filenames.size() << " k-mer collector(s) [one per file]." << '\n'
+         << endl;
+    while (nb_threads--) {
+      _readers.emplace_back(_index, _queue);
+    }
+
   }
-  // And always use one more thread.
-  ++nb_threads;
-  cerr << "Using " << nb_threads << " k-mer processor(s) [heuristic]"
-       << " for " << filenames.size() << " k-mer collector(s) [one per file]." << endl
-       << endl;
-  processors.reserve(nb_threads);
 
-#ifdef WATCH_QUEUE
-  thread watcher(queueWatcher<string>, cref(kmer_queue));
-#endif
-
-  for (auto &filename: filenames) {
-    time_mem_stats.lcp_stats.emplace_back();
-    collectors.emplace_back(s, filename, kmer_queue, time_mem_stats.lcp_stats.back());
-    collectors.back().run();
+  const infos &getTimeMemStats() {
+    return _time_mem_stats;
   }
 
-  while (nb_threads--) {
-    processors.emplace_back(s, kmer_index, kmer_queue);
-    processors.back().run();
-  }
+};
 
-  for (auto &worker: collectors) {
-    worker.join();
-  }
-
-  for (auto &worker: processors) {
-    worker.join();
-  }
-#ifdef WATCH_QUEUE
-  watcher.join();
-#endif
-
-  DEBUG_MSG("CircularQueue:" << endl << kmer_queue);
-
-#ifdef ENABLE_CACHE_STATISTICS
-  time_mem_stats.cache_stats.stop();
-#endif
-
-  getrusage(RUSAGE_SELF, &rusage_end);
-  time_mem_stats.time = rusage_end.ru_utime.tv_usec - rusage_start.ru_utime.tv_usec;
-  time_mem_stats.memory = rusage_end.ru_maxrss - rusage_start.ru_maxrss;
-
-#ifdef ENABLE_CACHE_STATISTICS
-  time_mem_stats.cache_stats.update();
-#endif
-
-  return time_mem_stats;
-
-}
 
 int main(int argc, char* argv[]) {
 
+  DEBUG_MSG("BEFORE");
   const ProgramOptions opts(argc, argv);
+  DEBUG_MSG("MIDDLE");
   const Settings settings = opts.settings();
+  DEBUG_MSG("AFTER");
   const vector<string> filenames = opts.filenames();
 
-  cerr << "Settings:" << endl
+  cerr << "Settings:" << '\n'
        << settings << endl;
-  cerr << "Files to process:" << endl;
+  cerr << "Files to process:" << '\n';
   for (auto &filename: filenames) {
-    cerr << "- '" << filename << "'" << endl;
+    cerr << "- '" << filename << "'" << '\n';
   }
   cerr << endl;
 
-  KmerIndex index(settings);
-  infos time_mem_stats = makeIndexMultiThread(index, filenames);
+  BhKmerIndex index(settings);
+  BijectHash bh(index, filenames);
+  bh.run();
+  const infos &time_mem_stats = bh.getTimeMemStats();
   map<string, double> stats = index.statistics();
 
-  cout << "#XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)\tNbFiles";
-  for (size_t i = 0; i < time_mem_stats.lcp_stats.size(); ++i) {
-    cout << '\t' << "File_" << (i + 1) << "_LCP_nb_values"
-         << '\t' << "File_" << (i + 1) << "_LCP_avg"
-         << '\t' << "File_" << (i + 1) << "_LCP_var";
-  }
+  cout << "#XP\tLength\tPrefixLength\tMethod\tTime(ms)\tMemory(KB)\tNbFiles\tLCP_nb_values\tLCP_avg\tLCP_var";
 #ifdef ENABLE_CACHE_STATISTICS
   for (const auto &info: time_mem_stats.cache_stats) {
     cout << '\t' << info.first;
@@ -205,12 +219,10 @@ int main(int argc, char* argv[]) {
        //<< '\t' << time_mem_stats.time.count()
        << '\t' << time_mem_stats.time
        << '\t' << time_mem_stats.memory
-       << '\t' << filenames.size();
-  for (auto &lcp_stat: time_mem_stats.lcp_stats) {
-    cout << '\t' << lcp_stat.nb_kmers
-         << '\t' << lcp_stat.average
-         << '\t' << lcp_stat.variance;
-  }
+       << '\t' << filenames.size()
+       << '\t' << time_mem_stats.lcp_stats.nb_kmers
+       << '\t' << time_mem_stats.lcp_stats.average
+       << '\t' << time_mem_stats.lcp_stats.variance;
 #ifdef ENABLE_CACHE_STATISTICS
   for (auto &info: time_mem_stats.cache_stats) {
     cout << '\t' << info.second;

@@ -69,8 +69,8 @@ Transformer::EncodedKmer IntHashTransformer::operator()(const string &kmer) cons
     v = hash_64(v, _kmer_mask);
 #ifdef DEBUG
     uint64_t rev_v = hash_64i(v, _kmer_mask);
-    DEBUG_MSG("orig = " << orig << endl
-              << MSG_DBG_HEADER << "v = " << v << endl
+    DEBUG_MSG("orig = " << orig << '\n'
+              << MSG_DBG_HEADER << "v = " << v << '\n'
               << MSG_DBG_HEADER << "rev_v = " << rev_v);
     assert(orig == rev_v);
 #endif

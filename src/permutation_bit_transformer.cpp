@@ -144,23 +144,23 @@ PermutationBitTransformer::PermutationBitTransformer(size_t kmer_length, size_t 
     *desc_ptr += "]";
   }
 
-  DEBUG_MSG("description: '" << description << "'" << endl;
-            cerr << MSG_DBG_HEADER << "permutation:" << endl;
+  DEBUG_MSG("description: '" << description << "'" << '\n';
+            cerr << MSG_DBG_HEADER << "permutation:" << '\n';
             cerr << "  ";
             for (size_t i = 0; i < 2 * kmer_length; ++i) {
               cerr << setw(4) << i;
             }
-            cerr << endl << "  ";
+            cerr << '\n' << "  ";
             for (size_t i = 0; i < 2 * kmer_length; ++i) {
               cerr << setw(4) << _permutation[i];
             }
-            cerr << endl;
-            cerr << MSG_DBG_HEADER << "reverse permutation:" << endl;
+            cerr << '\n';
+            cerr << MSG_DBG_HEADER << "reverse permutation:" << '\n';
             cerr << "  ";
             for (size_t i = 0; i < 2 * kmer_length; ++i) {
               cerr << setw(4) << i;
             }
-            cerr << endl;
+            cerr << '\n';
             cerr << "  ";
             for (size_t i = 0; i < 2 * kmer_length; ++i) {
               cerr << setw(4) << _reverse_permutation[i];

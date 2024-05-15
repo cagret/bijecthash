@@ -49,7 +49,7 @@
 #include <string>
 
 namespace bijecthash {
-  
+
   /**
    * Wrapper around the perf_event_open() function in order to gather
    * cache statistics.

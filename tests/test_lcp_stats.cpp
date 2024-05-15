@@ -41,57 +41,88 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_PROCESSOR_HPP__
-#define __KMER_PROCESSOR_HPP__
+#ifdef NDEBUG
+#  undef NDEBUG
+#endif
+#include <cassert>
+#include <iostream>
 
-#include <string>
+#include "lcp_stats.hpp"
+#include "transformer.hpp"
 
-#include <threaded_processor_helper.hpp>
+using namespace std;
+using namespace bijecthash;
 
+const size_t max_nb_bits = sizeof(uint64_t) << 3;
+const size_t max_nb_symbols = max_nb_bits >> 1;
 
-namespace bijecthash {
+void test_lcp_stats(size_t length, size_t prefix_length) {
 
-  /**
-   * A k-mer processor helper that load k-mers from a circular queue.
-   *
-   * This helper class allows to run the k-mer processor in a dedicated
-   * thread.
-   */
-  class KmerProcessor: public ThreadedProcessorHelper<KmerProcessor, std::string> {
+  cout << "Test of the LCP for " << length << "-mers using prefix lenght " << prefix_length << endl;
 
-  private:
+  assert(prefix_length > 0);
+  assert(prefix_length <= max_nb_symbols);
+  assert(length > prefix_length);
+  size_t suffix_length = length - prefix_length;
+  assert(suffix_length <= max_nb_symbols);
 
-    /**
-     * Load the k-mers from the queue and process them.
-     *
-     * This method will exit only when there is no more running k-mer
-     * collector (see KmerCollector class) AND if the queue is empty. If
-     * one of these two condition is not met, it waits.
-     */
-    void _run() override final;
+  Transformer::EncodedKmer e1, e2;
+  LcpStats lcp_stats;
+  lcp_stats.start();
+  assert(lcp_stats.nb_kmers == 0);
 
-    /**
-     * Perform some processing on the given k-mer after having been
-     * dequeued.
-     *
-     * By default, this does nothing but any derived class should
-     * override this method.
-     *
-     * \param kmer The k-mer to process after having been dequeued.
-     */
-    virtual void _process(std::string &kmer);
+  e1.prefix = e1.suffix = e2.prefix = e2.suffix = 0;
 
-  public:
+  size_t expected_lcp = (length << 1) - 1;
 
-    /**
-     * Builds a k-mer processor.
-     *
-     * \param queue The queue storing the k-mers to process.
-     */
-    KmerProcessor(CircularQueue<std::string> &queue);
+  uint64_t max_v = (1ull << suffix_length << suffix_length);
+  if (max_v) {
+    for (e2.suffix = 1; e2.suffix < max_v; e2.suffix <<= 1) {
+      size_t lcp = lcp_stats.LCP(e1, e2, length, prefix_length);
+      cout << "LCP({" << e1.prefix << ", " << e1.suffix << "},"
+           << " {" << e2.prefix << ", " << e2.suffix << "}) = " << lcp
+           << " (expecting " << (expected_lcp >> 1) << ")" << endl;
+      assert(lcp == (expected_lcp >> 1));
+      --expected_lcp;
+    }
+  } else {
+    expected_lcp -= max_nb_symbols * 2;
+  }
+  cout << "expected_lcp = " << expected_lcp << endl;
+  assert((expected_lcp >> 1) + 1 == prefix_length);
 
-  };
+  cout << "================================" << endl;
 
+  max_v = (1ull << prefix_length << prefix_length);
+  if (max_v) {
+    for (e2.prefix = 1; e2.prefix < max_v; e2.prefix <<= 1) {
+      size_t lcp = lcp_stats.LCP(e1, e2, length, prefix_length);
+      cout << "LCP({" << e1.prefix << ", " << e1.suffix << "},"
+           << " {" << e2.prefix << ", " << e2.suffix << "}) = " << lcp
+           << " (expecting " << (expected_lcp >> 1) << ")" << endl;
+      assert(lcp == (expected_lcp >> 1));
+      --expected_lcp;
+    }
+  } else {
+    expected_lcp -= max_nb_symbols * 2;
+  }
+  cout << "expected_lcp = " << expected_lcp << endl;
+  assert(expected_lcp == (size_t) -1);
+
+  cout << "================================" << endl;
+
+  cout << endl;
 }
 
-#endif
+int main() {
+
+  for (size_t l = 2; l <= max_nb_symbols * 2; l += (l == 2 ? 6 : 8)) {
+    const size_t min_p = ((l <= max_nb_symbols) ? 1 : (l - max_nb_symbols));
+    const size_t max_p = ((l <= max_nb_symbols) ? (l - 1) : max_nb_symbols);
+    for (size_t p = min_p; p <= max_p; ++p) {
+      test_lcp_stats(l, p);
+    }
+  }
+  return 0;
+
+}

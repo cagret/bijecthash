@@ -209,7 +209,7 @@ namespace bijecthash {
       std::cerr << "[DEBUG] "
                 << "[Thread " << this_thread::get_id()  << "] "
                 << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ": "
-                << "Adding element at position " << p_copy << std::endl;
+                << "Adding element at position " << p_copy << '\n';
                 << std::endl;
       io_mutex.unlock();
 #endif

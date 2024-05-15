@@ -272,7 +272,7 @@ namespace bijecthash {
      * 1).
      *
      * \return Returns the current k-mer ID starting from 1 or 0 if no file is
-     * opened.
+     * opened (or no k-mer has been read yet).
      */
     inline size_t getCurrentKmerID(bool absolute = true) const {
       return (absolute

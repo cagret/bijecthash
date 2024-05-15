@@ -51,23 +51,14 @@ using namespace std;
 
 BEGIN_BIJECTHASH_NAMESPACE
 
-atomic_size_t KmerProcessor::_counter = 0;
-atomic_size_t KmerProcessor::_running = 0;
-
-KmerProcessor::KmerProcessor(const Settings &settings,
-                             KmerIndex &index,
-                             CircularQueue<string> &queue):
-  _queue(queue), _index(index),
-  id(++_counter), settings(settings)
-{
-  ++_running;
-}
+KmerProcessor::KmerProcessor(CircularQueue<string> &queue):
+  ThreadedProcessorHelper<KmerProcessor, string>(queue) {}
 
 void KmerProcessor::_run() {
   while ((KmerCollector::running() > 0) || !_queue.empty()) {
     string kmer;
     DEBUG_MSG("KmerProcessor_" << id << ":"
-              << "Running KmerProcessor: " << _running << "/" << _counter << endl
+              << "Running KmerProcessor: " << running() << "/" << counter() << '\n'
               << MSG_DBG_HEADER << "KmerProcessor_" << id << ":"
               << "queue size: " << _queue.size());
     bool ok = _queue.pop(kmer);
@@ -81,16 +72,17 @@ void KmerProcessor::_run() {
     if (ok) {
       DEBUG_MSG("KmerProcessor_" << id << ":"
                 << "k-mer '" << kmer << "' successfully popped.");
-      _index.insert(kmer);
+      _process(kmer);
     } else {
       this_thread::yield();
       this_thread::sleep_for(1ns);
     }
   }
-  --_running;
   DEBUG_MSG("KmerProcessor_" << id << ":"
-            << "_running = " << _running << ":"
+            << "running: " << running() << ":"
             << "KmerProcessor_" << id << " has finished.");
 }
-    
+
+void KmerProcessor::_process(string &__UNUSED__(kmer)) {}
+
 END_BIJECTHASH_NAMESPACE

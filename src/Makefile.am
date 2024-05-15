@@ -56,7 +56,27 @@ AM_CXXFLAGS =				\
 install_dirname = $(PACKAGE_NAME)-$(PACKAGE_VERSION)
 pkgincludedir = $(includedir)/$(install_dirname)
 
-pkginclude_HEADERS =			\
+# Bug fix for path with spaces
+bindir="@bindir@"
+libdir="@libdir@"
+# End of bug fix
+
+lib_LTLIBRARIES =
+noinst_LTLIBRARIES =
+check_LTLIBRARIES =
+bin_PROGRAMS =
+pkginclude_HEADERS =
+
+
+#############################
+# kmer-transformers library #
+#############################
+
+lib_LTLIBRARIES += libkmer-transformers.la
+
+libkmer_transformers_main_header = kmer_transformers.hpp
+
+libkmer_transformers_headers =		\
   bwt_transformer.hpp			\
   canonical_transformer.hpp		\
   composition_transformer.hpp		\
@@ -67,32 +87,36 @@ pkginclude_HEADERS =			\
   minimizer_transformer.hpp		\
   permutation_bit_transformer.hpp	\
   permutation_transformer.hpp		\
-  transformer.hpp			\
-  circular_queue.hpp			\
-  file_reader.hpp			\
-  kmer_collector.hpp			\
-  kmer_index.hpp			\
-  kmer_processor.hpp			\
-  locker.hpp
+  transformer.hpp
 
+pkginclude_HEADERS += $(libkmer_transformers_headers) $(libkmer_transformers_main_header)
 
-
-# Bug fix for path with spaces
-bindir="@bindir@"
-libdir="@libdir@"
-# End of bug fix
-
-lib_LTLIBRARIES =
-noinst_LTLIBRARIES =
-check_LTLIBRARIES =
-bin_PROGRAMS =
-
-
-#############################
-# kmer-transformers library #
-#############################
-
-lib_LTLIBRARIES += libkmer-transformers.la
+# Regenerate kmer-transformers library header file.
+# This is mostly intended to help this library maintainer(s) and you
+# should not have to run this target.
+#
+# There is no direct target for $(libkmer_transformers_main_header) since it should
+# not be considered as a built file but as a source file (that must
+# reside in the source tree)
+update-libkmer-transformers-main-header: $(libkmer_transformers_main_header)
+	@$(AM_V_P) || echo "  HEADER   " $(libkmer_transformers_main_header)
+	$(AM_V_at)($(SED) -n '/^\/\*\+$$/{p;:a;n;/^\*\+\/$$/{p;q};p;ba}' $(CONFIG_HEADER) \
+	&& echo \
+	&& echo "#ifndef __KMER_TRANSFORMERS_HPP__" \
+	&& echo "#define __KMER_TRANSFORMER_HPPS__" \
+	&& echo \
+	&& echo "/**" \
+	&& echo " * \file" \
+	&& echo " *" \
+	&& echo " * Including this file is enough to use the full kmer-transformers library API." \
+	&& echo " */" \
+	&& echo \
+	&& for header in $(libkmer_transformers_headers); do \
+	  echo "#include <$(LIBNAME)/$${header}>" ; \
+	done \
+	&& echo \
+	&& echo "#endif" \
+	) > $(libkmer_transformers_main_header)
 
 libkmer_transformers_ladir = $(abs_srcdir)
 libkmer_transformers_la_SOURCES = \
@@ -115,6 +139,13 @@ libkmer_transformers_la_config_DATA  = $(CONFIG_HEADER)
 libkmer_transformers_la_LDFLAGS      = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
 libkmer_transformers_la_DEPENDENCIES = $(libkmer_transformers_la_LIBADD)
 
+# Debug version (for tests)
+check_LTLIBRARIES += libkmer-transformers-debug.la
+libkmer_transformers_debug_ladir = $(libkmer_transformers_ladir)
+libkmer_transformers_debug_la_SOURCES = $(libkmer_transformers_la_SOURCES)
+libkmer_transformers_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
+libkmer_transformers_debug_la_LDFLAGS = $(libkmer_transformers_la_LDFLAGS)
+libkmer_transformers_debug_la_DEPENDENCIES = $(libkmer_transformers_la_DEPENDENCIES)
 
 #######################
 # kmer-reader library #
@@ -122,20 +153,67 @@ libkmer_transformers_la_DEPENDENCIES = $(libkmer_transformers_la_LIBADD)
 
 lib_LTLIBRARIES += libkmer-reader.la
 
+libkmer_reader_main_header = kmer_reader.hpp
+
+libkmer_reader_headers =		\
+  circular_queue.hpp			\
+  file_reader.hpp			\
+  kmer_collector.hpp			\
+  kmer_processor.hpp			\
+  locker.hpp				\
+  threaded_processor_helper.hpp
+
+pkginclude_HEADERS += $(libkmer_reader_headers) $(libkmer_reader_main_header)
+
+# Regenerate kmer-reader library header file.
+# This is mostly intended to help this library maintainer(s) and you
+# should not have to run this target.
+#
+# There is no direct target for $(libkmer_reader_main_header) since it should
+# not be considered as a built file but as a source file (that must
+# reside in the source tree)
+update-libkmer-reader-main-header: $(libkmer_reader_main_header)
+	@$(AM_V_P) || echo "  HEADER   " $(libkmer_reader_main_header)
+	$(AM_V_at)($(SED) -n '/^\/\*\+$$/{p;:a;n;/^\*\+\/$$/{p;q};p;ba}' $(CONFIG_HEADER) \
+	&& echo \
+	&& echo "#ifndef __KMER_READER_HPP__" \
+	&& echo "#define __KMER_READER_HPP__" \
+	&& echo \
+	&& echo "/**" \
+	&& echo " * \file" \
+	&& echo " *" \
+	&& echo " * Including this file is enough to use the full kmer-reader library API." \
+	&& echo " */" \
+	&& echo \
+	&& for header in $(libkmer_reader_headers); do \
+	  echo "#include <$(LIBNAME)/$${header}>" ; \
+	done \
+	&& echo \
+	&& echo "#endif" \
+	) > $(libkmer_reader_main_header)
+
 libkmer_reader_ladir = $(abs_srcdir)
 libkmer_reader_la_SOURCES = \
   circular_queue.hpp							\
   common.hpp								\
   file_reader.cpp file_reader.hpp					\
   kmer_collector.cpp kmer_collector.hpp					\
-  kmer_index.cpp kmer_index.hpp						\
   kmer_processor.cpp kmer_processor.hpp					\
-  locker.cpp locker.hpp
+  locker.cpp locker.hpp							\
+  threaded_processor_helper.hpp
 
 libkmer_reader_la_configdir    = $(libdir)/$(install_dirname)/include
 libkmer_reader_la_config_DATA  = $(CONFIG_HEADER)
 libkmer_reader_la_LDFLAGS      = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
 libkmer_reader_la_DEPENDENCIES = $(libkmer_reader_la_LIBADD)
+
+# Debug version (for tests)
+check_LTLIBRARIES += libkmer-reader-debug.la
+libkmer_reader_debug_ladir = $(libkmer_reader_ladir)
+libkmer_reader_debug_la_SOURCES = $(libkmer_reader_la_SOURCES)
+libkmer_reader_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
+libkmer_reader_debug_la_LDFLAGS = $(libkmer_reader_la_LDFLAGS)
+libkmer_reader_debug_la_DEPENDENCIES = $(libkmer_reader_la_DEPENDENCIES)
 
 
 ###########################
@@ -146,7 +224,11 @@ noinst_LTLIBRARIES += libbijecthash-core.la
 
 libbijecthash_core_ladir = $(abs_srcdir)
 libbijecthash_core_la_SOURCES = \
+  bh_kmer_collector.cpp bh_kmer_collector.hpp				\
+  bh_kmer_index.cpp bh_kmer_index.hpp					\
+  bh_kmer_processor.cpp bh_kmer_processor.hpp				\
   common.hpp								\
+  lcp_stats.cpp lcp_stats.hpp						\
   program_options.cpp program_options.hpp				\
   settings.cpp settings.hpp
 
@@ -154,6 +236,14 @@ libbijecthash_core_la_configdir    = $(libdir)/$(install_dirname)/include
 libbijecthash_core_la_config_DATA  = $(CONFIG_HEADER)
 libbijecthash_core_la_LDFLAGS      = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
 libbijecthash_core_la_DEPENDENCIES = $(libbijecthash_core_la_LIBADD)
+
+# Debug version (for tests)
+check_LTLIBRARIES += libbijecthash-core-debug.la
+libbijecthash_core_debug_ladir = $(libbijecthash_core_ladir)
+libbijecthash_core_debug_la_SOURCES = $(libbijecthash_core_la_SOURCES)
+libbijecthash_core_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
+libbijecthash_core_debug_la_LDFLAGS = $(libbijecthash_core_la_LDFLAGS)
+libbijecthash_core_debug_la_DEPENDENCIES = $(libbijecthash_core_la_DEPENDENCIES)
 
 
 ##############
@@ -177,8 +267,8 @@ BijectHash_DEPENDENCIES = $(BijectHash_LDADD)
 
 bin_PROGRAMS += BijectHash_with_checks
 
-BijectHash_with_checks_SOURCES =		\
-  $(BijectHash_SOURCES)				\
+BijectHash_with_checks_SOURCES =	\
+  $(BijectHash_SOURCES)			\
   queue_watcher.hpp queue_watcher.tpp
 
 BijectHash_with_checks_LDADD = $(BijectHash_LDADD)
@@ -215,7 +305,10 @@ BijectHash_with_cache_stats_DEPENDENCIES = $(BijectHash_with_cache_stats_LDADD)
 
 GCDA_FILES =						\
   $(libkmer_transformers_la_OBJECTS:.lo=.gcda)		\
+  $(libkmer_transformers_debug_la_OBJECTS:.lo=.gcda)	\
   $(libkmer_reader_la_OBJECTS:.lo=.gcda)		\
+  $(libkmer_reader_debug_la_OBJECTS:.lo=.gcda)		\
+  $(libbijecthash_core_debug_la_OBJECTS:.lo=.gcda)	\
   $(libbijecthash_core_la_OBJECTS:.lo=.gcda)		\
   $(BijectHash_OBJECTS:.lo=.gcda)			\
   $(BijectHash_with_checks_OBJECTS:.lo=.gcda)		\

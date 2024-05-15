@@ -207,25 +207,73 @@ am__uninstall_files_from_dir = { \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
 LTLIBRARIES = $(lib_LTLIBRARIES) $(noinst_LTLIBRARIES)
-libbijecthash_core_la_LIBADD =
-am_libbijecthash_core_la_OBJECTS = program_options.lo settings.lo
-libbijecthash_core_la_OBJECTS = $(am_libbijecthash_core_la_OBJECTS)
+libbijecthash_core_debug_la_LIBADD =
+am__objects_1 = libbijecthash_core_debug_la-bh_kmer_collector.lo \
+	libbijecthash_core_debug_la-bh_kmer_index.lo \
+	libbijecthash_core_debug_la-bh_kmer_processor.lo \
+	libbijecthash_core_debug_la-lcp_stats.lo \
+	libbijecthash_core_debug_la-program_options.lo \
+	libbijecthash_core_debug_la-settings.lo
+am_libbijecthash_core_debug_la_OBJECTS = $(am__objects_1)
+libbijecthash_core_debug_la_OBJECTS =  \
+	$(am_libbijecthash_core_debug_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+libbijecthash_core_debug_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) \
+	$(libbijecthash_core_debug_la_LDFLAGS) $(LDFLAGS) -o $@
+libbijecthash_core_la_LIBADD =
+am_libbijecthash_core_la_OBJECTS = bh_kmer_collector.lo \
+	bh_kmer_index.lo bh_kmer_processor.lo lcp_stats.lo \
+	program_options.lo settings.lo
+libbijecthash_core_la_OBJECTS = $(am_libbijecthash_core_la_OBJECTS)
 libbijecthash_core_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(libbijecthash_core_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+libkmer_reader_debug_la_LIBADD =
+am__objects_2 = libkmer_reader_debug_la-file_reader.lo \
+	libkmer_reader_debug_la-kmer_collector.lo \
+	libkmer_reader_debug_la-kmer_processor.lo \
+	libkmer_reader_debug_la-locker.lo
+am_libkmer_reader_debug_la_OBJECTS = $(am__objects_2)
+libkmer_reader_debug_la_OBJECTS =  \
+	$(am_libkmer_reader_debug_la_OBJECTS)
+libkmer_reader_debug_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) \
+	$(libkmer_reader_debug_la_LDFLAGS) $(LDFLAGS) -o $@
 libkmer_reader_la_LIBADD =
 am_libkmer_reader_la_OBJECTS = file_reader.lo kmer_collector.lo \
-	kmer_index.lo kmer_processor.lo locker.lo
+	kmer_processor.lo locker.lo
 libkmer_reader_la_OBJECTS = $(am_libkmer_reader_la_OBJECTS)
 libkmer_reader_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(libkmer_reader_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
+libkmer_transformers_debug_la_LIBADD =
+am__objects_3 = libkmer_transformers_debug_la-bwt_transformer.lo \
+	libkmer_transformers_debug_la-canonical_transformer.lo \
+	libkmer_transformers_debug_la-composition_transformer.lo \
+	libkmer_transformers_debug_la-gab_transformer.lo \
+	libkmer_transformers_debug_la-identity_transformer.lo \
+	inthash.lo \
+	libkmer_transformers_debug_la-inthash_transformer.lo \
+	libkmer_transformers_debug_la-lyndon_transformer.lo \
+	libkmer_transformers_debug_la-minimizer_transformer.lo \
+	libkmer_transformers_debug_la-permutation_bit_transformer.lo \
+	libkmer_transformers_debug_la-permutation_transformer.lo \
+	libkmer_transformers_debug_la-transformer.lo
+am_libkmer_transformers_debug_la_OBJECTS = $(am__objects_3)
+libkmer_transformers_debug_la_OBJECTS =  \
+	$(am_libkmer_transformers_debug_la_OBJECTS)
+libkmer_transformers_debug_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) \
+	$(libkmer_transformers_debug_la_LDFLAGS) $(LDFLAGS) -o $@
 libkmer_transformers_la_LIBADD =
 am_libkmer_transformers_la_OBJECTS = bwt_transformer.lo \
 	canonical_transformer.lo composition_transformer.lo \
@@ -244,8 +292,8 @@ BijectHash_OBJECTS = $(am_BijectHash_OBJECTS)
 BijectHash_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(BijectHash_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_1 = BijectHash_with_cache_stats-biject_hash.$(OBJEXT)
-am_BijectHash_with_cache_stats_OBJECTS = $(am__objects_1) \
+am__objects_4 = BijectHash_with_cache_stats-biject_hash.$(OBJEXT)
+am_BijectHash_with_cache_stats_OBJECTS = $(am__objects_4) \
 	BijectHash_with_cache_stats-cache_statistics.$(OBJEXT)
 BijectHash_with_cache_stats_OBJECTS =  \
 	$(am_BijectHash_with_cache_stats_OBJECTS)
@@ -253,8 +301,8 @@ BijectHash_with_cache_stats_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(BijectHash_with_cache_stats_CXXFLAGS) $(CXXFLAGS) \
 	$(BijectHash_with_cache_stats_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_2 = BijectHash_with_checks-biject_hash.$(OBJEXT)
-am_BijectHash_with_checks_OBJECTS = $(am__objects_2)
+am__objects_5 = BijectHash_with_checks-biject_hash.$(OBJEXT)
+am_BijectHash_with_checks_OBJECTS = $(am__objects_5)
 BijectHash_with_checks_OBJECTS = $(am_BijectHash_with_checks_OBJECTS)
 BijectHash_with_checks_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
@@ -279,15 +327,39 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/BijectHash_with_cache_stats-biject_hash.Po \
 	./$(DEPDIR)/BijectHash_with_cache_stats-cache_statistics.Po \
 	./$(DEPDIR)/BijectHash_with_checks-biject_hash.Po \
-	./$(DEPDIR)/biject_hash.Po ./$(DEPDIR)/bwt_transformer.Plo \
+	./$(DEPDIR)/bh_kmer_collector.Plo \
+	./$(DEPDIR)/bh_kmer_index.Plo \
+	./$(DEPDIR)/bh_kmer_processor.Plo ./$(DEPDIR)/biject_hash.Po \
+	./$(DEPDIR)/bwt_transformer.Plo \
 	./$(DEPDIR)/canonical_transformer.Plo \
 	./$(DEPDIR)/composition_transformer.Plo \
 	./$(DEPDIR)/file_reader.Plo ./$(DEPDIR)/gab_transformer.Plo \
 	./$(DEPDIR)/identity_transformer.Plo ./$(DEPDIR)/inthash.Plo \
 	./$(DEPDIR)/inthash_transformer.Plo \
-	./$(DEPDIR)/kmer_collector.Plo ./$(DEPDIR)/kmer_index.Plo \
-	./$(DEPDIR)/kmer_processor.Plo ./$(DEPDIR)/locker.Plo \
-	./$(DEPDIR)/lyndon_transformer.Plo \
+	./$(DEPDIR)/kmer_collector.Plo ./$(DEPDIR)/kmer_processor.Plo \
+	./$(DEPDIR)/lcp_stats.Plo \
+	./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Plo \
+	./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Plo \
+	./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Plo \
+	./$(DEPDIR)/libbijecthash_core_debug_la-lcp_stats.Plo \
+	./$(DEPDIR)/libbijecthash_core_debug_la-program_options.Plo \
+	./$(DEPDIR)/libbijecthash_core_debug_la-settings.Plo \
+	./$(DEPDIR)/libkmer_reader_debug_la-file_reader.Plo \
+	./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo \
+	./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo \
+	./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo \
+	./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo \
+	./$(DEPDIR)/locker.Plo ./$(DEPDIR)/lyndon_transformer.Plo \
 	./$(DEPDIR)/minimizer_transformer.Plo \
 	./$(DEPDIR)/permutation_bit_transformer.Plo \
 	./$(DEPDIR)/permutation_transformer.Plo \
@@ -330,13 +402,19 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(libbijecthash_core_la_SOURCES) \
+SOURCES = $(libbijecthash_core_debug_la_SOURCES) \
+	$(libbijecthash_core_la_SOURCES) \
+	$(libkmer_reader_debug_la_SOURCES) \
 	$(libkmer_reader_la_SOURCES) \
+	$(libkmer_transformers_debug_la_SOURCES) \
 	$(libkmer_transformers_la_SOURCES) $(BijectHash_SOURCES) \
 	$(BijectHash_with_cache_stats_SOURCES) \
 	$(BijectHash_with_checks_SOURCES)
-DIST_SOURCES = $(libbijecthash_core_la_SOURCES) \
+DIST_SOURCES = $(libbijecthash_core_debug_la_SOURCES) \
+	$(libbijecthash_core_la_SOURCES) \
+	$(libkmer_reader_debug_la_SOURCES) \
 	$(libkmer_reader_la_SOURCES) \
+	$(libkmer_transformers_debug_la_SOURCES) \
 	$(libkmer_transformers_la_SOURCES) $(BijectHash_SOURCES) \
 	$(BijectHash_with_cache_stats_SOURCES) \
 	$(BijectHash_with_checks_SOURCES)
@@ -562,25 +640,6 @@ AM_CXXFLAGS = \
   -DPACKAGE_DATADIR="\"$(pkgdatadir)\""
 
 install_dirname = $(PACKAGE_NAME)-$(PACKAGE_VERSION)
-pkginclude_HEADERS = \
-  bwt_transformer.hpp			\
-  canonical_transformer.hpp		\
-  composition_transformer.hpp		\
-  gab_transformer.hpp			\
-  identity_transformer.hpp		\
-  inthash_transformer.hpp		\
-  lyndon_transformer.hpp		\
-  minimizer_transformer.hpp		\
-  permutation_bit_transformer.hpp	\
-  permutation_transformer.hpp		\
-  transformer.hpp			\
-  circular_queue.hpp			\
-  file_reader.hpp			\
-  kmer_collector.hpp			\
-  kmer_index.hpp			\
-  kmer_processor.hpp			\
-  locker.hpp
-
 # End of bug fix
 
 #############################
@@ -596,7 +655,31 @@ lib_LTLIBRARIES = libkmer-transformers.la libkmer-reader.la
 # bijecthash-core library #
 ###########################
 noinst_LTLIBRARIES = libbijecthash-core.la
-check_LTLIBRARIES = 
+
+# Debug version (for tests)
+
+# Debug version (for tests)
+
+# Debug version (for tests)
+check_LTLIBRARIES = libkmer-transformers-debug.la \
+	libkmer-reader-debug.la libbijecthash-core-debug.la
+pkginclude_HEADERS = $(libkmer_transformers_headers) \
+	$(libkmer_transformers_main_header) $(libkmer_reader_headers) \
+	$(libkmer_reader_main_header)
+libkmer_transformers_main_header = kmer_transformers.hpp
+libkmer_transformers_headers = \
+  bwt_transformer.hpp			\
+  canonical_transformer.hpp		\
+  composition_transformer.hpp		\
+  gab_transformer.hpp			\
+  identity_transformer.hpp		\
+  inthash_transformer.hpp		\
+  lyndon_transformer.hpp		\
+  minimizer_transformer.hpp		\
+  permutation_bit_transformer.hpp	\
+  permutation_transformer.hpp		\
+  transformer.hpp
+
 libkmer_transformers_ladir = $(abs_srcdir)
 libkmer_transformers_la_SOURCES = \
   bwt_transformer.cpp bwt_transformer.hpp				\
@@ -617,23 +700,46 @@ libkmer_transformers_la_configdir = $(libdir)/$(install_dirname)/include
 libkmer_transformers_la_config_DATA = $(CONFIG_HEADER)
 libkmer_transformers_la_LDFLAGS = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
 libkmer_transformers_la_DEPENDENCIES = $(libkmer_transformers_la_LIBADD)
+libkmer_transformers_debug_ladir = $(libkmer_transformers_ladir)
+libkmer_transformers_debug_la_SOURCES = $(libkmer_transformers_la_SOURCES)
+libkmer_transformers_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
+libkmer_transformers_debug_la_LDFLAGS = $(libkmer_transformers_la_LDFLAGS)
+libkmer_transformers_debug_la_DEPENDENCIES = $(libkmer_transformers_la_DEPENDENCIES)
+libkmer_reader_main_header = kmer_reader.hpp
+libkmer_reader_headers = \
+  circular_queue.hpp			\
+  file_reader.hpp			\
+  kmer_collector.hpp			\
+  kmer_processor.hpp			\
+  locker.hpp				\
+  threaded_processor_helper.hpp
+
 libkmer_reader_ladir = $(abs_srcdir)
 libkmer_reader_la_SOURCES = \
   circular_queue.hpp							\
   common.hpp								\
   file_reader.cpp file_reader.hpp					\
   kmer_collector.cpp kmer_collector.hpp					\
-  kmer_index.cpp kmer_index.hpp						\
   kmer_processor.cpp kmer_processor.hpp					\
-  locker.cpp locker.hpp
+  locker.cpp locker.hpp							\
+  threaded_processor_helper.hpp
 
 libkmer_reader_la_configdir = $(libdir)/$(install_dirname)/include
 libkmer_reader_la_config_DATA = $(CONFIG_HEADER)
 libkmer_reader_la_LDFLAGS = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
 libkmer_reader_la_DEPENDENCIES = $(libkmer_reader_la_LIBADD)
+libkmer_reader_debug_ladir = $(libkmer_reader_ladir)
+libkmer_reader_debug_la_SOURCES = $(libkmer_reader_la_SOURCES)
+libkmer_reader_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
+libkmer_reader_debug_la_LDFLAGS = $(libkmer_reader_la_LDFLAGS)
+libkmer_reader_debug_la_DEPENDENCIES = $(libkmer_reader_la_DEPENDENCIES)
 libbijecthash_core_ladir = $(abs_srcdir)
 libbijecthash_core_la_SOURCES = \
+  bh_kmer_collector.cpp bh_kmer_collector.hpp				\
+  bh_kmer_index.cpp bh_kmer_index.hpp					\
+  bh_kmer_processor.cpp bh_kmer_processor.hpp				\
   common.hpp								\
+  lcp_stats.cpp lcp_stats.hpp						\
   program_options.cpp program_options.hpp				\
   settings.cpp settings.hpp
 
@@ -641,12 +747,17 @@ libbijecthash_core_la_configdir = $(libdir)/$(install_dirname)/include
 libbijecthash_core_la_config_DATA = $(CONFIG_HEADER)
 libbijecthash_core_la_LDFLAGS = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
 libbijecthash_core_la_DEPENDENCIES = $(libbijecthash_core_la_LIBADD)
+libbijecthash_core_debug_ladir = $(libbijecthash_core_ladir)
+libbijecthash_core_debug_la_SOURCES = $(libbijecthash_core_la_SOURCES)
+libbijecthash_core_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
+libbijecthash_core_debug_la_LDFLAGS = $(libbijecthash_core_la_LDFLAGS)
+libbijecthash_core_debug_la_DEPENDENCIES = $(libbijecthash_core_la_DEPENDENCIES)
 BijectHash_SOURCES = biject_hash.cpp
 BijectHash_LDADD = libkmer-transformers.la libkmer-reader.la libbijecthash-core.la
 BijectHash_LDFLAGS = -lkmer-transformers -lkmer-reader -lbijecthash-core $(AM_LDFLAGS)
 BijectHash_DEPENDENCIES = $(BijectHash_LDADD)
 BijectHash_with_checks_SOURCES = \
-  $(BijectHash_SOURCES)				\
+  $(BijectHash_SOURCES)			\
   queue_watcher.hpp queue_watcher.tpp
 
 BijectHash_with_checks_LDADD = $(BijectHash_LDADD)
@@ -667,7 +778,10 @@ BijectHash_with_cache_stats_DEPENDENCIES = $(BijectHash_with_cache_stats_LDADD)
 #################
 GCDA_FILES = \
   $(libkmer_transformers_la_OBJECTS:.lo=.gcda)		\
+  $(libkmer_transformers_debug_la_OBJECTS:.lo=.gcda)	\
   $(libkmer_reader_la_OBJECTS:.lo=.gcda)		\
+  $(libkmer_reader_debug_la_OBJECTS:.lo=.gcda)		\
+  $(libbijecthash_core_debug_la_OBJECTS:.lo=.gcda)	\
   $(libbijecthash_core_la_OBJECTS:.lo=.gcda)		\
   $(BijectHash_OBJECTS:.lo=.gcda)			\
   $(BijectHash_with_checks_OBJECTS:.lo=.gcda)		\
@@ -823,11 +937,20 @@ clean-noinstLTLIBRARIES:
 	  rm -f $${locs}; \
 	}
 
+libbijecthash-core-debug.la: $(libbijecthash_core_debug_la_OBJECTS) $(libbijecthash_core_debug_la_DEPENDENCIES) $(EXTRA_libbijecthash_core_debug_la_DEPENDENCIES) 
+	$(AM_V_CXXLD)$(libbijecthash_core_debug_la_LINK)  $(libbijecthash_core_debug_la_OBJECTS) $(libbijecthash_core_debug_la_LIBADD) $(LIBS)
+
 libbijecthash-core.la: $(libbijecthash_core_la_OBJECTS) $(libbijecthash_core_la_DEPENDENCIES) $(EXTRA_libbijecthash_core_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(libbijecthash_core_la_LINK)  $(libbijecthash_core_la_OBJECTS) $(libbijecthash_core_la_LIBADD) $(LIBS)
 
+libkmer-reader-debug.la: $(libkmer_reader_debug_la_OBJECTS) $(libkmer_reader_debug_la_DEPENDENCIES) $(EXTRA_libkmer_reader_debug_la_DEPENDENCIES) 
+	$(AM_V_CXXLD)$(libkmer_reader_debug_la_LINK)  $(libkmer_reader_debug_la_OBJECTS) $(libkmer_reader_debug_la_LIBADD) $(LIBS)
+
 libkmer-reader.la: $(libkmer_reader_la_OBJECTS) $(libkmer_reader_la_DEPENDENCIES) $(EXTRA_libkmer_reader_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(libkmer_reader_la_LINK) -rpath $(libdir) $(libkmer_reader_la_OBJECTS) $(libkmer_reader_la_LIBADD) $(LIBS)
+
+libkmer-transformers-debug.la: $(libkmer_transformers_debug_la_OBJECTS) $(libkmer_transformers_debug_la_DEPENDENCIES) $(EXTRA_libkmer_transformers_debug_la_DEPENDENCIES) 
+	$(AM_V_CXXLD)$(libkmer_transformers_debug_la_LINK)  $(libkmer_transformers_debug_la_OBJECTS) $(libkmer_transformers_debug_la_LIBADD) $(LIBS)
 
 libkmer-transformers.la: $(libkmer_transformers_la_OBJECTS) $(libkmer_transformers_la_DEPENDENCIES) $(EXTRA_libkmer_transformers_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(libkmer_transformers_la_LINK) -rpath $(libdir) $(libkmer_transformers_la_OBJECTS) $(libkmer_transformers_la_LIBADD) $(LIBS)
@@ -853,6 +976,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BijectHash_with_cache_stats-biject_hash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BijectHash_with_cache_stats-cache_statistics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BijectHash_with_checks-biject_hash.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bh_kmer_collector.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bh_kmer_index.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bh_kmer_processor.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/biject_hash.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwt_transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/canonical_transformer.Plo@am__quote@ # am--include-marker
@@ -863,8 +989,29 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inthash.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inthash_transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kmer_collector.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kmer_index.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kmer_processor.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lcp_stats.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbijecthash_core_debug_la-lcp_stats.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbijecthash_core_debug_la-program_options.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libbijecthash_core_debug_la-settings.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_reader_debug_la-file_reader.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locker.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lyndon_transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minimizer_transformer.Plo@am__quote@ # am--include-marker
@@ -921,6 +1068,153 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+libbijecthash_core_debug_la-bh_kmer_collector.lo: bh_kmer_collector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libbijecthash_core_debug_la-bh_kmer_collector.lo -MD -MP -MF $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Tpo -c -o libbijecthash_core_debug_la-bh_kmer_collector.lo `test -f 'bh_kmer_collector.cpp' || echo '$(srcdir)/'`bh_kmer_collector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Tpo $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bh_kmer_collector.cpp' object='libbijecthash_core_debug_la-bh_kmer_collector.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libbijecthash_core_debug_la-bh_kmer_collector.lo `test -f 'bh_kmer_collector.cpp' || echo '$(srcdir)/'`bh_kmer_collector.cpp
+
+libbijecthash_core_debug_la-bh_kmer_index.lo: bh_kmer_index.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libbijecthash_core_debug_la-bh_kmer_index.lo -MD -MP -MF $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Tpo -c -o libbijecthash_core_debug_la-bh_kmer_index.lo `test -f 'bh_kmer_index.cpp' || echo '$(srcdir)/'`bh_kmer_index.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Tpo $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bh_kmer_index.cpp' object='libbijecthash_core_debug_la-bh_kmer_index.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libbijecthash_core_debug_la-bh_kmer_index.lo `test -f 'bh_kmer_index.cpp' || echo '$(srcdir)/'`bh_kmer_index.cpp
+
+libbijecthash_core_debug_la-bh_kmer_processor.lo: bh_kmer_processor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libbijecthash_core_debug_la-bh_kmer_processor.lo -MD -MP -MF $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Tpo -c -o libbijecthash_core_debug_la-bh_kmer_processor.lo `test -f 'bh_kmer_processor.cpp' || echo '$(srcdir)/'`bh_kmer_processor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Tpo $(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bh_kmer_processor.cpp' object='libbijecthash_core_debug_la-bh_kmer_processor.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libbijecthash_core_debug_la-bh_kmer_processor.lo `test -f 'bh_kmer_processor.cpp' || echo '$(srcdir)/'`bh_kmer_processor.cpp
+
+libbijecthash_core_debug_la-lcp_stats.lo: lcp_stats.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libbijecthash_core_debug_la-lcp_stats.lo -MD -MP -MF $(DEPDIR)/libbijecthash_core_debug_la-lcp_stats.Tpo -c -o libbijecthash_core_debug_la-lcp_stats.lo `test -f 'lcp_stats.cpp' || echo '$(srcdir)/'`lcp_stats.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbijecthash_core_debug_la-lcp_stats.Tpo $(DEPDIR)/libbijecthash_core_debug_la-lcp_stats.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='lcp_stats.cpp' object='libbijecthash_core_debug_la-lcp_stats.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libbijecthash_core_debug_la-lcp_stats.lo `test -f 'lcp_stats.cpp' || echo '$(srcdir)/'`lcp_stats.cpp
+
+libbijecthash_core_debug_la-program_options.lo: program_options.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libbijecthash_core_debug_la-program_options.lo -MD -MP -MF $(DEPDIR)/libbijecthash_core_debug_la-program_options.Tpo -c -o libbijecthash_core_debug_la-program_options.lo `test -f 'program_options.cpp' || echo '$(srcdir)/'`program_options.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbijecthash_core_debug_la-program_options.Tpo $(DEPDIR)/libbijecthash_core_debug_la-program_options.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='program_options.cpp' object='libbijecthash_core_debug_la-program_options.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libbijecthash_core_debug_la-program_options.lo `test -f 'program_options.cpp' || echo '$(srcdir)/'`program_options.cpp
+
+libbijecthash_core_debug_la-settings.lo: settings.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libbijecthash_core_debug_la-settings.lo -MD -MP -MF $(DEPDIR)/libbijecthash_core_debug_la-settings.Tpo -c -o libbijecthash_core_debug_la-settings.lo `test -f 'settings.cpp' || echo '$(srcdir)/'`settings.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libbijecthash_core_debug_la-settings.Tpo $(DEPDIR)/libbijecthash_core_debug_la-settings.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='settings.cpp' object='libbijecthash_core_debug_la-settings.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libbijecthash_core_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libbijecthash_core_debug_la-settings.lo `test -f 'settings.cpp' || echo '$(srcdir)/'`settings.cpp
+
+libkmer_reader_debug_la-file_reader.lo: file_reader.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_reader_debug_la-file_reader.lo -MD -MP -MF $(DEPDIR)/libkmer_reader_debug_la-file_reader.Tpo -c -o libkmer_reader_debug_la-file_reader.lo `test -f 'file_reader.cpp' || echo '$(srcdir)/'`file_reader.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_reader_debug_la-file_reader.Tpo $(DEPDIR)/libkmer_reader_debug_la-file_reader.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='file_reader.cpp' object='libkmer_reader_debug_la-file_reader.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_reader_debug_la-file_reader.lo `test -f 'file_reader.cpp' || echo '$(srcdir)/'`file_reader.cpp
+
+libkmer_reader_debug_la-kmer_collector.lo: kmer_collector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_reader_debug_la-kmer_collector.lo -MD -MP -MF $(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Tpo -c -o libkmer_reader_debug_la-kmer_collector.lo `test -f 'kmer_collector.cpp' || echo '$(srcdir)/'`kmer_collector.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Tpo $(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='kmer_collector.cpp' object='libkmer_reader_debug_la-kmer_collector.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_reader_debug_la-kmer_collector.lo `test -f 'kmer_collector.cpp' || echo '$(srcdir)/'`kmer_collector.cpp
+
+libkmer_reader_debug_la-kmer_processor.lo: kmer_processor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_reader_debug_la-kmer_processor.lo -MD -MP -MF $(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Tpo -c -o libkmer_reader_debug_la-kmer_processor.lo `test -f 'kmer_processor.cpp' || echo '$(srcdir)/'`kmer_processor.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Tpo $(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='kmer_processor.cpp' object='libkmer_reader_debug_la-kmer_processor.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_reader_debug_la-kmer_processor.lo `test -f 'kmer_processor.cpp' || echo '$(srcdir)/'`kmer_processor.cpp
+
+libkmer_reader_debug_la-locker.lo: locker.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_reader_debug_la-locker.lo -MD -MP -MF $(DEPDIR)/libkmer_reader_debug_la-locker.Tpo -c -o libkmer_reader_debug_la-locker.lo `test -f 'locker.cpp' || echo '$(srcdir)/'`locker.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_reader_debug_la-locker.Tpo $(DEPDIR)/libkmer_reader_debug_la-locker.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='locker.cpp' object='libkmer_reader_debug_la-locker.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_reader_debug_la-locker.lo `test -f 'locker.cpp' || echo '$(srcdir)/'`locker.cpp
+
+libkmer_transformers_debug_la-bwt_transformer.lo: bwt_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-bwt_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Tpo -c -o libkmer_transformers_debug_la-bwt_transformer.lo `test -f 'bwt_transformer.cpp' || echo '$(srcdir)/'`bwt_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bwt_transformer.cpp' object='libkmer_transformers_debug_la-bwt_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-bwt_transformer.lo `test -f 'bwt_transformer.cpp' || echo '$(srcdir)/'`bwt_transformer.cpp
+
+libkmer_transformers_debug_la-canonical_transformer.lo: canonical_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-canonical_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Tpo -c -o libkmer_transformers_debug_la-canonical_transformer.lo `test -f 'canonical_transformer.cpp' || echo '$(srcdir)/'`canonical_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='canonical_transformer.cpp' object='libkmer_transformers_debug_la-canonical_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-canonical_transformer.lo `test -f 'canonical_transformer.cpp' || echo '$(srcdir)/'`canonical_transformer.cpp
+
+libkmer_transformers_debug_la-composition_transformer.lo: composition_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-composition_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Tpo -c -o libkmer_transformers_debug_la-composition_transformer.lo `test -f 'composition_transformer.cpp' || echo '$(srcdir)/'`composition_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='composition_transformer.cpp' object='libkmer_transformers_debug_la-composition_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-composition_transformer.lo `test -f 'composition_transformer.cpp' || echo '$(srcdir)/'`composition_transformer.cpp
+
+libkmer_transformers_debug_la-gab_transformer.lo: gab_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-gab_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Tpo -c -o libkmer_transformers_debug_la-gab_transformer.lo `test -f 'gab_transformer.cpp' || echo '$(srcdir)/'`gab_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='gab_transformer.cpp' object='libkmer_transformers_debug_la-gab_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-gab_transformer.lo `test -f 'gab_transformer.cpp' || echo '$(srcdir)/'`gab_transformer.cpp
+
+libkmer_transformers_debug_la-identity_transformer.lo: identity_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-identity_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Tpo -c -o libkmer_transformers_debug_la-identity_transformer.lo `test -f 'identity_transformer.cpp' || echo '$(srcdir)/'`identity_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='identity_transformer.cpp' object='libkmer_transformers_debug_la-identity_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-identity_transformer.lo `test -f 'identity_transformer.cpp' || echo '$(srcdir)/'`identity_transformer.cpp
+
+libkmer_transformers_debug_la-inthash_transformer.lo: inthash_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-inthash_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Tpo -c -o libkmer_transformers_debug_la-inthash_transformer.lo `test -f 'inthash_transformer.cpp' || echo '$(srcdir)/'`inthash_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='inthash_transformer.cpp' object='libkmer_transformers_debug_la-inthash_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-inthash_transformer.lo `test -f 'inthash_transformer.cpp' || echo '$(srcdir)/'`inthash_transformer.cpp
+
+libkmer_transformers_debug_la-lyndon_transformer.lo: lyndon_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-lyndon_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Tpo -c -o libkmer_transformers_debug_la-lyndon_transformer.lo `test -f 'lyndon_transformer.cpp' || echo '$(srcdir)/'`lyndon_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='lyndon_transformer.cpp' object='libkmer_transformers_debug_la-lyndon_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-lyndon_transformer.lo `test -f 'lyndon_transformer.cpp' || echo '$(srcdir)/'`lyndon_transformer.cpp
+
+libkmer_transformers_debug_la-minimizer_transformer.lo: minimizer_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-minimizer_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Tpo -c -o libkmer_transformers_debug_la-minimizer_transformer.lo `test -f 'minimizer_transformer.cpp' || echo '$(srcdir)/'`minimizer_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='minimizer_transformer.cpp' object='libkmer_transformers_debug_la-minimizer_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-minimizer_transformer.lo `test -f 'minimizer_transformer.cpp' || echo '$(srcdir)/'`minimizer_transformer.cpp
+
+libkmer_transformers_debug_la-permutation_bit_transformer.lo: permutation_bit_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-permutation_bit_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Tpo -c -o libkmer_transformers_debug_la-permutation_bit_transformer.lo `test -f 'permutation_bit_transformer.cpp' || echo '$(srcdir)/'`permutation_bit_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='permutation_bit_transformer.cpp' object='libkmer_transformers_debug_la-permutation_bit_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-permutation_bit_transformer.lo `test -f 'permutation_bit_transformer.cpp' || echo '$(srcdir)/'`permutation_bit_transformer.cpp
+
+libkmer_transformers_debug_la-permutation_transformer.lo: permutation_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-permutation_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Tpo -c -o libkmer_transformers_debug_la-permutation_transformer.lo `test -f 'permutation_transformer.cpp' || echo '$(srcdir)/'`permutation_transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='permutation_transformer.cpp' object='libkmer_transformers_debug_la-permutation_transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-permutation_transformer.lo `test -f 'permutation_transformer.cpp' || echo '$(srcdir)/'`permutation_transformer.cpp
+
+libkmer_transformers_debug_la-transformer.lo: transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-transformer.Tpo -c -o libkmer_transformers_debug_la-transformer.lo `test -f 'transformer.cpp' || echo '$(srcdir)/'`transformer.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='transformer.cpp' object='libkmer_transformers_debug_la-transformer.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-transformer.lo `test -f 'transformer.cpp' || echo '$(srcdir)/'`transformer.cpp
 
 BijectHash_with_cache_stats-biject_hash.o: biject_hash.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(BijectHash_with_cache_stats_CXXFLAGS) $(CXXFLAGS) -MT BijectHash_with_cache_stats-biject_hash.o -MD -MP -MF $(DEPDIR)/BijectHash_with_cache_stats-biject_hash.Tpo -c -o BijectHash_with_cache_stats-biject_hash.o `test -f 'biject_hash.cpp' || echo '$(srcdir)/'`biject_hash.cpp
@@ -1193,6 +1487,9 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-biject_hash.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-cache_statistics.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_checks-biject_hash.Po
+	-rm -f ./$(DEPDIR)/bh_kmer_collector.Plo
+	-rm -f ./$(DEPDIR)/bh_kmer_index.Plo
+	-rm -f ./$(DEPDIR)/bh_kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/biject_hash.Po
 	-rm -f ./$(DEPDIR)/bwt_transformer.Plo
 	-rm -f ./$(DEPDIR)/canonical_transformer.Plo
@@ -1203,8 +1500,29 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/inthash.Plo
 	-rm -f ./$(DEPDIR)/inthash_transformer.Plo
 	-rm -f ./$(DEPDIR)/kmer_collector.Plo
-	-rm -f ./$(DEPDIR)/kmer_index.Plo
 	-rm -f ./$(DEPDIR)/kmer_processor.Plo
+	-rm -f ./$(DEPDIR)/lcp_stats.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-lcp_stats.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-program_options.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-settings.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-file_reader.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo
 	-rm -f ./$(DEPDIR)/locker.Plo
 	-rm -f ./$(DEPDIR)/lyndon_transformer.Plo
 	-rm -f ./$(DEPDIR)/minimizer_transformer.Plo
@@ -1265,6 +1583,9 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-biject_hash.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-cache_statistics.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_checks-biject_hash.Po
+	-rm -f ./$(DEPDIR)/bh_kmer_collector.Plo
+	-rm -f ./$(DEPDIR)/bh_kmer_index.Plo
+	-rm -f ./$(DEPDIR)/bh_kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/biject_hash.Po
 	-rm -f ./$(DEPDIR)/bwt_transformer.Plo
 	-rm -f ./$(DEPDIR)/canonical_transformer.Plo
@@ -1275,8 +1596,29 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/inthash.Plo
 	-rm -f ./$(DEPDIR)/inthash_transformer.Plo
 	-rm -f ./$(DEPDIR)/kmer_collector.Plo
-	-rm -f ./$(DEPDIR)/kmer_index.Plo
 	-rm -f ./$(DEPDIR)/kmer_processor.Plo
+	-rm -f ./$(DEPDIR)/lcp_stats.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-lcp_stats.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-program_options.Plo
+	-rm -f ./$(DEPDIR)/libbijecthash_core_debug_la-settings.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-file_reader.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo
+	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo
+	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo
 	-rm -f ./$(DEPDIR)/locker.Plo
 	-rm -f ./$(DEPDIR)/lyndon_transformer.Plo
 	-rm -f ./$(DEPDIR)/minimizer_transformer.Plo
@@ -1337,6 +1679,60 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
 
 .PRECIOUS: Makefile
 
+
+# Regenerate kmer-transformers library header file.
+# This is mostly intended to help this library maintainer(s) and you
+# should not have to run this target.
+#
+# There is no direct target for $(libkmer_transformers_main_header) since it should
+# not be considered as a built file but as a source file (that must
+# reside in the source tree)
+update-libkmer-transformers-main-header: $(libkmer_transformers_main_header)
+	@$(AM_V_P) || echo "  HEADER   " $(libkmer_transformers_main_header)
+	$(AM_V_at)($(SED) -n '/^\/\*\+$$/{p;:a;n;/^\*\+\/$$/{p;q};p;ba}' $(CONFIG_HEADER) \
+	&& echo \
+	&& echo "#ifndef __KMER_TRANSFORMERS_HPP__" \
+	&& echo "#define __KMER_TRANSFORMER_HPPS__" \
+	&& echo \
+	&& echo "/**" \
+	&& echo " * \file" \
+	&& echo " *" \
+	&& echo " * Including this file is enough to use the full kmer-transformers library API." \
+	&& echo " */" \
+	&& echo \
+	&& for header in $(libkmer_transformers_headers); do \
+	  echo "#include <$(LIBNAME)/$${header}>" ; \
+	done \
+	&& echo \
+	&& echo "#endif" \
+	) > $(libkmer_transformers_main_header)
+
+# Regenerate kmer-reader library header file.
+# This is mostly intended to help this library maintainer(s) and you
+# should not have to run this target.
+#
+# There is no direct target for $(libkmer_reader_main_header) since it should
+# not be considered as a built file but as a source file (that must
+# reside in the source tree)
+update-libkmer-reader-main-header: $(libkmer_reader_main_header)
+	@$(AM_V_P) || echo "  HEADER   " $(libkmer_reader_main_header)
+	$(AM_V_at)($(SED) -n '/^\/\*\+$$/{p;:a;n;/^\*\+\/$$/{p;q};p;ba}' $(CONFIG_HEADER) \
+	&& echo \
+	&& echo "#ifndef __KMER_READER_HPP__" \
+	&& echo "#define __KMER_READER_HPP__" \
+	&& echo \
+	&& echo "/**" \
+	&& echo " * \file" \
+	&& echo " *" \
+	&& echo " * Including this file is enough to use the full kmer-reader library API." \
+	&& echo " */" \
+	&& echo \
+	&& for header in $(libkmer_reader_headers); do \
+	  echo "#include <$(LIBNAME)/$${header}>" ; \
+	done \
+	&& echo \
+	&& echo "#endif" \
+	) > $(libkmer_reader_main_header)
 
 ##########################
 # install/uninstall hook #

@@ -48,7 +48,7 @@
 
 namespace bijecthash {
 
-  template <typename T>
+  template <typename Reader, typename Writer, typename T>
   void queueWatcher(const CircularQueue<T> &queue);
 
 #include <queue_watcher.tpp>

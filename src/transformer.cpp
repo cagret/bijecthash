@@ -96,6 +96,9 @@ Transformer::Transformer(const size_t kmer_length, const size_t prefix_length, c
   suffix_length(kmer_length - prefix_length),
   description(description)
 {
+  DEBUG_MSG("Transformer " << description << " for " << kmer_length << "-mers"
+            << " with prefix length " << prefix_length
+            << " and suffix length " << suffix_length);
   assert(kmer_length > 0);
   assert(prefix_length > 0);
   assert(kmer_length > prefix_length);

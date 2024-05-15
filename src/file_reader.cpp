@@ -67,6 +67,7 @@ bool FileReader::open(const string &filename) {
       _line = 1;
       char c = _is.peek();
       switch (c) {
+      case ';':
       case '>': _format = FASTA; break;
       case '@': _format = FASTQ; break;
       default: close();
@@ -112,10 +113,10 @@ bool FileReader::_nextKmerFromFasta() {
     char c = _is.get();
     bool warn = verbose;
     DEBUG_MSG("Processing char '" << c << "'");
-    ++_column;
+    _column += _is.good();
     if (_current_sequence_description.empty()) {
       // Expects a new sequence description header
-      assert(c == '>');
+      assert((c == '>') || (c == ';'));
       assert(_column == 1);
       getline(_is, _current_sequence_description);
       _kmer_id_offset = _current_kmer_id;
@@ -129,7 +130,7 @@ bool FileReader::_nextKmerFromFasta() {
       case '\n':
         ++_line;
         _column = 0;
-        if (_is.peek() == '>') {
+        if ((_is.peek() == '>') || (_is.peek() == ';')) {
           _current_sequence_description.clear();
         }
         /* FALLTHROUGH */
@@ -147,6 +148,8 @@ bool FileReader::_nextKmerFromFasta() {
       case 'G':
       case 't':
       case 'T':
+      case 'u':
+      case 'U':
         _current_kmer += toupper(c);
         ++k;
         if (++_current_sequence_length >= _k) {
@@ -190,6 +193,12 @@ bool FileReader::_nextKmerFromFasta() {
         if (++_current_sequence_length >= _k) {
           ++_current_kmer_id;
         }
+        break;
+      case ';':
+        // Comment until the end of line
+        _is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        ++_line;
+        _column = 0;
         break;
       default:
         if (verbose) {
@@ -252,9 +261,9 @@ bool FileReader::_nextKmerFromFastq() {
 
     char c = _is.get();
     bool warn = verbose;
-    DEBUG_MSG("Processing char '" << c << "'");
-    ++_column;
 
+    DEBUG_MSG("Processing char '" << c << "'");
+    _column += _is.good();
     switch (state) {
 
     case 0: {
@@ -298,6 +307,8 @@ bool FileReader::_nextKmerFromFastq() {
       case 'G':
       case 't':
       case 'T':
+      case 'u':
+      case 'U':
         _current_kmer += toupper(c);
         ++k;
         if (++_current_sequence_length >= _k) {
@@ -375,6 +386,8 @@ bool FileReader::_nextKmerFromFastq() {
              << endl;
         io_mutex.unlock();
       }
+      ++_line;
+      _column = 0;
       state = 3;
       break;
     }

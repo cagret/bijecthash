@@ -41,57 +41,20 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_PROCESSOR_HPP__
-#define __KMER_PROCESSOR_HPP__
+#ifndef __KMER_READER_HPP__
+#define __KMER_READER_HPP__
 
-#include <string>
+/**
+ * \file
+ *
+ * Including this file is enough to use the full kmer-reader library API.
+ */
 
-#include <threaded_processor_helper.hpp>
-
-
-namespace bijecthash {
-
-  /**
-   * A k-mer processor helper that load k-mers from a circular queue.
-   *
-   * This helper class allows to run the k-mer processor in a dedicated
-   * thread.
-   */
-  class KmerProcessor: public ThreadedProcessorHelper<KmerProcessor, std::string> {
-
-  private:
-
-    /**
-     * Load the k-mers from the queue and process them.
-     *
-     * This method will exit only when there is no more running k-mer
-     * collector (see KmerCollector class) AND if the queue is empty. If
-     * one of these two condition is not met, it waits.
-     */
-    void _run() override final;
-
-    /**
-     * Perform some processing on the given k-mer after having been
-     * dequeued.
-     *
-     * By default, this does nothing but any derived class should
-     * override this method.
-     *
-     * \param kmer The k-mer to process after having been dequeued.
-     */
-    virtual void _process(std::string &kmer);
-
-  public:
-
-    /**
-     * Builds a k-mer processor.
-     *
-     * \param queue The queue storing the k-mers to process.
-     */
-    KmerProcessor(CircularQueue<std::string> &queue);
-
-  };
-
-}
+#include <BijectHash/circular_queue.hpp>
+#include <BijectHash/file_reader.hpp>
+#include <BijectHash/kmer_collector.hpp>
+#include <BijectHash/kmer_index.hpp>
+#include <BijectHash/kmer_processor.hpp>
+#include <BijectHash/locker.hpp>
 
 #endif

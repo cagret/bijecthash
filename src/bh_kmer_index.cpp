@@ -41,7 +41,7 @@
 *                                                                             *
 ******************************************************************************/
 
-#include "kmer_index.hpp"
+#include "bh_kmer_index.hpp"
 
 #include "common.hpp"
 
@@ -52,11 +52,11 @@ using namespace std;
 
 BEGIN_BIJECTHASH_NAMESPACE
 
-/////////////////////////
-// KmerIndex::Subindex //
-/////////////////////////
+///////////////////////////
+// BhKmerIndex::Subindex //
+///////////////////////////
 
-KmerIndex::Subindex &KmerIndex::Subindex::operator=(const KmerIndex::Subindex &subindex) {
+BhKmerIndex::Subindex &BhKmerIndex::Subindex::operator=(const BhKmerIndex::Subindex &subindex) {
   if (this != &subindex) {
     _rw_lock.requestWriteAccess();
     base_t::operator=(subindex);
@@ -65,57 +65,65 @@ KmerIndex::Subindex &KmerIndex::Subindex::operator=(const KmerIndex::Subindex &s
   return *this;
 }
 
-size_t KmerIndex::Subindex::size() const {
+size_t BhKmerIndex::Subindex::size() const {
   _rw_lock.requestReadAccess();
   size_t s = base_t::size();
   _rw_lock.releaseReadAccess();
   return s;
 }
 
-bool KmerIndex::Subindex::insert(const value_type& value) {
-  DEBUG_MSG("(" << value << "):" << this << "." << endl
-            << MSG_DBG_HEADER <<  "The subindex size was " << base_t::size());
+bool BhKmerIndex::Subindex::insert(const value_type& value) {
+  DEBUG_MSG(" suffix value is " << value << " for subindex at " << this << "." << '\n'
+            << MSG_DBG_HEADER <<  "The subindex size was " /*<< base_t::size()*/);
   _rw_lock.requestWriteAccess();
   pair<base_t::iterator, bool> res = set<uint64_t>::insert(value);
-  DEBUG_MSG("(" << value << "):" << this << "." << endl
+  DEBUG_MSG("(" << value << "):" << this << "." << '\n'
             <<  MSG_DBG_HEADER << "Now, subindex size is " << base_t::size());
   _rw_lock.releaseWriteAccess();
   return res.second;
 }
 
 
-///////////////
-// KmerIndex //
-///////////////
+/////////////////
+// BhKmerIndex //
+/////////////////
 
-KmerIndex::KmerIndex(const Settings &s):
+BhKmerIndex::BhKmerIndex(const Settings &s):
   _rw_lock(),
   _subindexes(1ul << (2 * s.prefix_length)),
   _size(0), _transformer(s.transformer()),
   settings(s)
 {
+  DEBUG_MSG("Creation of " << _subindexes.size() << " subindexes "
+            << "for each possible prefix of length " << s.prefix_length
+            << " of this new index (" << this << ")");
   if (!_transformer) {
-    cerr << "Error: Unable to find valid transformer for settings:" << endl
+    cerr << "Error: Unable to find valid transformer for settings:" << '\n'
          << s
          << endl;;
     exit(1);
   }
+  DEBUG_MSG("Transformer is " << _transformer->description << "_{" << _transformer->kmer_length << " = " << _transformer->prefix_length << " + " << _transformer->suffix_length << "}");
 }
 
-KmerIndex::KmerIndex(const KmerIndex &index):
+BhKmerIndex::BhKmerIndex(const BhKmerIndex &index):
   _rw_lock(),
   _subindexes(index.size()),
   _size(index._size.load()),
   _transformer(index._transformer),
   settings(index.settings)
 {
+  DEBUG_MSG("Copying existing index having " << _size
+            << " elements in this new index (" << this << ")");
   index._rw_lock.requestReadAccess();
   _subindexes = index._subindexes;
   index._rw_lock.releaseReadAccess();
 }
 
-KmerIndex &KmerIndex::operator=(const KmerIndex &index) {
+BhKmerIndex &BhKmerIndex::operator=(const BhKmerIndex &index) {
   if (this != &index) {
+    DEBUG_MSG("Assigning k-mers from " << &index
+              << " to this current index (" << this << ")");
     index._rw_lock.requestReadAccess();
     _rw_lock.requestWriteAccess();
     _subindexes = index._subindexes;
@@ -127,14 +135,14 @@ KmerIndex &KmerIndex::operator=(const KmerIndex &index) {
   return *this;
 }
 
-bool KmerIndex::insert(const string &kmer) {
+bool BhKmerIndex::insert(const string &kmer) {
   Transformer::EncodedKmer encoded = (*_transformer)(kmer);
 #if defined(DEBUG) || not(defined(NDEBUG))
   string decoded = (*_transformer)(encoded);
-#endif
-  DEBUG_MSG("original kmer: '" << kmer << "'" << endl
+  DEBUG_MSG("original kmer: '" << kmer << "'" << '\n'
             << MSG_DBG_HEADER << "decoded kmer:  '" << decoded << "'");
   assert(decoded == kmer);
+#endif
   bool res = _subindexes[encoded.prefix].insert(encoded.suffix);
   if (res) {
     ++_size;
@@ -152,7 +160,7 @@ static string fmt(string w, size_t i, size_t max) {
   return s + " " + w;
 }
 
-map<string, double> KmerIndex::statistics() const {
+map<string, double> BhKmerIndex::statistics() const {
 
   map<string, double> stats;
 
@@ -208,7 +216,7 @@ map<string, double> KmerIndex::statistics() const {
 
 }
 
-void KmerIndex::toStream(ostream &os) const {
+void BhKmerIndex::toStream(ostream &os) const {
   _rw_lock.requestReadAccess();
   size_t n = size();
   size_t nb = _subindexes.size();

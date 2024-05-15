@@ -46,7 +46,7 @@
 # Global configuration #
 ########################
 
-AM_CXXFLAGS = -I@top_builddir@
+AM_CXXFLAGS = -I$(top_builddir) -I$(top_srcdir)/src
 
 AM_LDFLAGS = -avoid-version -shared -rpath $(libdir)
 
@@ -56,6 +56,40 @@ check_SCRIPTS =
 TESTS =
 XFAIL_TESTS =
 EXTRA_DIST = $(check_SCRIPTS)
+
+
+####################################
+# kmer-reader library test program #
+####################################
+
+check_PROGRAMS += test_kmer_reader
+TESTS += test_kmer_reader
+
+test_kmer_reader_SOURCES = test_kmer_reader.cpp
+test_kmer_reader_LDADD = $(top_builddir)/src/libkmer-reader-debug.la
+
+
+###############################
+# LcpStats class test program #
+###############################
+
+check_PROGRAMS += test_lcp_stats
+TESTS += test_lcp_stats
+
+test_lcp_stats_SOURCES = test_lcp_stats.cpp
+test_lcp_stats_LDADD = \
+  $(top_builddir)/src/libbijecthash-core-debug.la \
+  $(top_builddir)/src/libkmer-reader-debug.la
+
+
+#############################
+# test program dependencies #
+#############################
+
+force_create:
+
+$(top_builddir)/src/lib%-debug.la: force_create
+	$(MAKE) $(AM_MAKEFLAGS) $(@F) -C $(@D)
 
 
 ####################

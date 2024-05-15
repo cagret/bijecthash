@@ -41,54 +41,58 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_PROCESSOR_HPP__
-#define __KMER_PROCESSOR_HPP__
+#ifndef __LCP_STATS_HPP__
+#define __LCP_STATS_HPP__
 
-#include <string>
-
-#include <threaded_processor_helper.hpp>
-
+#include <transformer.hpp>
 
 namespace bijecthash {
 
   /**
-   * A k-mer processor helper that load k-mers from a circular queue.
-   *
-   * This helper class allows to run the k-mer processor in a dedicated
-   * thread.
+   * Structure to handle Longuest Common prefixes statistics.
    */
-  class KmerProcessor: public ThreadedProcessorHelper<KmerProcessor, std::string> {
-
-  private:
+  struct LcpStats {
+    /**
+     * The total number of k-mers used to compute the statistics.
+     */
+    size_t nb_kmers;
 
     /**
-     * Load the k-mers from the queue and process them.
-     *
-     * This method will exit only when there is no more running k-mer
-     * collector (see KmerCollector class) AND if the queue is empty. If
-     * one of these two condition is not met, it waits.
+     * The average length of the longuest common prefix between two
+     * consecutive transformed k-mers (and overlapping k-mers in the
+     * data).
      */
-    void _run() override final;
+    double average;
 
     /**
-     * Perform some processing on the given k-mer after having been
-     * dequeued.
-     *
-     * By default, this does nothing but any derived class should
-     * override this method.
-     *
-     * \param kmer The k-mer to process after having been dequeued.
+     * The observed variance of the length the longuest common prefix
+     * between two consecutive transformed k-mers (and overlapping
+     * k-mers in the data).
      */
-    virtual void _process(std::string &kmer);
-
-  public:
+    double variance;
 
     /**
-     * Builds a k-mer processor.
-     *
-     * \param queue The queue storing the k-mers to process.
+     * Builds a default LCP statistics structure where all values are
+     * set to 0.
      */
-    KmerProcessor(CircularQueue<std::string> &queue);
+    inline LcpStats(): nb_kmers(0), average(0), variance(0) {
+    }
+
+    size_t LCP(const Transformer::EncodedKmer &e1, const Transformer::EncodedKmer &e2, size_t k, size_t k1);
+
+    inline void start() {
+      nb_kmers = 0;
+      average = 0;
+      variance = 0;
+    }
+
+    inline void stop() {
+      if (nb_kmers) {
+        average /= (double) nb_kmers;
+        variance /= (double) nb_kmers;
+        variance -= average * average;
+      }
+    }
 
   };
 

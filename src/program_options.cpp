@@ -91,26 +91,26 @@ struct sameMethod {
 };
 
 void ProgramOptions::usage() const {
-  cerr << endl
-       << "Usage: " << _program_name << " [options] [-[-]] <filename> [<filename> ...]" << endl
-       << "Where available options are:" << endl
-       << " -h | --help" << "\t\t\t" << "Show this message then exit." << endl
-       << " - | --" << "\t\t\t" << "Can be use to process file whose name starts by a dash." << endl
-       << " -q | --quiet" << "\t\t\t" << "Don't print warnings and informations about ignored k-mers." << endl
-       << " -V | --verbose" << "\t\t\t" << "Print warnings and informations about ignored k-mers." << endl
-       << " -k | --length <value>" << "\t\t" << "Set the k-mer length (default: " << default_settings.length << ")." << endl
-       << " -p | --prefix-length <value>" << "\t" << "Set the prefix length of k-mers (default: " << default_settings.prefix_length << ")." << endl
-       << " -n | --nb-bins <value>" << "\t" << "Number of bins for the computed statistics (default: " << default_settings.nb_bins << ")." << endl
-       << " -s | --queue-size <value>" << "\t" << "Size of the circular queue (rounded to the ceiling power of two) used to share k-mers between collectors and processors (default: " << default_settings.queue_size << " -k-mers)." << endl
-       << " -t | --tag <string>" << "\t" << "The experiment tag (default is the coma separated list of input files)." << endl
-       << " -m | --method <method>" << "\t\t" << "The k-mer transformation method to use (default: " << default_settings.getMethod() << ")." << endl
-       << endl
-       << "Available methods are:" << endl;
+  cerr << '\n'
+       << "Usage: " << _program_name << " [options] [-[-]] <filename> [<filename> ...]\n"
+       << "Where available options are:\n"
+       << " -h | --help" << "\t\t\t" << "Show this message then exit.\n"
+       << " - | --" << "\t\t\t" << "Can be use to process file whose name starts by a dash.\n"
+       << " -q | --quiet" << "\t\t\t" << "Don't print warnings and informations about ignored k-mers.\n"
+       << " -V | --verbose" << "\t\t\t" << "Print warnings and informations about ignored k-mers.\n"
+       << " -k | --length <value>" << "\t\t" << "Set the k-mer length (default: " << default_settings.length << ").\n"
+       << " -p | --prefix-length <value>" << "\t" << "Set the prefix length of k-mers (default: " << default_settings.prefix_length << ").\n"
+       << " -n | --nb-bins <value>" << "\t" << "Number of bins for the computed statistics (default: " << default_settings.nb_bins << ").\n"
+       << " -s | --queue-size <value>" << "\t" << "Size of the circular queue (rounded to the ceiling power of two) used to share k-mers between collectors and processors (default: " << default_settings.queue_size << " -k-mers).\n"
+       << " -t | --tag <string>" << "\t" << "The experiment tag (default is the coma separated list of input files).\n"
+       << " -m | --method <method>" << "\t\t" << "The k-mer transformation method to use (default: " << default_settings.getMethod() << ").\n"
+       << '\n'
+       << "Available methods are:\n";
   for (auto m: available_methods) {
-    cerr << "  - " << m << endl;
+    cerr << "  - " << m << '\n';
   }
-  cerr << "Notice none of the method can handle k-mers having a suffix size (i.e. the length minus the prefix length) greater than 32." << endl
-       << "Default verbosity is set to '" << (default_settings.verbose ? "verbose" : "quiet") << "'." << endl
+  cerr << "Notice none of the method can handle k-mers having a suffix size (i.e. the length minus the prefix length) greater than 32.\n"
+       << "Default verbosity is set to '" << (default_settings.verbose ? "verbose" : "quiet") << "'.\n"
        << endl;
   exit(1);
 }
@@ -123,7 +123,7 @@ ProgramOptions::ProgramOptions(int argc, char** argv):
 
   bool options_accepted = true;
   string tag;
-  string method;
+  string method = _settings.getMethod();
   int i = 0;
   _filenames.reserve(argc - 1);
 
@@ -262,9 +262,7 @@ ProgramOptions::ProgramOptions(int argc, char** argv):
     usage();
   }
 
-  if (!method.empty()) {
-    _settings.setMethod(method);
-  }
+  _settings.setMethod(method);
 
   _filenames.shrink_to_fit();
   if (_filenames.empty()) {

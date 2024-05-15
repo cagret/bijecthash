@@ -152,7 +152,6 @@ void ReadWriteLock::releaseWriteAccess() {
             << _nb_pending_writers.load() << " pending writers"
             << ", " << _nb_pending_readers.load() << " pending readers"
             << " and " << _nb_readers.load() << " readers");
-  io_mutex.unlock();
 }
 
 END_BIJECTHASH_NAMESPACE

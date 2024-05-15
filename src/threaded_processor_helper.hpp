@@ -41,56 +41,149 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_PROCESSOR_HPP__
-#define __KMER_PROCESSOR_HPP__
+#ifndef __THREADED_PROCESSOR_HELPER_HPP__
+#define __THREADED_PROCESSOR_HELPER_HPP__
 
-#include <string>
+#include <atomic>
+#include <thread>
 
-#include <threaded_processor_helper.hpp>
-
+#include <circular_queue.hpp>
 
 namespace bijecthash {
 
   /**
-   * A k-mer processor helper that load k-mers from a circular queue.
+   * A thread helper that defines a processor which uses a circular
+   * queue to share data.
    *
-   * This helper class allows to run the k-mer processor in a dedicated
+   * This helper class allows to run the process in a dedicated
    * thread.
    */
-  class KmerProcessor: public ThreadedProcessorHelper<KmerProcessor, std::string> {
+  template <typename C, typename T>
+  class ThreadedProcessorHelper {
 
   private:
 
     /**
-     * Load the k-mers from the queue and process them.
-     *
-     * This method will exit only when there is no more running k-mer
-     * collector (see KmerCollector class) AND if the queue is empty. If
-     * one of these two condition is not met, it waits.
+     * The total number of created instances.
      */
-    void _run() override final;
+    static std::atomic_size_t _counter;
 
     /**
-     * Perform some processing on the given k-mer after having been
-     * dequeued.
-     *
-     * By default, this does nothing but any derived class should
-     * override this method.
-     *
-     * \param kmer The k-mer to process after having been dequeued.
+     * The total number of running instances (even if thread is not
+     * started).
      */
-    virtual void _process(std::string &kmer);
+    static std::atomic_size_t _running;
+
+    /**
+     * The thread running this data processor.
+     */
+    std::thread _thread;
+
+    /**
+     * This thread running state.
+     */
+    bool _is_running;
+
+    /**
+     * Load or Store some data from/into the queue.
+     *
+     * This method must be overriden by any derived class.
+     */
+    virtual void _run() = 0;
+
+  protected:
+
+    /**
+     * The circular queue used by this data processor.
+     */
+    CircularQueue<T> &_queue;
 
   public:
 
     /**
-     * Builds a k-mer processor.
-     *
-     * \param queue The queue storing the k-mers to process.
+     * This processor id (in the set of the
+     * ThreadedProcessorHelper<C,T>)
      */
-    KmerProcessor(CircularQueue<std::string> &queue);
+    const size_t id;
+
+    /**
+     * Builds a processor.
+     *
+     * \param queue The queue storing the data to exchange.
+     */
+    ThreadedProcessorHelper(CircularQueue<T> &queue): _is_running(false), _queue(queue), id(++_counter) {
+    }
+
+    ThreadedProcessorHelper(const ThreadedProcessorHelper<C,T> &t): _is_running(false), _queue(t._queue), id(++_counter) {
+    }
+
+    ~ThreadedProcessorHelper() {
+      if (_is_running) {
+        --_running;
+      }
+    }
+
+    ThreadedProcessorHelper<C, T> &operator=(const ThreadedProcessorHelper<C,T> &t) = delete;
+
+    /**
+     * Start the dedicated thread if not already running.
+     *
+     * \see The k-mer dequeuing and processing is performed by the
+     * private _run() method.
+     */
+    void run() {
+      if (!_is_running) {
+        _thread = std::thread(&ThreadedProcessorHelper<C,T>::_run, this);
+        ++_running;
+        _is_running = true;
+      }
+    }
+
+    /**
+     * This join the thread when it ends.
+     */
+    void join() {
+      _thread.join();
+      --_running;
+      _is_running = false;
+    }
+
+    /**
+     * Gets the running state
+     *
+     * \return Returns true if this is currently running in a dedicated thread.
+     */
+    bool isRunning() {
+      return _is_running;
+    }
+
+    /**
+     * Get the number of create instances.
+     *
+     * \return Return the number of created instances.
+     */
+    static size_t counter() {
+      return _counter;
+    }
+
+    /**
+     * Get the total number of running instances.
+     *
+     * \return Return the total number of running instances. An instance
+     * is considered as running from its creation and until it reaches
+     * the end of the _run() method.
+     */
+    static size_t running() {
+      return _running;
+    }
 
   };
+
+  template <typename C, typename T>
+  std::atomic_size_t ThreadedProcessorHelper<C, T>::_counter(0);
+
+  template <typename C, typename T>
+  std::atomic_size_t ThreadedProcessorHelper<C, T>::_running(0);
 
 }
 

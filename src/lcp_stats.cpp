@@ -41,110 +41,92 @@
 *                                                                             *
 ******************************************************************************/
 
-#include "permutation_transformer.hpp"
+#include "lcp_stats.hpp"
 
 #include "common.hpp"
 
-#include <algorithm>
 #ifdef DEBUG
-#  include <iomanip>
+#  include <bitset>
 #endif
-#include <random>
+#include <iostream>
 
 using namespace std;
 
 BEGIN_BIJECTHASH_NAMESPACE
 
-PermutationTransformer::PermutationTransformer(size_t kmer_length, size_t prefix_length, const vector<size_t> &permutation, const string &description):
-  Transformer(kmer_length, prefix_length, description),
-  _permutation(permutation.size() == kmer_length ? permutation : _generateRandomPermutation(kmer_length)),
-  _reverse_permutation(_computeReversePermutation(_permutation))
-{
-  if (description.empty()) {
-    string *desc_ptr = const_cast<string *>(&(this->description));
-    desc_ptr->clear();
-    *desc_ptr += "Permutation_nucl[";
-    for (size_t i = 0; i < kmer_length; ++i) {
-      if (i) *desc_ptr += ",";
-      *desc_ptr += to_string(_permutation[i]);
-    }
-    *desc_ptr += "]";
-  }
-  DEBUG_MSG("description: '" << description << "'" << '\n';
-            cerr << MSG_DBG_HEADER << "permutation:" << '\n';
-            cerr << "  ";
-            for (size_t i = 0; i < kmer_length; ++i) {
-              cerr << setw(4) << i;
-            }
-            cerr << '\n';
-            cerr << "  ";
-            for (size_t i = 0; i < kmer_length; ++i) {
-              cerr << setw(4) << _permutation[i];
-            }
-            cerr << '\n';
-            cerr << MSG_DBG_HEADER << "reverse permutation:" << '\n';
-            cerr << "  ";
-            for (size_t i = 0; i < kmer_length; ++i) {
-              cerr << setw(4) << i;
-            }
-            cerr << '\n';
-            cerr << "  ";
-            for (size_t i = 0; i < kmer_length; ++i) {
-              cerr << setw(4) << _reverse_permutation[i];
-            }
-            cerr);
-}
+#ifdef __builtin_clzll_available
+#  undef __builtin_clzll_available
+#endif
+#ifdef __has_builtin
+#  if __has_builtin(__builtin_clzll)
+#    define __builtin_clzll_available
+#  endif
+#endif
+
+#define BIT_MASK_POS(v, mask, offset)           \
+  DEBUG_MSG("v = " << bitset<64>(v));           \
+  DEBUG_MSG("m = " << bitset<64>(mask));        \
+  if (v & mask) {                               \
+    v &= mask;                                  \
+  } else {                                      \
+    p += offset;                                \
+  }                                             \
+  DEBUG_MSG("v = " << bitset<64>(v));           \
+  DEBUG_MSG("p = " << p)
 
 
-vector<size_t> PermutationTransformer::_generateRandomPermutation(size_t k) {
-  vector<size_t> p(k);
-  iota(p.begin(), p.end(), 0);
-  random_device rd;
-  mt19937 g(rd());
-  shuffle(p.begin(), p.end(), g);
+static int clz(uint64_t v) {
+#ifdef __builtin_clzll_available
+  return __builtin_clzll(v);
+#else
+  int p = 0;
+  BIT_MASK_POS(v, 0xFFFFFFFF00000000, 32);
+  BIT_MASK_POS(v, 0xFFFF0000FFFF0000, 16);
+  BIT_MASK_POS(v, 0xFF00FF00FF00FF00, 8);
+  BIT_MASK_POS(v, 0xF0F0F0F0F0F0F0F0, 4);
+  BIT_MASK_POS(v, 0xCCCCCCCCCCCCCCCC, 2);
+  BIT_MASK_POS(v, 0xAAAAAAAAAAAAAAAA, 1);
   return p;
+#endif
 }
 
-vector<size_t> PermutationTransformer::_computeReversePermutation(const vector<size_t> &p) {
-  size_t n = p.size();
-  vector<size_t> r(n);
-  for (size_t i = 0; i < n; i++) {
-    r[p[i]] = i;
+size_t LcpStats::LCP(const Transformer::EncodedKmer &e1, const Transformer::EncodedKmer &e2, size_t k, size_t k1) {
+  const size_t nb_bits = sizeof(uint64_t) << 3;
+  uint64_t v = (e1.prefix ^ e2.prefix);
+  DEBUG_MSG("e1.prefix = " << bitset<64>(e1.prefix) << '\n'
+            << MSG_DBG_HEADER << "e2.prefix = " << bitset<64>(e2.prefix) << '\n'
+            << MSG_DBG_HEADER << "e1 ^ e2   = " << bitset<64>(e1.prefix ^ e2.prefix) << '\n'
+            << MSG_DBG_HEADER << "v         = " << bitset<64>(v));
+  size_t res = 0;
+  if (v) {
+    int p = nb_bits - clz(v);
+    DEBUG_MSG("First leftmost bit set is at position " << p);
+    res = ((k1 << 1) - p) >> 1;
+  } else {
+    size_t k2 = k - k1;
+    uint64_t m = (((k2 << 1) < nb_bits) ? (1ull << (k2 << 1)) - 1 : uint64_t(-1));
+    v = (e1.suffix ^ e2.suffix) & m;
+    DEBUG_MSG("k = " << k << " = " << k1 << " + " << k2 << '\n'
+              << MSG_DBG_HEADER << "e1.suffix = " << bitset<64>(e1.suffix) << '\n'
+              << MSG_DBG_HEADER << "e2.suffix = " << bitset<64>(e2.suffix) << '\n'
+              << MSG_DBG_HEADER << "e1 ^ e2   = " << bitset<64>(e1.suffix ^ e2.suffix) << '\n'
+              << MSG_DBG_HEADER << "mask      = " << bitset<64>(m) << '\n'
+              << MSG_DBG_HEADER << "v         = " << bitset<64>(v));
+    if (v) {
+      int p = nb_bits - clz(v);
+      DEBUG_MSG("First leftmost bit set is at position " << p);
+      res = (((k2 << 1) - p) >> 1) + k1;
+    } else {
+      res = k;
+    }
   }
-  return r;
-}
+  DEBUG_MSG("res = " << res);
 
-string PermutationTransformer::_applyPermutation(const string &s, const vector<size_t> &p) {
-  string permuted(s.size(), 0);
-  for (size_t i = 0; i < s.size(); ++i) {
-    permuted[i] = s[p[i]];
-  }
-  return permuted;
-}
+  average += res;
+  variance += res * res;
+  ++nb_kmers;
 
-Transformer::EncodedKmer PermutationTransformer::operator()(const string &kmer) const {
-  EncodedKmer e;
-  string permuted_kmer = _applyPermutation(kmer, _permutation);
-  DEBUG_MSG("Permuted k-mer:   '" << permuted_kmer << "'" << '\n';
-            string unpermuted_kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
-            cerr << MSG_DBG_HEADER << "Unpermuted k-mer: '" << unpermuted_kmer << "'" << '\n';
-            if (unpermuted_kmer != kmer) {
-              cerr << "Error: the unpermuted k-mer"
-                   << " differs from the original k-mer"
-                   << endl;
-              exit(1);
-            }
-            cerr);
-  e.prefix = _encode(permuted_kmer.c_str(), prefix_length);
-  e.suffix = _encode(permuted_kmer.c_str() + prefix_length, suffix_length);
-  return e;
-}
-
-string PermutationTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  string permuted_kmer = _decode(e.prefix, prefix_length);
-  permuted_kmer += _decode(e.suffix, suffix_length);
-  string kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
-  return kmer;
+  return res;
 }
 
 END_BIJECTHASH_NAMESPACE
