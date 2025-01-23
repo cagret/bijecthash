@@ -242,7 +242,6 @@ dnl Force some extra flags if not already present
 AX_APPEND_COMPILE_FLAGS([-Wall -Wextra -pedantic -funroll-loops], [CXXFLAGS])
 
 dnl Using libtool
-AC_PROG_LIBTOOL
 LT_INIT
 LT_LANG([C++])
 LT_PATH_LD
@@ -494,7 +493,6 @@ dnl #                         Checking for header files                       #
 dnl ###########################################################################
 
 
-AC_HEADER_STDC
 AC_CHECK_HEADERS([\
     stdint.h \
     sys/ioctl.h \

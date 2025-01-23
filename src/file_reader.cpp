@@ -47,6 +47,7 @@
 #include "locker.hpp"
 
 #include <iostream>
+#include <limits>
 
 using namespace std;
 

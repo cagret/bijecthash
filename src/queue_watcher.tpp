@@ -49,107 +49,110 @@
 #include <iostream>
 #include <thread>
 
-template <typename Reader, typename Writer, typename T>
-void queueWatcher(const CircularQueue<T> &queue) {
+namespace bijecthash {
 
-  double mean = 0;
-  double var = 0;
-  double nb = 0;
-  auto delay = std::chrono::nanoseconds(100);
-  int disp = 1024 - 1;
-  size_t running_writers;
-  size_t s;
+  template <typename Reader, typename Writer, typename T>
+  void queueWatcher(const CircularQueue<T> &queue) {
 
-  do {
-    running_writers = ThreadedProcessorHelper<Writer, T>::running();
-  } while (!running_writers);
+    double mean = 0;
+    double var = 0;
+    double nb = 0;
+    auto delay = std::chrono::nanoseconds(100);
+    int disp = 1024 - 1;
+    size_t running_writers;
+    size_t s;
 
-  size_t running_readers = ThreadedProcessorHelper<Reader, T>::running();
-  while (running_writers > 0) {
-    s = queue.size();
-    mean += s;
-    var += s * s;
-    if (++disp & 1024) {
-      const int v = (s * 100.0 / queue.capacity);
-      assert(v >= 0);
-      assert(v <= 100.);
+    do {
+      running_writers = ThreadedProcessorHelper<Writer, T>::running();
+    } while (!running_writers);
+
+    size_t running_readers = ThreadedProcessorHelper<Reader, T>::running();
+    while (running_writers > 0) {
+      s = queue.size();
+      mean += s;
+      var += s * s;
+      if (++disp & 1024) {
+        const int v = (s * 100.0 / queue.capacity);
+        assert(v >= 0);
+        assert(v <= 100.);
+        io_mutex.lock();
+        std::cerr << "\033[squeue size: [" << std::string(v / 2, '=') << std::string(50-v/2, ' ') << "]"
+                  << " (" << v << "%)\033[K\033[u";
+        io_mutex.unlock();
+        disp = 0;
+      }
+      ++nb;
+#ifdef DEBUG
       io_mutex.lock();
-      std::cerr << "\033[squeue size: [" << std::string(v / 2, '=') << std::string(50-v/2, ' ') << "]"
-                << " (" << v << "%)\033[K\033[u";
+      std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+                << "[thread " << std::this_thread::get_id() << "]:"
+                << "Watcher: " << running_writers << " / " << ThreadedProcessorHelper<Writer, T>::counter() << " running writers"
+                << " and " << running_readers << " / " << ThreadedProcessorHelper<Reader, T>::counter() << " running readers"
+                << ", queue size: " << s << std::endl;
       io_mutex.unlock();
-      disp = 0;
+#endif
+      std::this_thread::yield();
+      std::this_thread::sleep_for(delay);
+      running_writers = ThreadedProcessorHelper<Writer, T>::running();
+      running_readers = ThreadedProcessorHelper<Reader, T>::running();
     }
-    ++nb;
-#ifdef DEBUG
-    io_mutex.lock();
-    std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-              << "[thread " << std::this_thread::get_id() << "]:"
-              << "Watcher: " << running_writers << " / " << ThreadedProcessorHelper<Writer, T>::counter() << " running writers"
-              << " and " << running_readers << " / " << ThreadedProcessorHelper<Reader, T>::counter() << " running readers"
-              << ", queue size: " << s << std::endl;
-    io_mutex.unlock();
-#endif
-    std::this_thread::yield();
-    std::this_thread::sleep_for(delay);
-    running_writers = ThreadedProcessorHelper<Writer, T>::running();
-    running_readers = ThreadedProcessorHelper<Reader, T>::running();
-  }
 
-  while (running_readers > 0) {
+    while (running_readers > 0) {
+      s = queue.size();
+      mean += s;
+      var += s * s;
+      ++nb;
+#ifdef DEBUG
+      io_mutex.lock();
+      std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+                << "[thread " << std::this_thread::get_id() << "]:"
+                << "Watcher: " << running_writers << " / " << ThreadedProcessorHelper<Writer, T>::counter() << " running writers"
+                << " and " << running_readers << " / " << ThreadedProcessorHelper<Reader, T>::counter() << " running readers"
+                << ", queue size: " << s << std::endl;
+      assert((ThreadedProcessorHelper<Writer, T>::running()) == 0);
+      io_mutex.unlock();
+#endif
+      std::this_thread::yield();
+      std::this_thread::sleep_for(delay);
+      running_readers = ThreadedProcessorHelper<Reader, T>::running();
+    }
+
     s = queue.size();
-    mean += s;
-    var += s * s;
-    ++nb;
+    if (nb != 0) {
+      mean /= nb;
+      var /= nb;
+      var -= mean * mean;
+    }
 #ifdef DEBUG
     io_mutex.lock();
     std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
               << "[thread " << std::this_thread::get_id() << "]:"
-              << "Watcher: " << running_writers << " / " << ThreadedProcessorHelper<Writer, T>::counter() << " running writers"
-              << " and " << running_readers << " / " << ThreadedProcessorHelper<Reader, T>::counter() << " running readers"
+              << "Watcher: " << ThreadedProcessorHelper<Writer, T>::running() << " / " << ThreadedProcessorHelper<Writer, T>::counter() << " running writers"
+              << " and " << ThreadedProcessorHelper<Reader, T>::running() << " / " << ThreadedProcessorHelper<Reader, T>::counter() << " running readers"
               << ", queue size: " << s << std::endl;
-    assert((ThreadedProcessorHelper<Writer, T>::running()) == 0);
     io_mutex.unlock();
 #endif
-    std::this_thread::yield();
-    std::this_thread::sleep_for(delay);
-    running_readers = ThreadedProcessorHelper<Reader, T>::running();
+    assert(s == 0);
+    assert((ThreadedProcessorHelper<Writer, T>::running()) == 0);
+    assert((ThreadedProcessorHelper<Reader, T>::running()) == 0);
+    io_mutex.lock();
+    std::cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+              << "[thread " << std::this_thread::get_id() << "]:"
+              << "Watcher:"
+              << "nb of samples: " << nb << '\n'
+              << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+              << "[thread " << std::this_thread::get_id() << "]:"
+              << "Watcher:"
+              << "queue size average: " << mean << '\n'
+              << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
+              << "[thread " << std::this_thread::get_id() << "]:"
+              << "Watcher:"
+              << "queue size variance: " << var << std::endl;
+    assert(nb != 0);
+    io_mutex.unlock();
   }
 
-  s = queue.size();
-  if (nb != 0) {
-    mean /= nb;
-    var /= nb;
-    var -= mean * mean;
-  }
-#ifdef DEBUG
-  io_mutex.lock();
-  std::cerr << "[DEBUG] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-            << "[thread " << std::this_thread::get_id() << "]:"
-            << "Watcher: " << ThreadedProcessorHelper<Writer, T>::running() << " / " << ThreadedProcessorHelper<Writer, T>::counter() << " running writers"
-            << " and " << ThreadedProcessorHelper<Reader, T>::running() << " / " << ThreadedProcessorHelper<Reader, T>::counter() << " running readers"
-            << ", queue size: " << s << std::endl;
-  io_mutex.unlock();
-#endif
-  assert(s == 0);
-  assert((ThreadedProcessorHelper<Writer, T>::running()) == 0);
-  assert((ThreadedProcessorHelper<Reader, T>::running()) == 0);
-  io_mutex.lock();
-  std::cerr << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-            << "[thread " << std::this_thread::get_id() << "]:"
-            << "Watcher:"
-            << "nb of samples: " << nb << '\n'
-            << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-            << "[thread " << std::this_thread::get_id() << "]:"
-            << "Watcher:"
-            << "queue size average: " << mean << '\n'
-            << "[INFO] " << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":"
-            << "[thread " << std::this_thread::get_id() << "]:"
-            << "Watcher:"
-            << "queue size variance: " << var << std::endl;
-  assert(nb != 0);
-  io_mutex.unlock();
 }
-
 // Local Variables:
 // mode:c++
 // End:
