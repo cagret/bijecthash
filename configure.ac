@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 
-dnl Copyright © 2024      -- LIRMM/CNRS/UM
+dnl Copyright © 2024-2025 -- LIRMM/CNRS/UM
 dnl                          (Laboratoire d'Informatique, de Robotique et de
 dnl                          Microélectronique de Montpellier /
 dnl                          Centre National de la Recherche Scientifique /
@@ -49,39 +49,24 @@ dnl ###########################################################################
 
 dnl ============================ Project Settings =============================
 
-m4_define([VERSION_MAJOR], [m4_esyscmd_s([./config/git-version-gen | sed 's,^[^0-9]*\([0-9]*\)\.\([0-9]*\)\.\(.*\)$,\1,'])])
-m4_define([VERSION_MINOR], [m4_esyscmd_s([./config/git-version-gen | sed 's,^[^0-9]*\([0-9]*\)\.\([0-9]*\)\.\(.*\)$,\2,'])])
-m4_define([VERSION_MICRO], [m4_esyscmd_s([./config/git-version-gen | sed 's,^[^0-9]*\([0-9]*\)\.\([0-9]*\)\.\(.*\)$,\3,'])])
+AX_GIT_VERSIONING_PROG_PATH([config])
+AX_GIT_VERSIONING([config])
 
 AC_INIT([BijectHash],
-        [VERSION_MAJOR.VERSION_MINOR.VERSION_MICRO],
+        [GV_MAJOR.GV_MINOR.GV_MICRO],
         [bijecthash@lirmm.fr],
         [bijecthash],
         [https://github.com/cagret/bijecthash/])
 
-PACKAGE_PRETTY_NAME="BijectHash."
-AC_SUBST([PACKAGE_PRETTY_NAME])
-AC_DEFINE_UNQUOTED([PACKAGE_PRETTY_NAME], ["${PACKAGE_PRETTY_NAME}"], [Define to this package "pretty" name.])
+AX_PACKAGE_INFOS(
+  [PRETTY_NAME:BijectHash.],
+  [SHORT_DESCRIPTION:BijectHash is a tool designed for generating permutations of k-mers from DNA sequences and encoding them into unique integers using bijective hash functions.],
+  [FULL_DESCRIPTION:TODO],
+  [AUTHORS:Clément AGRET <cagret@mailo.com> and Alban MANCHERON <alban.mancheron@lirmm.fr>],
+  [LICENSE:GNU GPL v3],
+  [COPYRIGHT_DATE:2024-2025])dnl
 
-PACKAGE_DESCRIPTION="BijectHash is a tool designed for generating permutations of k-mers from DNA sequences and encoding them into unique integers using bijective hash functions."
-AC_SUBST([PACKAGE_DESCRIPTION])
-AC_DEFINE_UNQUOTED([PACKAGE_DESCRIPTION], ["${PACKAGE_DESCRIPTION}"], [Define to this package description.])
-
-PACKAGE_AUTHORS="Clément AGRET <cagret@mailo.com> and Alban MANCHERON <alban.mancheron@lirmm.fr>"
-AC_SUBST([PACKAGE_AUTHORS])
-AC_DEFINE_UNQUOTED([PACKAGE_AUTHORS], ["${PACKAGE_AUTHORS}"], [Define to this package author(s).])
-
-PACKAGE_LICENCE="GNU GPL v3"
-AC_SUBST([PACKAGE_LICENCE])
-AC_DEFINE_UNQUOTED([PACKAGE_LICENCE], ["${PACKAGE_LICENCE}"], [Define to this package licence.])
-
-PACKAGE_COPYRIGHT_DATE="2024"
-AC_SUBST([PACKAGE_COPYRIGHT_DATE])
-AC_DEFINE_UNQUOTED([PACKAGE_COPYRIGHT_DATE], ["${PACKAGE_COPYRIGHT_DATE}"], [Define to this package copyright date.])
-
-PACKAGE_LOGO=""
-AC_SUBST([PACKAGE_LOGO])
-AC_DEFINE_UNQUOTED([PACKAGE_LOGO], ["${PACKAGE_LOGO}"], [Define to this package logo filename.])
+AC_REVISION([GV_REVISION])
 
 AC_DEFINE_UNQUOTED([BEGIN_BIJECTHASH_NAMESPACE], [namespace bijecthash {], [Starts the BijectHash namespace.])
 AC_DEFINE_UNQUOTED([END_BIJECTHASH_NAMESPACE], [}], [Ends the BijectHash namespace.])
@@ -89,7 +74,7 @@ AC_DEFINE_UNQUOTED([END_BIJECTHASH_NAMESPACE], [}], [Ends the BijectHash namespa
 AC_COPYRIGHT([
 ###############################################################################
 #                                                                             #
-#  Copyright © 2024      -- LIRMM/CNRS/UM                                     #
+#  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     #
 #                           (Laboratoire d'Informatique, de Robotique et de   #
 #                           Microélectronique de Montpellier /                #
 #                           Centre National de la Recherche Scientifique /    #
@@ -140,7 +125,7 @@ AC_CONFIG_HEADERS([config/config.h])
 AH_TOP([
 /******************************************************************************
 *                                                                             *
-*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     *
 *                           (Laboratoire d'Informatique, de Robotique et de   *
 *                           Microélectronique de Montpellier /                *
 *                           Centre National de la Recherche Scientifique /    *
@@ -188,10 +173,6 @@ AH_BOTTOM([
 #endif
 ])
 
-dnl Every other copy of the package version number gets its value from here
-AM_INIT_AUTOMAKE([foreign no-texinfo.tex])
-AM_SILENT_RULES([yes])
-
 AC_CONFIG_MACRO_DIR([config/m4])
 
 dnl ========================= End of Project Settings =========================
@@ -218,19 +199,10 @@ AC_PROG_EGREP
 AC_PROG_SED
 PKG_PROG_PKG_CONFIG([0.25])
 
-AC_REVISION([m4_esyscmd_s([./config/git-version-gen --timestamp --force-update configure.ac])])
-
-ARCH=$(uname -m | sed s/i.86/i386/ | sed s/x86_64/amd64/)
-AC_SUBST([ARCH])
-
-AC_PATH_PROG([CLOC], [cloc])
-AM_CONDITIONAL([CLOC], [test -n "${CLOC}"])
-AC_PATH_PROG([OHCOUNT], [ohcount])
-AM_CONDITIONAL([OHCOUNT], [test -n "${OHCOUNT}"])
-AC_PATH_PROG([DEB_BUILDER], [dpkg])
-
-ISODATE=$(date +%Y-%m-%d)
-AC_SUBST([ISODATE])
+AC_SUBST([DEBIAN_PACKAGE_DESCRIPTION], [" ${PACKAGE_FULL_DESCRIPTION//$'\n'/\\n }"])
+AX_DEBIAN_PACKAGE([packaging/control],
+                  [PRERM:packaging/prerm],
+                  [POSTINST:packaging/postinst])
 
 AC_LANG([C++])
 
@@ -254,21 +226,17 @@ AX_PTHREAD([AX_APPEND_COMPILE_FLAGS([${PTHREAD_CFLAGS}], [CXXFLAGS])
             CXX="${PTHREAD_CXX}"],
             [AC_MSG_ERROR([This program requires POSIX threads but your ${CXX} compiler seems not to support them.])])
 
+dnl Automake/Makefile settings
+AM_INIT_AUTOMAKE([foreign no-texinfo.tex])
+AM_SILENT_RULES([yes])
 
 dnl =========================== End of System check ===========================
 
 
-
-
 dnl ============================= Library Settings ============================
 
-m4_define([lib_version], [m4_esyscmd_s([cat ./config/version | grep "^[ ]*LIB_VERSION[ ]*:" | sed 's,^[^:]*:[ ]*\(.*\)$,\1,'])])
-
-LIB_VERSION=lib_version
-
-m4_define([lib_version_ext], [m4_esyscmd_s([cat ./config/version | grep "^[ ]*LIB_VERSION[ ]*:" | sed 's,^[^:]*:[ ]*\(.*\)$,\1,' | tr ':' '.'])])
-
-LIB_VERSION_EXT=lib_version_ext
+LIB_VERSION=GV_LIB_VERSION
+LIB_VERSION_EXT=GV_LIB_VERSION_EXT
 
 dnl LIB_VERSION is not the release number.
 dnl Please read libtool documentation about versionning
@@ -278,40 +246,22 @@ AC_SUBST([LIBNAME])
 AC_SUBST([VERSION])
 AC_SUBST([LIB_VERSION])
 AC_SUBST([LIB_VERSION_EXT])
-AC_DEFINE_UNQUOTED([LIB_VERSION],["${LIB_VERSION_EXT}"],[Libtool version string])
+AC_DEFINE_UNQUOTED([LIB_VERSION],["GV_LIB_VERSION_EXT"],[Libtool version string])
 
 dnl ========================= End of Library Settings =========================
 
 
+dnl ============================= Code Statistics =============================
 
+AX_CODE_STATISTICS()
 
-dnl ========================= Release enabled checking ========================
-
-MAKE_RELEASE=true
-
-AS_IF([test -z "${DEB_BUILDER}"],
-      [MAKE_RELEASE=false
-       AC_MSG_WARN([
-   The 'dpkg' program could not be found.
-   This isn't critical, but it means that you won't be able to build releases.
-])])
-
-AM_CONDITIONAL([MAKE_RELEASE], [${MAKE_RELEASE}])
-
-hacked_prefix="${HACKED_PREFIX:-${prefix}}"
-AS_IF([test "x${hacked_prefix}" = "xNONE"],
-      [hacked_prefix=\"${ac_default_prefix}\"])
-AC_SUBST([hacked_prefix])
-
-dnl ===================== End of Release enabled checking =====================
-
-
+dnl ========================= End of code statistics ==========================
 
 
 dnl ================================= Doxygen =================================
 
-AC_ARG_VAR([DX_DOXYGEN], [Documenation generator command (default: doxygen).])
-AC_PATH_PROG([DX_DOXYGEN], [${DX_DOXYGEN:-doxygen}])
+AC_ARG_VAR([DX_DOXYGEN],
+           [Documentation generator command (default: doxygen).])dnl
 
 DX_MIN_VERSION=1.9.6
 
@@ -330,14 +280,16 @@ DX_INIT_DOXYGEN([${PACKAGE_PRETTY_NAME}], [doxygen.cfg], [docs])
 AS_IF([test -z "${DX_DOXYGEN}"],
       [BUILD_DOC=false
        AC_MSG_WARN([
-   The 'doxygen' program cound not be found.
+   The 'doxygen' program could not be found or documentation generation has
+   been disable by providing the '--disable-doxygen-doc' option to the
+   configure script.
    This isn't critical, but it means that you won't be able to create the
-   documentation and thus to make releases.
+   documentation.
 ])],
       [AS_IF([test "${DX_FLAG_doc}" -ne 1],
              [BUILD_DOC=false
               AC_MSG_WARN([
-   The documentation generation is disabled, so is the ability to make releases.
+   The documentation generation is disabled.
 ])],
              [BUILD_DOC=true
               DX_DOXYGEN_VERSION=`${DX_DOXYGEN} --version | cut -d' ' -f1`
@@ -351,9 +303,10 @@ AS_IF([test -z "${DX_DOXYGEN}"],
 
 AM_CONDITIONAL([BUILD_DOC], [${BUILD_DOC}])
 dnl Whatever the value of BUILD_DOC, the doc subdirectory need to be
-dnl added to the configuraton files see
+dnl added to the configuration files see
 dnl https://www.gnu.org/software/automake/manual/html_node/Unconfigured-Subdirectories.html
-dnl for more details
+dnl for more details.
+dnl The `doc/doxygen.cfg` and `doc/Makefile` targets are added to the `AC_CONFIG_FILES()` macro arguments at the end of this file
 AM_CONDITIONAL([BUILD_DOC_MAN], [test ${DX_FLAG_man} = 1])
 
 dnl ============================= End of Doxygen ==============================
@@ -363,122 +316,75 @@ dnl ============================= End of Doxygen ==============================
 
 dnl ============================== Code Coverage ==============================
 
-dnl Add option --enable-code-coverage (default to --disable-code-coverage)
-AX_CODE_COVERAGE()
+dnl All formats of code coverage reports supported by the gcovr (until
+dnl version 7.2) are enabled by default.
+
+dnl Set the verbosity level of AX_GCOVR_CODE_COVERAGE() and associated
+dnl macros to INFO (default is WARN).
+GCOVR_AC_VERBOSITY(INFO)
+
+dnl Apply a regex replacement in `*.gcov` files to merge files having
+dnl different paths due to symlinks when built in some subdirectory.
+dnl This is ugly, but it does the job...
+GCOVR_GCOV_FILE_SED_COMMAND_ON_CUSTOM_BUILDDIR([s,0:Source:../\$(LIBNAME)/,0:Source:\$(top_srcdir)/../src/,])
+
+dnl Disable TEXT/XML/JSON/SONARQUBE/COVERALLS/CSV/LEGACY code coverage report
+dnl by default (by setting an empty target file). This will add
+dnl `--enable-code-coverage-*format*[=target]` options in your
+dnl configure script, for *format* in text, xml, sonarqube and
+dnl coveralls.
+
+dnl GCOVR_SUMMARY_TARGET()
+GCOVR_TEXT_TARGET()
+GCOVR_XML_TARGET()
+dnl GCOVR_HTML_TARGET()
+GCOVR_JSON_TARGET()
+GCOVR_SONARQUBE_TARGET()
+GCOVR_COVERALLS_TARGET()
+GCOVR_CSV_TARGET()
+dnl GCOVR_COBERTURA_TARGET()
+GCOVR_JACOCO_TARGET()
+GCOVR_CLOVER_TARGET()
+GCOVR_LEGACY_HTML_TARGET()
+
+dnl For the other *format*s the cnfigure script will be added the
+dnl `--disable-code-coverage-*format*` option.
+
+dnl Don't need to call the AX_CODE_COVERAGE() since it will be done by
+dnl the AX_GCOVR_CODE_COVERAGE() macro
+AX_GCOVR_CODE_COVERAGE()
+
+dnl The macro AX_GCOVR_CODE_COVERAGE() will add the
+dnl `--enable-code-coverage` and the `--with-gcov=GCOV` options (see
+dnl AX_CODE_COVERAGE() macro documentation) and the new
+dnl `--with-gcovr=GCOVR` option in configure script to provide a
+dnl custom GCOVR program. The GCOVR environment variable can also be
+dnl used to define the GCOVR program if not explicitly set.
+
+dnl Finally, append the computed compiler/linker flags to enable the
+dnl code coverage computation when code coverage is enabled.
 AX_APPEND_COMPILE_FLAGS([${CODE_COVERAGE_CFLAGS}], [CFLAGS])
 AX_APPEND_COMPILE_FLAGS([${CODE_COVERAGE_CPPFLAGS}], [CPPFLAGS])
 AX_APPEND_COMPILE_FLAGS([${CODE_COVERAGE_CXXFLAGS}], [CXXFLAGS])
 AX_APPEND_LINK_FLAGS([${CODE_COVERAGE_LIBS}], [LIBS])
-AS_IF([test ${MAKE_RELEASE} = "true" -a "x${enable_code_coverage}" = "xyes"],
-      [MAKE_RELEASE=false
-       AC_MSG_WARN([
-    The '--enable-code-coverage' option has been provided.
-    If you want to produce some release, re-run the configure script without
-    this option.
-])])
-
-AC_ARG_VAR([GCOVR],
-           [Wrapper around gcov program to generate simple reports (default: gcovr).
-            This option is used only in conjunction with '--enable-code-coverage' option.])
-
-AC_PATH_PROG([GCOVR], [${GCOVR:-gcovr}])
-
-GCOVR_ENABLED=false
-GCOVR_TXT_ENABLED=false        # Available from any version of gcovr
-GCOVR_XML_ENABLED=false        # Available from any version of gcovr
-GCOVR_HTML_ENABLED=false       # Available from gcovr v3.0 but is buggy until version 6.0
-GCOVR_JSON_ENABLED=false       # Available from gcovr v4.2
-GCOVR_SONARQUBE_ENABLED=false  # Available from gcovr v4.2
-GCOVR_COBERTURA_ENABLED=false  # Available from gcovr v4.2 (XML was already Cobertura format, v4.2 introduce explicit Cobertura format)
-GCOVR_COVERALLS_ENABLED=false  # Available from gcovr v5.0
-GCOVR_CSV_ENABLED=false        # Available from gcovr v5.0
-
-AS_IF([test "x${enable_code_coverage}" = "xyes"],
-      [AS_IF([test -z "${GCOVR}"],
-             [AC_MSG_WARN([
-    The 'gcovr' program could not be found.
-    This isn't critical, but it means that you won't be able to create all code
-    coverage reports.
-])],
-             [GCOVR_ENABLED=true
-              GCOVR_TXT_ENABLED=true
-              GCOVR_XML_ENABLED=true
-              GCOVR_VERSION=$(${GCOVR} --version | head -n 1 | cut -d' ' -f2)
-              AX_COMPARE_VERSION([${GCOVR_VERSION}], [ge], [4.2],
-                                 [GCOVR_JSON_ENABLED=true
-                                  GCOVR_SONARQUBE_ENABLED=true])
-              AX_COMPARE_VERSION([${GCOVR_VERSION}], [ge], [5.0],
-                                 [GCOVR_COVERALLS_ENABLED=true
-                                  GCOVR_CSV_ENABLED=true])
-              AX_COMPARE_VERSION([${GCOVR_VERSION}], [ge], [5.1],
-                                 [GCOVR_COBERTURA_ENABLED=true])
-              AX_COMPARE_VERSION([${GCOVR_VERSION}], [ge], [6.0],
-                                 [GCOVR_HTML_ENABLED=true],
-                                 [AC_MSG_WARN([
-    Your version of the 'gcovr' program (v. ${GCOVR_VERSION}) is not up-to-date
-    and the generation of the code coverage reports may fail or the result may
-    look bad.
-    This isn't critical, but it means that you won't be able to create proper
-    code coverage reports.
-])])])])
-
-AM_CONDITIONAL([GCOVR_ENABLED], [${GCOVR_ENABLED}])
-AM_CONDITIONAL([GCOVR_TXT_ENABLED], [${GCOVR_TXT_ENABLED}])
-AM_CONDITIONAL([GCOVR_XML_ENABLED], [${GCOVR_XML_ENABLED}])
-AM_CONDITIONAL([GCOVR_HTML_ENABLED], [${GCOVR_HTML_ENABLED}])
-AM_CONDITIONAL([GCOVR_JSON_ENABLED], [${GCOVR_JSON_ENABLED}])
-AM_CONDITIONAL([GCOVR_SONARQUBE_ENABLED], [${GCOVR_SONARQUBE_ENABLED}])
-AM_CONDITIONAL([GCOVR_COBERTURA_ENABLED], [${GCOVR_COBERTURA_ENABLED}])
-AM_CONDITIONAL([GCOVR_COVERALLS_ENABLED], [${GCOVR_COVERALLS_ENABLED}])
-AM_CONDITIONAL([GCOVR_CSV_ENABLED], [${GCOVR_CSV_ENABLED}])
 
 dnl ========================== End of Code Coverage ===========================
 
 
-
-
 dnl ================================== Debug ==================================
 
-dnl Add option --enable-debug (default to --disable-debug)
-AC_ARG_ENABLE([debug],
-              [AS_HELP_STRING([--enable-debug@<:@=ARG@:>@],
-                              [Without argument or passing argument 'yes', compiles without
-                               code optimization and with debug flag (and enables assertion too).
-                               Passing argument 'print' (or 'full') does the same thing than
-                               'yes' and enables printing debugging informations on output too.
-                               This option is implied by '--enable-code-coverage'])])
+AX_C_CXX_ENABLE_DEBUG_OPTION([Passing argument 'print' does the same thing than 'yes' and
+                              enables printing debugging informations on output too.
+                              This option is implied by '--enable-code-coverage'],
+                             [test "x${enable_code_coverage}" = "xyes"])
 
-dnl remove '-UNDEBUG' or '-DNDEBUG' option from CFLAGS, CPPFLAGS and CXXFLAGS (if any)
-CFLAGS=$(AS_ECHO(["${CFLAGS}"]) | sed 's,-@<:@DU@:>@NDEBUG\b,,g')
-CPPFLAGS=$(AS_ECHO(["${CPPFLAGS}"]) | sed 's,-@<:@DU@:>@NDEBUG\b,,g')
-CXXFLAGS=$(AS_ECHO(["${CXXFLAGS}"]) | sed 's,-@<:@DU@:>@NDEBUG\b,,g')
-
-dnl remove '-g' option from CFLAGS, CPPFLAGS and CXXFLAGS (if any)
-CFLAGS=$(AS_ECHO(["${CFLAGS}"]) | sed 's,-g\b,,g')
-CPPFLAGS=$(AS_ECHO(["${CPPFLAGS}"]) | sed 's,-g\b,,g')
-CXXFLAGS=$(AS_ECHO(["${CXXFLAGS}"]) | sed 's,-g\b,,g')
-
-dnl remove and '-O.' option from CFLAGS, CPPFLAGS and CXXFLAGS (if any)
-CFLAGS=$(AS_ECHO(["${CFLAGS}"]) | sed 's,-O@<:@^ @:>@*\b,,g')
-CPPFLAGS=$(AS_ECHO(["${CPPFLAGS}"]) | sed 's,-O@<:@^ @:>@*\b,,g')
-CXXFLAGS=$(AS_ECHO(["${CXXFLAGS}"]) | sed 's,-O@<:@^ @:>@*\b,,g')
-
-dnl remove spurious spaces from CFLAGS, CPPFLAGS and CXXFLAGS (if any)
-CFLAGS=$(AS_ECHO(["${CFLAGS}"]) | sed 's,\(^\|@<:@ @:>@\)@<:@ @:>@*,\1,g')
-CPPFLAGS=$(AS_ECHO(["${CPPFLAGS}"]) | sed 's,\(^\|@<:@ @:>@\)@<:@ @:>@*,\1,g')
-CXXFLAGS=$(AS_ECHO(["${CXXFLAGS}"]) | sed 's,\(^\|@<:@ @:>@\)@<:@ @:>@*,\1,g')
-
-AS_IF([test "x${enable_code_coverage}" = "xyes"],
-      [AS_IF([test -z "${enable_debug}" -o "x${enable_debug}" = "xno"],
-             [enable_debug="yes"])])
-
-AS_IF([test -n "${enable_debug}" -a "x${enable_debug}" != "xno"],
-      [AX_APPEND_COMPILE_FLAGS([-UNDEBUG], [CPPFLAGS])
-       AX_APPEND_COMPILE_FLAGS([-g -O0 -fno-inline], [CXXFLAGS])
-       AS_IF([test "x${enable_debug}" == "xprint" -o  "x${enable_debug}" == "xfull"],
-             [AC_DEFINE([DEBUG],[],[Output (lots of) debugging informations])])],
-      [AX_APPEND_COMPILE_FLAGS([-DNDEBUG], [CPPFLAGS])
-       AX_APPEND_COMPILE_FLAGS([-O3], [CXXFLAGS])])
+AS_CASE(["${enable_debug}"],
+        [""], [enable_debug=no],
+        [yes], [],
+        [no],  [],
+        [print], [],
+        [AC_MSG_WARN([Value '${enable_debug}' is not valid for the '--enable-debug' option. Assuming 'yes'])
+         enable_debug=yes])
 
 dnl ============================== End of Debug ===============================
 
@@ -492,6 +398,7 @@ dnl ###########################################################################
 dnl #                         Checking for header files                       #
 dnl ###########################################################################
 
+AC_CHECK_INCLUDES_DEFAULT
 
 AC_CHECK_HEADERS([\
     stdint.h \
@@ -524,11 +431,10 @@ dnl ###########################################################################
 
 AC_CONFIG_FILES([
   Makefile
+  coverage/Makefile
   doc/doxygen.cfg doc/mainpage.dox doc/Makefile
   extra/Makefile
-  packaging/control
   packaging/libkmer-reader.pc packaging/libkmer-transformers.pc
-  packaging/postinst packaging/prerm
   packaging/Makefile
   resources/Makefile
   src/Makefile

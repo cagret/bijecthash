@@ -1,7 +1,7 @@
 #!/bin/sh
 ###############################################################################
 #                                                                             #
-#  Copyright © 2024      -- LIRMM/CNRS/UM                                     #
+#  Copyright © 2016-2025 -- LIRMM/CNRS/UM                                     #
 #                           (Laboratoire d'Informatique, de Robotique et de   #
 #                           Microélectronique de Montpellier /                #
 #                           Centre National de la Recherche Scientifique /    #
@@ -13,11 +13,6 @@
 #                   Alban MANCHERON  <alban.mancheron@lirmm.fr>               #
 #                                                                             #
 #  -------------------------------------------------------------------------  #
-#                                                                             #
-#  Ce fichier fait partie de la librairie Sphinx++.                           #
-#                                                                             #
-#  La librairie  Sphinx++  permet de faciliter la gestion de plugins dans un  #
-#  programme écrit en C++.                                                    #
 #                                                                             #
 #  Ce logiciel est régi par la licence CeCILL-C soumise au droit français et  #
 #  respectant les principes  de diffusion des logiciels libres.  Vous pouvez  #
@@ -47,11 +42,6 @@
 #  termes.                                                                    #
 #                                                                             #
 #  -------------------------------------------------------------------------  #
-#                                                                             #
-#  This file is part of the Sphinx++ library.                                 #
-#                                                                             #
-#  The Sphinx++ library makes easy the handling of plugins in C++ writen      #
-#  programs.                                                                  #
 #                                                                             #
 #  This software is governed by the CeCILL-C license under French law and     #
 #  abiding by the rules of distribution of free software. You can use,        #
@@ -84,6 +74,8 @@
 set -eup
 
 PROG_NAME=$(basename $0)
+PROG_VERSION=1.0.0
+
 CURRENT_DIR=$(dirname $0)
 TOP_SRCDIR=$(dirname ${CURRENT_DIR})
 

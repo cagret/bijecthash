@@ -1,6 +1,6 @@
 ###############################################################################
 #                                                                             #
-#  Copyright © 2024      -- LIRMM/CNRS/UM                                     #
+#  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     #
 #                           (Laboratoire d'Informatique, de Robotique et de   #
 #                           Microélectronique de Montpellier /                #
 #                           Centre National de la Recherche Scientifique /    #
@@ -46,7 +46,10 @@
 # Global configuration #
 ########################
 
-AM_CXXFLAGS = -I$(top_builddir) -I$(top_srcdir)/src
+AM_CXXFLAGS = \
+  -I$(top_builddir) \
+  -I$(top_srcdir)/src \
+  -DRESOURCES_DIR='"@top_srcdir@/resources/"'
 
 AM_LDFLAGS = -avoid-version -shared -rpath $(libdir)
 
@@ -89,7 +92,16 @@ test_lcp_stats_LDADD = \
 force_create:
 
 $(top_builddir)/src/lib%-debug.la: force_create
-	$(MAKE) $(AM_MAKEFLAGS) $(@F) -C $(@D)
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) "$(@F)" -C "$(@D)"
+
+
+#################
+# Code Coverage #
+#################
+
+GCDA_FILES = $(patsubst %.cpp,%.gcda,$(filter %.cpp %.c,$(SOURCES)))
+GCNO_FILES = $(GCDA_FILES:.gcda=.gcno)
+GCOV_FILES = $(GCDA_FILES:.gcda=.gcov)
 
 
 ####################
@@ -97,6 +109,6 @@ $(top_builddir)/src/lib%-debug.la: force_create
 ####################
 
 MOSTLYCLEANFILES = *~
-CLEANFILES = *~
+CLEANFILES = *~ $(GCDA_FILES) $(GCNO_FILES) $(GCOV_FILES)
 DISTCLEANFILES = *~
 MAINTAINERCLEANFILES = *~

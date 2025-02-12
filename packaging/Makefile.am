@@ -1,6 +1,6 @@
 ###############################################################################
 #                                                                             #
-#  Copyright © 2024      -- LIRMM/CNRS/UM                                     #
+#  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     #
 #                           (Laboratoire d'Informatique, de Robotique et de   #
 #                           Microélectronique de Montpellier /                #
 #                           Centre National de la Recherche Scientifique /    #
@@ -42,6 +42,14 @@
 ###############################################################################
 
 
+########################
+# Global configuration #
+########################
+
+@DEBIAN_PACKAGE_RULES@
+
+clean-local: deb-clean
+
 ######################
 # pkgconfig handling #
 ######################
@@ -50,17 +58,17 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libkmer-reader-@VERSION@.pc libkmer-transformers-@VERSION@.pc
 
 lib%-@VERSION@.pc: lib%.pc
-	cp "$^" "$@"
+	$(AM_V_at)cp "$^" "$@"
 
 install-data-hook:
-	@for pc_file in $(pkgconfig_DATA); do \
-	  $(LN_S) -f $${pc_file/.pc/-@VERSION@.pc} $(DESTDIR)@libdir@/pkgconfig/$${pc_file}; \
+	$(AM_V_at)for pc_file in $(pkgconfig_DATA); do \
+	  $(LN_S) -f $${pc_file/.pc/-@VERSION@.pc} "$(DESTDIR)$(pkgconfigdir)/$${pc_file}"; \
 	done
 
 uninstall-hook:
-	@for pc_file in $(pkgconfig_DATA); do \
-	  test "`readlink $(DESTDIR)@libdir@/pkgconfig/$${pc_file}`" != "$${pc_file/.pc/-@VERSION@.pc}" \
-          || $(RM) $(DESTDIR)@libdir@/pkgconfig/$${pc_file}; \
+	$(AM_V_at)for pc_file in $(pkgconfig_DATA); do \
+	  test "`readlink "$(DESTDIR)$(pkgconfigdir)/$${pc_file}"`" != "$${pc_file/.pc/-@VERSION@.pc}" \
+          || $(RM) "$(DESTDIR)$(pkgconfigdir)/$${pc_file}"; \
 	done
 
 
@@ -68,7 +76,7 @@ uninstall-hook:
 # Cleaning targets #
 ####################
 
-MOSTLYCLEANFILES=*~
-CLEANFILES=*~
-DISTCLEANFILES=*~ control libkmer-reader-@VERSION@.pc libkmer-transformers-@VERSION@.pc
-MAINTAINERCLEANFILES=*~
+MOSTLYCLEANFILES = *~
+CLEANFILES = *~
+DISTCLEANFILES = *~ control libkmer-reader-@VERSION@.pc libkmer-transformers-@VERSION@.pc
+MAINTAINERCLEANFILES = *~

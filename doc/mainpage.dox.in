@@ -1,6 +1,6 @@
 /******************************************************************************
 *                                                                             *
-*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     *
 *                           (Laboratoire d'Informatique, de Robotique et de   *
 *                           Microélectronique de Montpellier /                *
 *                           Centre National de la Recherche Scientifique /    *
@@ -44,11 +44,17 @@
 /**
  * \mainpage
  *
- * @PACKAGE_DESCRIPTION@
+ * @PACKAGE_SHORT_DESCRIPTION@
+ *
+ * @PACKAGE_FULL_DESCRIPTION@
  *
  * \author @PACKAGE_AUTHORS@
  *
- * \version @PACKAGE_VERSION@
+ * \version Package Version: @PACKAGE_VERSION@
+ *
+ * \version Library Version: @LIB_VERSION_EXT@
+ * (The library version is different from the package version and follows
+ * [the GNU libtool's versioning system](https://www.gnu.org/software/libtool/manual/html_node/Libtool-versioning.html))
  *
  * \date @PACKAGE_COPYRIGHT_DATE@
  *

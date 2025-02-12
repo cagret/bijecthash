@@ -1,6 +1,6 @@
 ###############################################################################
 #                                                                             #
-#  Copyright © 2024      -- LIRMM/CNRS/UM                                     #
+#  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     #
 #                           (Laboratoire d'Informatique, de Robotique et de   #
 #                           Microélectronique de Montpellier /                #
 #                           Centre National de la Recherche Scientifique /    #
@@ -46,7 +46,7 @@
 # Global configuration #
 ########################
 
-EXTRA_DIST = plugin_compilation.dox
+EXTRA_DIST = plugin_compilation.dox UTF8-fix.sty
 
 @DX_RULES@
 
@@ -103,7 +103,7 @@ install-data-hook: $(EXTRA_DATA)
 	  fi; \
 	done | \
 	while read file; do \
-	  dest=$(DESTDIR)$(docdir)/$$(dirname "$${file#$(DX_DOCDIR)/}"); \
+	  dest="$(DESTDIR)$(docdir)/$$(dirname "$${file#$(DX_DOCDIR)/}")"; \
 	  echo " $(INSTALL_DATA) '$$file' '$$dest'"; \
 	  $(INSTALL_DATA) "$$file" "$$dest" || exit $$?; \
 	done
@@ -111,7 +111,7 @@ install-data-hook: $(EXTRA_DATA)
 uninstall-hook:
 	@$(NORMAL_UNINSTALL)
 	$(AM_V_at)list='$(EXTRA_DATA)'; test -n "$(docdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	files=`for p in $$list; do echo "$$p"; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(docdir)'; \
 	test -z "$$files" \
 	|| { test ! -d "$$dir" && test ! -f "$$dir" && test ! -r "$$dir"; } \
@@ -123,7 +123,7 @@ uninstall-hook:
 # Cleaning targets #
 ####################
 
-MOSTLYCLEANFILES=*~ $(DX_CLEANFILES)
-CLEANFILES=*~
-DISTCLEANFILES=*~
-MAINTAINERCLEANFILES=*~
+MOSTLYCLEANFILES = *~ $(DX_CLEANFILES)
+CLEANFILES = *~
+DISTCLEANFILES = *~
+MAINTAINERCLEANFILES = *~

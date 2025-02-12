@@ -1,6 +1,6 @@
 /******************************************************************************
 *                                                                             *
-*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     *
 *                           (Laboratoire d'Informatique, de Robotique et de   *
 *                           Microélectronique de Montpellier /                *
 *                           Centre National de la Recherche Scientifique /    *
@@ -48,6 +48,10 @@
 #include <iomanip>
 #include <iostream>
 #include <string>
+
+#ifndef RESOURCES_DIR
+#  define RESOURCES_DIR "../resources/"
+#endif
 
 #include "file_reader.hpp"
 
@@ -201,7 +205,7 @@ int main() {
   // Tests with example1.fa //
   ////////////////////////////
 
-  fname = "../resources/example1.fa";
+  fname = RESOURCES_DIR "example1.fa";
   cout << "*** File Reader with a valid FASTA file ('" << fname << "') ***" << endl << endl;
   reader.open(fname);
 
@@ -263,7 +267,7 @@ int main() {
   // Tests with example2.fa //
   ////////////////////////////
 
-  fname = "../resources/example2.fa";
+  fname = RESOURCES_DIR "example2.fa";
   cout << "*** File Reader with a valid FASTA file but strange content ('" << fname << "') ***" << endl << endl;
   reader.open(fname);
 
@@ -337,7 +341,7 @@ int main() {
   // Tests with example1.fq //
   ////////////////////////////
 
-  fname = "../resources/example1.fq";
+  fname = RESOURCES_DIR "example1.fq";
   cout << "*** File Reader with a valid FASTQ file ('" << fname << "') ***" << endl << endl;
   reader.open(fname);
 
@@ -437,7 +441,7 @@ int main() {
   // Tests with example2.fq //
   ////////////////////////////
 
-  fname = "../resources/example2.fq";
+  fname = RESOURCES_DIR "example2.fq";
   cout << "*** File Reader with a valid FASTQ file but strange content ('" << fname << "') ***" << endl << endl;
   reader.open(fname);
 

@@ -1,7 +1,77 @@
+2025-02-12  DoccY <alban.mancheron@lirmm.fr>
+
+	* Makefile.am, Makefile.in, aclocal.m4, aminclude_static.am,
+	config/compile, config/config.guess, config/config.h.in,
+	config/config.sub, config/depcomp, config/fix-timestamp.sh,
+	config/git-release, config/git-version-gen, config/install-sh,
+	config/ltmain.sh, config/m4/ax_c_cxx_enable_debug_option.m4,
+	config/m4/ax_check_gnu_make.m4, config/m4/ax_code_coverage.m4,
+	config/m4/ax_code_statistics.m4,
+	config/m4/ax_cxx_compile_stdcxx.m4, config/m4/ax_debian_package.m4,
+	config/m4/ax_define_macro_with_key_value_args.m4,
+	config/m4/ax_gcovr_code_coverage.m4,
+	config/m4/ax_git_versioning.m4, config/m4/ax_package_infos.m4,
+	config/m4/libtool.m4, config/m4/ltoptions.m4, config/m4/ltsugar.m4,
+	config/m4/ltversion.m4, config/m4/lt~obsolete.m4, config/missing,
+	config/test-driver, config/version.configure.ac, configure,
+	configure.ac, coverage/Makefile.am, coverage/Makefile.in,
+	doc/Makefile.am, doc/Makefile.in, doc/UTF8-fix.sty,
+	doc/doxygen.cfg.in, doc/mainpage.dox.in,
+	doc/plugin_compilation.dox, extra/Makefile.am, extra/Makefile.in,
+	extra/boiteMoustache.py, extra/decile.py, extra/run_methods.sh,
+	packaging/Makefile.am, packaging/Makefile.in, packaging/control.in,
+	packaging/libkmer-reader.pc.in,
+	packaging/libkmer-transformers.pc.in, packaging/postinst.in,
+	packaging/prerm.in, resources/Makefile.am, resources/Makefile.in,
+	resources/seq.py, src/Makefile.am, src/Makefile.in,
+	src/bh_kmer_collector.cpp, src/bh_kmer_collector.hpp,
+	src/bh_kmer_index.cpp, src/bh_kmer_index.hpp,
+	src/bh_kmer_processor.cpp, src/bh_kmer_processor.hpp,
+	src/biject_hash.cpp, src/bwt_transformer.cpp,
+	src/bwt_transformer.hpp, src/cache_statistics.cpp,
+	src/cache_statistics.hpp, src/canonical_transformer.cpp,
+	src/canonical_transformer.hpp, src/circular_queue.hpp,
+	src/common.hpp, src/composition_transformer.cpp,
+	src/composition_transformer.hpp, src/file_reader.cpp,
+	src/file_reader.hpp, src/gab_transformer.cpp,
+	src/gab_transformer.hpp, src/identity_transformer.cpp,
+	src/identity_transformer.hpp, src/inthash_transformer.cpp,
+	src/inthash_transformer.hpp, src/kmer_collector.cpp,
+	src/kmer_collector.hpp, src/kmer_processor.cpp,
+	src/kmer_processor.hpp, src/kmer_reader.hpp,
+	src/kmer_transformers.hpp, src/lcp_stats.cpp, src/lcp_stats.hpp,
+	src/locker.cpp, src/locker.hpp, src/lyndon_transformer.cpp,
+	src/lyndon_transformer.hpp, src/minimizer_transformer.cpp,
+	src/minimizer_transformer.hpp, src/permutation_bit_transformer.cpp,
+	src/permutation_bit_transformer.hpp,
+	src/permutation_transformer.cpp, src/permutation_transformer.hpp,
+	src/program_options.cpp, src/program_options.hpp,
+	src/queue_watcher.hpp, src/queue_watcher.tpp, src/settings.cpp,
+	src/settings.hpp, src/threaded_processor_helper.hpp,
+	src/threaded_reader_writer.hpp, src/transformer.cpp,
+	src/transformer.hpp, tests/Makefile.am, tests/Makefile.in,
+	tests/test_kmer_reader.cpp, tests/test_lcp_stats.cpp:
+	Update configuration tools to their latest version.
+	Use DevOps tools from https://gite.lirmm.fr/doccy-dev-tools/.
+	Update copyright notices.
+	Fix bugs on archive distribution and package release.
+	Fix bugs when built from a dediczted subdirectory.
+	
+	
+2025-01-23  DoccY <alban.mancheron@lirmm.fr>
+
+	* Makefile.in, aclocal.m4, aminclude_static.am, config/config.h.in,
+	config/version.configure.ac, configure, configure.ac,
+	doc/Makefile.in, extra/Makefile.in, packaging/Makefile.in,
+	resources/Makefile.in, src/Makefile.in, src/file_reader.cpp,
+	src/queue_watcher.hpp, src/queue_watcher.tpp, tests/Makefile.in:
+	Code refactoring and update to prepare use of transformers plugins.
+	
+	
 2024-05-15  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, Makefile.in, resources/example2.fa, src/Makefile.am,
-	src/Makefile.in, src/bh_kmer_collector.cpp,
+	* .gitignore, ChangeLog, Makefile.in, resources/example2.fa,
+	src/Makefile.am, src/Makefile.in, src/bh_kmer_collector.cpp,
 	src/bh_kmer_collector.hpp, src/{kmer_index.cpp =>
 	bh_kmer_index.cpp}, src/{kmer_index.hpp => bh_kmer_index.hpp},
 	src/bh_kmer_processor.cpp, src/bh_kmer_processor.hpp,

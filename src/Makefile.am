@@ -1,6 +1,6 @@
 ###############################################################################
 #                                                                             #
-#  Copyright © 2024      -- LIRMM/CNRS/UM                                     #
+#  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     #
 #                           (Laboratoire d'Informatique, de Robotique et de   #
 #                           Microélectronique de Montpellier /                #
 #                           Centre National de la Recherche Scientifique /    #
@@ -252,7 +252,7 @@ libbijecthash_core_debug_la_DEPENDENCIES = $(libbijecthash_core_la_DEPENDENCIES)
 
 bin_PROGRAMS += BijectHash
 
-BijectHash_SOURCES = biject_hash.cpp
+BijectHash_SOURCES = biject_hash.cpp threaded_reader_writer.hpp
 
 BijectHash_LDADD = libkmer-transformers.la libkmer-reader.la libbijecthash-core.la
 

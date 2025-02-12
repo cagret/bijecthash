@@ -3,7 +3,7 @@
 
 /******************************************************************************
 *                                                                             *
-*  Copyright © 2024      -- LIRMM/CNRS/UM                                     *
+*  Copyright © 2024-2025 -- LIRMM/CNRS/UM                                     *
 *                           (Laboratoire d'Informatique, de Robotique et de   *
 *                           Microélectronique de Montpellier /                *
 *                           Centre National de la Recherche Scientifique /    *
@@ -51,7 +51,7 @@
 /* Starts the BijectHash namespace. */
 #undef BEGIN_BIJECTHASH_NAMESPACE
 
-/* Output (lots of) debugging informations */
+/* Enables debug */
 #undef DEBUG
 
 /* Ends the BijectHash namespace. */
@@ -120,29 +120,29 @@
 /* Name of package */
 #undef PACKAGE
 
-/* Define to this package author(s). */
+/* Defined by 'package_infos' */
 #undef PACKAGE_AUTHORS
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
-/* Define to this package copyright date. */
+/* Defined by 'package_infos' */
 #undef PACKAGE_COPYRIGHT_DATE
 
-/* Define to this package description. */
-#undef PACKAGE_DESCRIPTION
+/* Defined by 'package_infos' */
+#undef PACKAGE_FULL_DESCRIPTION
 
-/* Define to this package licence. */
-#undef PACKAGE_LICENCE
-
-/* Define to this package logo filename. */
-#undef PACKAGE_LOGO
+/* Defined by 'package_infos' */
+#undef PACKAGE_LICENSE
 
 /* Define to the full name of this package. */
 #undef PACKAGE_NAME
 
-/* Define to this package "pretty" name. */
+/* Defined by 'package_infos' */
 #undef PACKAGE_PRETTY_NAME
+
+/* Defined by 'package_infos' */
+#undef PACKAGE_SHORT_DESCRIPTION
 
 /* Define to the full name and version of this package. */
 #undef PACKAGE_STRING

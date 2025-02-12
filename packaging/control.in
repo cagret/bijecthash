@@ -2,16 +2,16 @@ Package:	@PACKAGE@
 Version:	@PACKAGE_VERSION@
 Section:	libs
 Priority:	optional
-Architecture:	@ARCH@
+Architecture:	@DEBIAN_PACKAGE_ARCH@
 Essential:	no
 Depends:	libc6, libc6-dev, libstdc++6
 Recommends:	pkg-config, man-db, g++
 Suggests:	
 Conflicts:
-Installed-Size: @INSTALLED_SIZE@
+Installed-Size: 0
 Maintainer:	DoccY <@PACKAGE_BUGREPORT@>
 Provides:	@PACKAGE@
-Description:	Blabla
+Description:	@PACKAGE_SHORT_DESCRIPTION@
  .
- blabla
+@DEBIAN_PACKAGE_DESCRIPTION@
  .
