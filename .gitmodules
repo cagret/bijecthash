@@ -1,0 +1,3 @@
+[submodule "external/Sphinxpp-library"]
+	path = external/Sphinxpp-library
+	url = https://gite.lirmm.fr/doccy/Sphinxpp-library.git

@@ -992,7 +992,18 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = @top_srcdir@/tests/test_*
+EXCLUDE                = "@abs_top_srcdir@/external/" \
+                         "@top_srcdir@/external/" \
+                         "@abs_top_srcdir@/tests/" \
+                         "@top_srcdir@/tests/" \
+                         "@abs_top_srcdir@/@PACKAGE@-@VERSION@/" \
+                         "@top_srcdir@/@PACKAGE@-@VERSION@/" \
+                         "@abs_top_builddir@/external/" \
+                         "@top_builddir@/external/" \
+                         "@abs_top_builddir@/tests/" \
+                         "@top_builddir@/tests/" \
+                         "@abs_top_builddir@/@PACKAGE@-@VERSION@/" \
+                         "@top_builddir@/@PACKAGE@-@VERSION@/"
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

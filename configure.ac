@@ -394,6 +394,48 @@ dnl #                          Checking for libraries                         #
 dnl ###########################################################################
 
 
+dnl ================================ Sphinx++ =================================
+
+AX_EXTERNAL_INCLUDED_CXX_LIBRARY_DETECTION([sphinxpp],
+                                           [[external/Sphinxpp-library],
+                                            [-I\$(top_srcdir)/external/Sphinxpp-library/src],
+                                            [ ]],
+                                           [libsphinx++])
+
+dnl Don't use neither AX_APPEND_COMPILE_FLAGS() nor
+dnl AX_APPEND_LINK_FLAGS() since:
+dnl
+dnl   1. The AX_EXTERNAL_INCLUDED_CPP_HEADER_DETECTION(), the
+dnl      AX_EXTERNAL_INCLUDED_C_LIBRARY_DETECTION() and the
+dnl      AX_EXTERNAL_INCLUDED_CXX_LIBRARY_DETECTION() macros already
+dnl      check for validity when using already installed
+dnl      library/headers.
+dnl
+dnl   2. If using the included library/headers, the
+dnl      (pre)compiler/linker flags may not be correctly appended
+dnl      since the library/header is most probably not already
+dnl      available
+dnl
+dnl An acceptable option is to update the (pre)compiler/linker by
+dnl appending the computed flags if no more test involving compilation
+dnl is executed hereafter.
+dnl
+dnl A more secure (and recommended) strategy is to defer the
+dnl compiler/linker flag updates at the end of the configure script,
+dnl before generating the Makefiles using AC_CONFIG_COMMANDS_PRE()
+AC_CONFIG_COMMANDS_PRE([CXXFLAGS="${CXXFLAGS} ${sphinxpp_CXXFLAGS}"
+                        LDFLAGS="${LDFLAGS} ${sphinxpp_LDFLAGS}"])
+
+dnl Disable releases if using the included Sphinx++ library.
+AS_IF([test "x${with_included_sphinxpp}" = "xyes"],
+      [MAKE_RELEASE=false
+       AC_MSG_WARN([
+   You are using the included Sphinx++ library.
+   This is fine for us, but it means that you won't be able to build correct releases.
+])])
+
+dnl ============================= End of Sphinx++ =============================
+
 dnl ###########################################################################
 dnl #                         Checking for header files                       #
 dnl ###########################################################################

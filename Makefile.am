@@ -46,7 +46,13 @@
 # Global configuration #
 ########################
 
-SUBDIRS = resources src tests extra doc coverage packaging
+SUBDIRS = resources
+
+if INCLUDED_sphinxpp
+SUBDIRS += external/Sphinxpp-library
+endif
+
+SUBDIRS += src tests extra doc coverage packaging
 
 STATS_FILE = resources/$(PACKAGE_NAME)-$(PACKAGE_VERSION).stats
 

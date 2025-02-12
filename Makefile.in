@@ -138,6 +138,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 target_triplet = @target@
+@INCLUDED_sphinxpp_TRUE@am__append_1 = external/Sphinxpp-library
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/config/m4/ax_ac_append_to_file.m4 \
@@ -158,6 +159,9 @@ am__aclocal_m4_deps = $(top_srcdir)/config/m4/ax_ac_append_to_file.m4 \
 	$(top_srcdir)/config/m4/ax_cxx_compile_stdcxx.m4 \
 	$(top_srcdir)/config/m4/ax_debian_package.m4 \
 	$(top_srcdir)/config/m4/ax_define_macro_with_key_value_args.m4 \
+	$(top_srcdir)/config/m4/ax_external_included_cxx_library_detection.m4 \
+	$(top_srcdir)/config/m4/ax_external_included_generic_library_check.m4 \
+	$(top_srcdir)/config/m4/ax_external_included_library_declare_options.m4 \
 	$(top_srcdir)/config/m4/ax_file_escapes.m4 \
 	$(top_srcdir)/config/m4/ax_gcovr_code_coverage.m4 \
 	$(top_srcdir)/config/m4/ax_git_versioning.m4 \
@@ -262,7 +266,8 @@ am__define_uniq_tagged_files = \
   unique=`for i in $$list; do \
     if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
   done | $(am__uniquify_input)`
-DIST_SUBDIRS = $(SUBDIRS)
+DIST_SUBDIRS = resources external/Sphinxpp-library src tests extra doc \
+	coverage packaging
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/config/compile \
 	$(top_srcdir)/config/config.guess \
 	$(top_srcdir)/config/config.h.in \
@@ -499,7 +504,10 @@ psdir = @psdir@
 runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
+sphinxpp_CFLAGS = @sphinxpp_CFLAGS@
+sphinxpp_LIBS = @sphinxpp_LIBS@
 srcdir = @srcdir@
+subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target = @target@
 target_alias = @target_alias@
@@ -509,7 +517,8 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = resources src tests extra doc coverage packaging
+SUBDIRS = resources $(am__append_1) src tests extra doc coverage \
+	packaging
 STATS_FILE = resources/$(PACKAGE_NAME)-$(PACKAGE_VERSION).stats
 BUILT_SOURCES = $(STATS_FILE)
 dist_pkgdata_DATA = \
