@@ -1,6 +1,13 @@
 2025-02-19  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, ChangeLog, Makefile.in, TODO, aminclude_static.am,
+	* aminclude_static.am, config/version, config/version.configure.ac,
+	configure, coverage/Makefile.in:
+	New project release: v0.2.0
+	
+	
+2025-02-19  DoccY <alban.mancheron@lirmm.fr>
+
+	* .gitignore, Makefile.in, TODO, aminclude_static.am,
 	config/version.configure.ac, configure, configure.ac,
 	coverage/Makefile.in, doc/Makefile.in, doc/mainpage.dox.in,
 	doc/plugin_compilation.dox, external/Sphinxpp-library,
@@ -56,7 +63,7 @@
 	
 2025-02-12  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitmodules, ChangeLog, Makefile.am, Makefile.in, aclocal.m4,
+	* .gitmodules, Makefile.am, Makefile.in, aclocal.m4,
 	aminclude_static.am,
 	config/m4/ax_external_included_cxx_library_detection.m4,
 	config/m4/ax_external_included_generic_library_check.m4,
@@ -71,12 +78,11 @@
 	
 2025-02-12  DoccY <alban.mancheron@lirmm.fr>
 
-	* ChangeLog, Makefile.am, Makefile.in, aclocal.m4,
-	aminclude_static.am, config/compile, config/config.guess,
-	config/config.h.in, config/config.sub, config/depcomp,
-	config/fix-timestamp.sh, config/git-release,
-	config/git-version-gen, config/install-sh, config/ltmain.sh,
-	config/m4/ax_c_cxx_enable_debug_option.m4,
+	* Makefile.am, Makefile.in, aclocal.m4, aminclude_static.am,
+	config/compile, config/config.guess, config/config.h.in,
+	config/config.sub, config/depcomp, config/fix-timestamp.sh,
+	config/git-release, config/git-version-gen, config/install-sh,
+	config/ltmain.sh, config/m4/ax_c_cxx_enable_debug_option.m4,
 	config/m4/ax_check_gnu_make.m4, config/m4/ax_code_coverage.m4,
 	config/m4/ax_code_statistics.m4,
 	config/m4/ax_cxx_compile_stdcxx.m4, config/m4/ax_debian_package.m4,
@@ -143,8 +149,8 @@
 	
 2024-05-15  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, ChangeLog, Makefile.in, resources/example2.fa,
-	src/Makefile.am, src/Makefile.in, src/bh_kmer_collector.cpp,
+	* .gitignore, Makefile.in, resources/example2.fa, src/Makefile.am,
+	src/Makefile.in, src/bh_kmer_collector.cpp,
 	src/bh_kmer_collector.hpp, src/{kmer_index.cpp =>
 	bh_kmer_index.cpp}, src/{kmer_index.hpp => bh_kmer_index.hpp},
 	src/bh_kmer_processor.cpp, src/bh_kmer_processor.hpp,
@@ -170,7 +176,7 @@
 	
 2024-05-14  DoccY <alban.mancheron@lirmm.fr>
 
-	* ChangeLog, aminclude_static.am, config/version,
+	* aminclude_static.am, config/version,
 	config/version.config.git-release, config/version.configure.ac,
 	configure:
 	New project release: v0.1.0
@@ -178,9 +184,9 @@
 	
 2024-05-13  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, AUTHORS, LICENSE => COPYING, ChangeLog, INSTALL,
-	LICENSE.md, Makefile, Makefile.am, Makefile.in, NEWS, TODO,
-	aclocal.m4, aminclude_static.am, boiteMoustache.py, config/compile,
+	* .gitignore, AUTHORS, LICENSE => COPYING, INSTALL, LICENSE.md,
+	Makefile, Makefile.am, Makefile.in, NEWS, TODO, aclocal.m4,
+	aminclude_static.am, boiteMoustache.py, config/compile,
 	config/config.guess, config/config.h.in, config/config.sub,
 	config/depcomp, config/fix-timestamp.sh, config/git-release,
 	config/git-version-gen, config/install-sh, config/ltmain.sh,
@@ -332,7 +338,7 @@
 	
 2024-03-26  DoccY <alban.mancheron@lirmm.fr>
 
-	* ChangeLog, doc/Doxyfile, src/bwt_transformer.hpp,
+	* doc/Doxyfile, src/bwt_transformer.hpp,
 	src/inthash_transformer.cpp, src/minimizer_transformer.hpp,
 	src/permutation_bit_transformer.cpp,
 	src/permutation_bit_transformer.hpp, src/settings.hpp:
@@ -522,8 +528,8 @@
 	
 2024-03-18  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, ChangeLog, run_methods.sh, src/Makefile,
-	src/kmer_index.cpp, src/program_options.cpp, src/settings.cpp:
+	* .gitignore, run_methods.sh, src/Makefile, src/kmer_index.cpp,
+	src/program_options.cpp, src/settings.cpp:
 	Adding two version of BujectHash in the default compilation target:
 	- BijectHash_with_checks: Performs assertion checks and monitor the circular queue.
 	- BijectHash_full_debug: Print lots of debugging information (and performs more assertion checks).
@@ -603,7 +609,7 @@
 	
 2024-03-12  DoccY <alban.mancheron@lirmm.fr>
 
-	* ChangeLog, src/gab_transformer.cpp, src/gab_transformer.hpp,
+	* src/gab_transformer.cpp, src/gab_transformer.hpp,
 	src/kmer_index.hpp, src/main.cpp, src/program_options.cpp,
 	src/settings.cpp:
 	Update the Gab transformer in order to accept custom parameters for the multiplier and the mask.
@@ -612,7 +618,7 @@
 	
 2024-03-11  DoccY <alban.mancheron@lirmm.fr>
 
-	* ChangeLog, src/Makefile:
+	* src/Makefile:
 	Deactivate debug and circular queue watcher and remove assertion checking in the default makefile options.
 	
 	
@@ -681,7 +687,7 @@
 	
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
-	* ChangeLog, src/Makefile, src/circular_queue.hpp, src/main.cpp,
+	* src/Makefile, src/circular_queue.hpp, src/main.cpp,
 	src/permutation_transformer.cpp, src/transformer.cpp:
 	Using multiple producer-multiple consumer design pattern to read/transform the k-mers.
 	Code is currently not well structured but seems to work pretty well.
@@ -689,7 +695,7 @@
 	
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
-	* ChangeLog, src/benchmark.cpp, src/permutations.cpp:
+	* src/benchmark.cpp, src/permutations.cpp:
 	Remove trailing spaces.
 	
 	

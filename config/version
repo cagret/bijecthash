@@ -3,19 +3,19 @@
 # Date: Thu, 04 Apr 2024 18:16:17 +0200
 
 # Version of the project
-VERSION: v0.1.0
+VERSION: v0.2.0
 
 # Commit date of the project
-COMMIT_DATE: 2024-05-14 09:32:48 +0200
+COMMIT_DATE: 2025-02-19 16:38:28 +0100
 
 # Most recent interface number that the main library implements.
 LIB_CURRENT: 0
 
 # Implementation number of the current interface the main library implements.
-LIB_REVISION: 1
+LIB_REVISION: 2
 
 # Difference between the newest and oldest interfaces that the main library implements.
 LIB_AGE: 0
 
 # Main library version number according to the libtool policy.
-LIB_VERSION: 0:1:0
+LIB_VERSION: 0:2:0
