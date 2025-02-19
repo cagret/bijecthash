@@ -41,123 +41,77 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __PERMUTATION_BIT_TRANSFORMER_HPP__
-#define __PERMUTATION_BIT_TRANSFORMER_HPP__
+#ifndef __BH_EXCEPTION_HPP__
+#define __BH_EXCEPTION_HPP__
 
-#include <cstdint>
+#include <exception>
+#include <iostream>
 #include <string>
-#include <vector>
-
-#include <transformer.hpp>
+#include <sstream>
 
 namespace bijecthash {
 
   /**
-   * The permutation transformer encodes k-mer after applying some given
-   * permutation on the bits.
+   * Generic exception with an associated message that can be given
+   * extra informations as a string stream.
    */
-  class PermutationBitTransformer: public Transformer {
-
-  private:
-
-    /**
-     * This applies the given permutation to the bits of the given string.
-     *
-     * \param encoded_kmer The value to permute (interpreted as a bit sequence).
-     *
-     * \param permutation The permutation of the bits to apply.
-     *
-     * \return Returns the permuted value (interpreted as a bit sequence).
-     */
-    uint64_t _applyBitwisePermutation(uint64_t encoded_kmer, const std::vector<size_t> &permutation) const;
+  class Exception: public std::exception {
 
   protected:
 
     /**
-     * The permutation to apply to the bits of the k-mer.
+     * The exception message.
      */
-    const std::vector<size_t> _permutation;
-
-    /**
-     * The reverse permutation which allows to retrieve the original k-mer
-     * from the permuted one.
-     */
-    const std::vector<size_t> _reverse_permutation;
-
-
-    /**
-     * Precomputed binary mask for retrieving the whole k-mer.
-     */
-    const uint64_t _kmer_mask;
-
-    /**
-     * Precomputed shift offset for retrieving the prefix.
-     */
-    const uint64_t _prefix_shift;
-
-    /**
-     * Precomputed binary mask for retrieving the suffix.
-     */
-    const uint64_t _suffix_mask;
-
-    /**
-     * This method generates a random permutation of the range [0; k[.
-     *
-     * \param k The length of the range.
-     *
-     * \return Return a random permutation of the range [0; k[.
-     */
-    static std::vector<size_t> _generateRandomPermutation(size_t k);
-
-    /**
-     * This method computes the reverse permutation of the given one.
-     *
-     * \param p Some permutation of the range [0; |p|[
-     *
-     * \return Returns the reverse permutation of the given one.
-     */
-    static std::vector<size_t> _computeReversePermutation(const std::vector<size_t> &p);
+    std::string _msg;
 
   public:
 
     /**
-     * Builds a Transformer depending on the k-mer length and the prefix
-     * length.
+     * Create an exception with some initial message.
      *
-     * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
-     * value of \f$k\f$).
-     *
-     * \param prefix_length The length of the \f$k\f$-mer prefix.
-     *
-     * \param permutation The bit permutation to apply (default is to generate a random permutation).
-     *
-     * \param description If given, then the description string is used
-     * instead of the "Permutation[<details>]" auto-generated string.
+     * \param msg The initial message string.
      */
-    PermutationBitTransformer(size_t kmer_length, size_t prefix_length,
-                              const std::vector<size_t> &permutation = std::vector<size_t>(),
-                              const std::string &description = "");
-    /**
-     * Encode some given k-mer into a prefix/suffix code.
-     *
-     * Each derived class must overload this operator.
-     *
-     * \param kmer The k-mer to encode.
-     *
-     * \return Returns the EncodedKmer corresponding to the given k-mer.
-     */
-    virtual EncodedKmer operator()(const std::string &kmer) const override;
+    inline Exception(const std::string &msg = ""): std::exception(), _msg(msg) {}
 
     /**
-     * Decode some given encoded k-mer.
+     * Get the message associated with this exception.
      *
-     * Each derived class must overload this operator.
-     *
-     * \param e The encoded k-mer to decode.
-     *
-     * \return Returns the k-mer corresponding to the given encoding.
+     * \return Returns the C string message associated to this exception.
      */
-    virtual std::string operator()(const EncodedKmer &e) const override;
+    inline virtual const char *what() const noexcept {
+      return _msg.c_str();
+    }
+
+    /**
+     * Template operator << to inject any type having the capacity to
+     * be injected into an output stream.
+     *
+     * \param t The value to append to this exception message.
+     *
+     * \return Returns this exception.
+     */
+    template <typename T>
+    Exception &operator<<(const T &t) {
+      std::ostringstream s;
+      s << t;
+      _msg += s.str();
+      return *this;
+    }
+
+    /**
+     * Injects modifier function (like std::endl) into the message.
+     *
+     * \param pf The stream modifier function to apply to this
+     * exception message.
+     *
+     * \return Returns this exception.
+     */
+    Exception &operator<<(std::ostream &(*pf)(std::ostream &)) {
+      std::ostringstream s;
+      s << pf;
+      _msg += s.str();
+      return *this;
+    }
 
   };
 

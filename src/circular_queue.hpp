@@ -44,9 +44,10 @@
 #ifndef __CIRCULAR_QUEUE_HPP__
 #define __CIRCULAR_QUEUE_HPP__
 
+#include <algorithm>
 #include <atomic>
+#include <cstddef>
 #include <iostream>
-#include <vector>
 
 #include <locker.hpp>
 

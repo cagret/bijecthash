@@ -41,18 +41,64 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __IDENTITY_TRANSFORMER_HPP__
-#define __IDENTITY_TRANSFORMER_HPP__
+#ifndef __PERMUTATION_TRANSFORMER_HPP__
+#define __PERMUTATION_TRANSFORMER_HPP__
+
+#include <cstddef>
+#include <string>
+#include <vector>
 
 #include <transformer.hpp>
 
 namespace bijecthash {
 
   /**
-   * The "no-op" transformer that just encodes k-mer without any
-   * transformation.
+   * The permutation transformer encodes k-mer after applying some given
+   * permutation.
    */
-  class IdentityTransformer: public Transformer {
+  class PermutationTransformer: public Transformer {
+
+  protected:
+
+    /**
+     * The permutation to apply to some k-mer before encoding it.
+     */
+    const std::vector<size_t> _permutation;
+
+    /**
+     * The reverse permutation wich allow to retrieve the original k-mer
+     * from the permuted one.
+     */
+    const std::vector<size_t> _reverse_permutation;
+
+    /**
+     * This method generates a random permutation of the range [0; k[.
+     *
+     * \param k The length of the range.
+     *
+     * \return Return a random permutation of the range [0; k[.
+     */
+    static std::vector<size_t> _generateRandomPermutation(size_t k);
+
+    /**
+     * This method computes the reverse permutation of the given one.
+     *
+     * \param p Some permutation of the range [0; |p|[
+     *
+     * \return Returns the reverse permutation of the given one.
+     */
+    static std::vector<size_t> _computeReversePermutation(const std::vector<size_t> &p);
+
+    /**
+     * This applies the given permutation to the given string.
+     *
+     * \param s The string to permute.
+     *
+     * \param p The permutation of [0; |s|[ to apply.
+     *
+     * \return Returns the permuted string.
+     */
+    static std::string _applyPermutation(const std::string &s, const std::vector<size_t> &p);
 
   public:
 
@@ -64,9 +110,15 @@ namespace bijecthash {
      * value of \f$k\f$).
      *
      * \param prefix_length The length of the \f$k\f$-mer prefix.
+     *
+     * \param permutation The k-mer permutation to apply (default is to generate a random permutation).
+     *
+     * \param description If given, then the description string is used
+     * instead of the "Permutation[<details>]" auto generated string.
      */
-    inline IdentityTransformer(size_t kmer_length, size_t prefix_length):
-      Transformer(kmer_length, prefix_length, "Identity") {}
+    PermutationTransformer(size_t kmer_length, size_t prefix_length,
+                           const std::vector<size_t> &permutation = std::vector<size_t>(),
+                           const std::string &description = "");
 
     /**
      * Encode some given k-mer into a prefix/suffix code.

@@ -48,11 +48,12 @@
 #  include <config.h>
 #endif
 
-// Tags for (debug) messages
-
 // Make debug easy with macros:
+// - MSG_DBG_HEADER
 // - DBG(instructions)
 // - DEBUG_MSG(msg)
+// Set SUFFIX and DESC_COMPLEMENT C strings for k-mer transformer
+// plugins
 #ifdef DEBUG
 
 #  include <cerrno>
@@ -61,6 +62,7 @@
 
 #  include <locker.hpp>
 
+// Tags for (debug) messages
 #  define MSG_DBG_HEADER                                          \
   "[DEBUG] "                                                      \
   << "[Thread " << this_thread::get_id()  << "] "                 \
@@ -73,6 +75,9 @@
   std::cerr << MSG_DBG_HEADER << msg << std::endl;      \
   bijecthash::io_mutex.unlock()
 
+#  define SUFFIX "-dbg"
+#  define DESC_COMPLEMENT                                               \
+  "\nThis is the debug version of these transformers (compiled with all debugging informations)."
 #  ifdef NDEBUG
 #    undef NDEBUG
 #  endif
@@ -81,6 +86,15 @@
 
 #  define DBG(instructions)           (void)0
 #  define DEBUG_MSG(msg)              (void)0
+
+#  ifdef NDEBUG
+#    define SUFFIX
+#    define DESC_COMPLEMENT
+#  else
+#    define SUFFIX "-check"
+#    define DESC_COMPLEMENT                                             \
+  "\nThis is the development version of these transformers which are compiled with assertion checkings."
+#  endif
 
 #endif
 

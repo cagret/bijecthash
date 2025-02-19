@@ -44,6 +44,7 @@
 #include "transformer.hpp"
 
 #include "common.hpp"
+#include "exception.hpp"
 #include "locker.hpp"
 
 #include <iostream>
@@ -51,6 +52,137 @@
 using namespace std;
 
 BEGIN_BIJECTHASH_NAMESPACE
+
+///////////////////////////////////////////////
+// Transformer static attributes and methods //
+///////////////////////////////////////////////
+
+const int Transformer::SPHINXPP_PLUGIN_TAG = 2005515862;
+
+static sphinxpp::PluginHandler::Constraints _plugin_constraints;
+
+list<Transformer::_TransformerInformations> Transformer::_available_transformers;
+
+sphinxpp::PluginHandler Transformer::_plugin_handler;
+
+
+shared_ptr<const Transformer> Transformer::string2transformer(size_t kmer_length, size_t prefix_length, const string &method) {
+  assert(kmer_length > 0);
+  assert(prefix_length < 14);
+  assert(prefix_length < kmer_length);
+  assert(kmer_length - prefix_length <= 64);
+  _updateAvailableTransformers();
+  shared_ptr<const Transformer> t(NULL);
+  if (method.empty()) return t;
+
+  list<_TransformerInformations>::const_iterator it = _available_transformers.begin();
+  size_t pos = method.find_first_of("=(");
+  string label, extra;
+  label = method.substr(0, pos);
+  if (pos != string::npos) {
+    extra = method.substr(pos + (method[pos] == '='));
+  }
+  DEBUG_MSG("Method '" << method << "' => label='" << label << "' and extra='" << extra << "'");
+  while ((it != _available_transformers.end()) && (label != it->label)) {
+    DEBUG_MSG("Comparison with '" << it->label << "' failed");
+    ++it;
+  }
+  if (it != _available_transformers.end()) {
+    DEBUG_MSG("Comparison with '" << it->label << "' succeed");
+    it->factory(kmer_length, prefix_length, label, extra, t);
+  } else {
+    Exception e;
+    e << "Error: Unsupported transformation method '" << method << "'.\n";
+    throw e;
+  }
+  return t;
+}
+
+void Transformer::_addTransformers(Transformer::TransformerFactory factory, const Transformer::TransformerInformations *informations) {
+  while (informations && *informations && !(*informations)[0].empty()) {
+    _TransformerInformations info = {
+      (*informations)[0],
+      (*informations)[1],
+      (*informations)[2],
+      factory
+    };
+    _available_transformers.push_back(info);
+    ++informations;
+  }
+}
+
+void Transformer::_updateAvailableTransformers() {
+  _plugin_handler.loadAvailablePlugins(true, SPHINXPP_PLUGIN_TAG, _plugin_constraints, false);
+  _available_transformers.clear();
+  DEBUG_MSG("Load plugins from directories:" << endl;
+            for (auto &p: _plugin_handler.searchPaths()) {
+              cerr << "- '" << p << "'" << endl;
+            };
+            cerr);
+  for (const std::string &plugin_name: _plugin_handler.getHandledPlugins()) {
+    const sphinxpp::Plugin *plugin = _plugin_handler.get(plugin_name);
+    assert(plugin);
+    assert(plugin->exportedSymbols().find("transformerList") != plugin->exportedSymbols().end());
+    TransformerFactory factory = plugin->getFunction<TransformerFactory>("transformerFactory");
+    TransformerInformations *informations = plugin->getVariable<TransformerInformations *>("transformerList");
+    _addTransformers(factory, informations);
+  }
+}
+
+void Transformer::addPluginSearchPath(const std::string &path) {
+  _plugin_handler.addSearchPath(path);
+}
+
+bool Transformer::addPlugin(const std::string &path) {
+  return _plugin_handler.loadPlugin(path, SPHINXPP_PLUGIN_TAG, _plugin_constraints);
+}
+
+void _describeMethods(ostream &os,
+                      const string &name, const string &summary,
+                      const string &filename, const string &authors,
+                      const string &version, const string &description) {
+  os << "\n* " << name;
+  if (!summary.empty()) {
+    os << ": " << summary;
+  }
+  os << "\n";
+  if (!filename.empty()) {
+    os << "  File: '" << filename << "'\n";
+  }
+  if (!authors.empty()) {
+    os << "  Authors: " << authors << "\n";
+  }
+  if (!version.empty()) {
+    os << "  Version: " << version << "\n";
+  }
+  if (!description.empty()) {
+    os << "  Description:\n    ";
+    for (char c: description) {
+      os << c;
+      if (c == '\n') os << "    ";
+    }
+    os << "\n";
+  }
+}
+
+void Transformer::toStream(ostream &os) {
+  _updateAvailableTransformers();
+  for (const std::string &plugin_name: _plugin_handler.getHandledPlugins()) {
+    const sphinxpp::Plugin *plugin = _plugin_handler.get(plugin_name);
+    assert(plugin);
+    ostringstream version;
+    version << plugin->version();
+    _describeMethods(os,
+                     plugin->name(), plugin->summary(),
+                     plugin->filename(), plugin->authors(),
+                     version.str(), plugin->description());
+  }
+}
+
+
+////////////////////////////////////////
+// Transformer abstract class methods //
+////////////////////////////////////////
 
 uint64_t Transformer::_encode(const char *dna_str, size_t n) {
   DEBUG_MSG("n = " << n);
@@ -65,12 +197,11 @@ uint64_t Transformer::_encode(const char *dna_str, size_t n) {
     case 'G': val = 2; break;
     case 'T': val = 3; break;
     default:
-      io_mutex.lock();
-      cerr << "Error: unable to encode the given k-mer (" << string(dna_str, n) << ")"
-           << " since it contains the symbol '" << dna_str[i] << "'"
-           << " which is neither A nor C nor G nor T." << endl;
-      io_mutex.unlock();
-      exit(1);
+      Exception e;
+      e << "Error: unable to encode the given k-mer (" << string(dna_str, n) << ")"
+        << " since it contains the symbol '" << dna_str[i] << "'"
+        << " which is neither A nor C nor G nor T.\n";
+      throw e;
     }
     encoded = (encoded << 2) | val;
   }

@@ -50,11 +50,11 @@
  * Including this file is enough to use the full kmer-reader library API.
  */
 
-#include <BijectHash/circular_queue.hpp>
-#include <BijectHash/file_reader.hpp>
-#include <BijectHash/kmer_collector.hpp>
-#include <BijectHash/kmer_index.hpp>
-#include <BijectHash/kmer_processor.hpp>
-#include <BijectHash/locker.hpp>
+#include <BijectHash/../../src/circular_queue.hpp>
+#include <BijectHash/../../src/file_reader.hpp>
+#include <BijectHash/../../src/kmer_collector.hpp>
+#include <BijectHash/../../src/kmer_processor.hpp>
+#include <BijectHash/../../src/locker.hpp>
+#include <BijectHash/../../src/threaded_processor_helper.hpp>
 
 #endif

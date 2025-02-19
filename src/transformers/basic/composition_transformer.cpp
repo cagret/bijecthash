@@ -41,68 +41,72 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __MINIMIZER_TRANSFORMER_HPP__
-#define __MINIMIZER_TRANSFORMER_HPP__
+#include "composition_transformer.hpp"
 
-#include <cstdint>
-#include <string>
+#include "common.hpp"
+#include "exception.hpp"
+#include "identity_transformer.hpp"
 
-#include <transformer.hpp>
+using namespace std;
 
-namespace bijecthash {
+BEGIN_BIJECTHASH_NAMESPACE
 
-  /**
-   * Transformer that calculates a minimizer from a k-mer and uses it for encoding.
-   */
-  class MinimizerTransformer : public Transformer {
-
-  public:
-
-    /**
-     * Constructs a MinimizerTransformer with a specified minimizer length.
-     *
-     * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
-     * value of \f$k\f$).
-     *
-     * \param prefix_length The length of the \f$k\f$-mer prefix.
-     */
-    MinimizerTransformer(size_t kmer_length, size_t prefix_length);
-
-    /**
-     * Encodes a given k-mer into a prefix/suffix code using a minimizer.
-     *
-     * Each derived class must overload this operator.
-     *
-     * \param kmer The k-mer to encode.
-     *
-     * \return Returns the EncodedKmer corresponding to the given k-mer.
-     */
-    virtual EncodedKmer operator()(const std::string &kmer) const override;
-
-    /**
-     * Decodes a given encoded k-mer back to its original string representation.
-     *
-     * Each derived class must overload this operator.
-     *
-     * \param e The encoded k-mer to decode.
-     *
-     * \return Returns the k-mer corresponding to the given encoding.
-     */
-    virtual std::string operator()(const EncodedKmer &e) const override;
-
-  private:
-
-    /**
-     * Internal method to calculate the xorshift hash of a substring.
-     *
-     * \param x The value to hash hash.
-     *
-     * \return The hash of the given value.
-     */
-    uint64_t xorshift(uint64_t x) const;
-
-  };
-
+CompositionTransformer::CompositionTransformer(size_t kmer_length, size_t prefix_length, shared_ptr<const Transformer> &t1, shared_ptr<const Transformer> &t2, const string &description):
+  Transformer(kmer_length, prefix_length, description), _t1(t1), _t2(t2)
+{
+  if (description.empty()) {
+    string *desc_ptr = const_cast<string *>(&(this->description));
+    desc_ptr->clear();
+    *desc_ptr += "(";
+    *desc_ptr += t1->description;
+    *desc_ptr += " ° ";
+    *desc_ptr += t2->description;
+    *desc_ptr += ")";
+  }
+  DEBUG_MSG("description: '" << description << "'");
 }
 
-#endif // __MINIMIZER_TRANSFORMER_HPP__
+Transformer::EncodedKmer CompositionTransformer::operator()(const string &kmer) const {
+  EncodedKmer e1 = (*_t1)(kmer);
+  string s1 = _t1->getTransformedKmer(e1);
+  EncodedKmer e2 = (*_t2)(s1);
+#ifdef DEBUG
+  string orig_kmer = (*this)(e2);
+  string s2 = _t2->getTransformedKmer(e2);
+  DEBUG_MSG("_t1(" << kmer << "):   '" << s1 << "'");
+  DEBUG_MSG("_t2(" << s1 << "): '" << s2 << "'");
+  DEBUG_MSG("orig_kmer: '" << orig_kmer << "'");
+  if (orig_kmer != kmer) {
+    throw Exception("Error: the unpermuted k-mer differs from the original k-mer.\n");
+  }
+#endif
+  return e2;
+}
+
+string CompositionTransformer::operator()(const Transformer::EncodedKmer &e) const {
+  // string s2 = (*_t2)(e);
+  // EncodedKmer e1;
+  // e1.prefix = _encode(s2.c_str(), prefix_length);
+  // e1.suffix = _encode(s2.c_str() + prefix_length, suffix_length);
+  // string s1 = (*_t1)(e1);
+  string s2 = (*_t2)(e);
+  EncodedKmer e1 = IdentityTransformer(kmer_length, prefix_length)(s2);
+  string s1 = (*_t1)(e1);
+  return s1;
+}
+
+string CompositionTransformer::getTransformedKmer(const Transformer::EncodedKmer &e) const {
+  string s2 = _t2->getTransformedKmer(e);
+  EncodedKmer e1 = IdentityTransformer(kmer_length, prefix_length)(s2);
+  string s1 = _t1->getTransformedKmer(e1);
+  return s1;
+}
+
+shared_ptr<const CompositionTransformer> operator*(shared_ptr<const Transformer> &t2, shared_ptr<const Transformer> &t1) {
+  assert(t1->kmer_length == t2->kmer_length);
+  assert(t1->prefix_length == t2->prefix_length);
+  shared_ptr<const CompositionTransformer> t = make_shared<const CompositionTransformer>(CompositionTransformer(t1->kmer_length, t1->prefix_length, t1, t2));
+  return t;
+}
+
+END_BIJECTHASH_NAMESPACE

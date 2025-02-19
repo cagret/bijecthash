@@ -41,81 +41,88 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __BH_KMER_COLLECTOR_HPP__
-#define __BH_KMER_COLLECTOR_HPP__
+#ifndef __INTHASH_TRANSFORMER_HPP__
+#define __INTHASH_TRANSFORMER_HPP__
 
-#include <memory>
+#include <cstddef>
+#include <cstdint>
 #include <string>
 
-#include <kmer_collector.hpp>
-#include <lcp_stats.hpp>
-#include <settings.hpp>
+#include <transformer.hpp>
 
 namespace bijecthash {
 
   /**
-   * A k-mer collector helper that stores k-mers in a circular queue
-   * and computes the Longest Common Prefixes (LCP) between
-   * consecutive k-mer transformations.
-   *
-   * This helper class allows to run the k-mer collector in a dedicated
-   * thread.
+   * The transformer that encodes k-mer using the hash64 function
+   * (limited to k <= 32).
    */
-  class BhKmerCollector: public KmerCollector {
+  class IntHashTransformer: public Transformer {
 
   private:
 
     /**
-     * Longest Common Prefixes statistics.
+     * Precomputed binary mask for retrieving the whole k-mer.
      */
-    LcpStats _lcp_stats;
+    const uint64_t _kmer_mask;
 
     /**
-     * The k-mer transformer used.
+     * Precomputed shift offset for retrieving the prefix.
      */
-    std::shared_ptr<const Transformer> _transformer;
+    const uint64_t _prefix_shift;
 
     /**
-     * The previously encoded k-mer (needed to computing the LCP statistics)
+     * Precomputed binary mask for retrieving the suffix.
      */
-    Transformer::EncodedKmer _prev_transformed_kmer;
+    const uint64_t _suffix_mask;
 
-    /**
-     * Perform some processing on the given k-mer before enqueuing it.
-     *
-     * By default, this does nothing but any derived class can
-     * override this method.
-     *
-     * \param kmer The k-mer to process before enqueuing it.
-     */
-    virtual void _process(std::string &kmer) override;
 
   public:
 
     /**
-     * Builds a k-mer collector.
+     * Builds a Transformer depending on the k-mer length and the prefix
+     * length.
      *
-     * \param s The settings to use for the file collector.
+     * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
+     * value of \f$k\f$).
      *
-     * \param filename The name of the file to parse (see open() method).
-     *
-     * \param queue The queue to feed with k-mers.
+     * \param prefix_length The length of the \f$k\f$-mer prefix.
      */
-    BhKmerCollector(const Settings &s, const std::string &filename, CircularQueue<std::string> &queue);
+    IntHashTransformer(size_t kmer_length, size_t prefix_length);
 
     /**
-     * Return the longest common prefix statistics between consecutive
-     * k-mer transformations.
+     * Encode some given k-mer into a prefix/suffix code.
      *
-     * \param reset To compute the LCP statistics, the LCP stats
-     * object is "stopped" (see LcpStats::stop() method). When the
-     * reset parameter is true, the statistics are then reset
-     * ("started" again, see LcpStats::start() method).
+     * Each derived class must overload this operator.
      *
-     * \return Returns the LCP statistics (average and variance)
-     * between consecutive k-mer transformations.
+     * \param kmer The k-mer to encode.
+     *
+     * \return Returns the EncodedKmer corresponding to the given k-mer.
      */
-    LcpStats getLcpStats(bool reset = false);
+    virtual EncodedKmer operator()(const std::string &kmer) const override;
+
+    /**
+     * Decode some given encoded k-mer.
+     *
+     * Each derived class must overload this operator.
+     *
+     * \param e The encoded k-mer to decode.
+     *
+     * \return Returns the k-mer corresponding to the given encoding.
+     */
+    virtual std::string operator()(const EncodedKmer &e) const override;
+
+    /**
+     * Get the transformed k-mer from its encoding.
+     *
+     * Each derived class that operates a transformation at the bit
+     * level instead of the nucleotide level should overload this
+     * operator.
+     *
+     * \param e The encoded k-mer to restitute.
+     *
+     * \return Returns the k-mer corresponding to the given encoding.
+     */
+    virtual std::string getTransformedKmer(const EncodedKmer &e) const override;
 
   };
 

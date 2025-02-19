@@ -44,6 +44,7 @@
 #include "kmer_collector.hpp"
 
 #include "common.hpp"
+#include "exception.hpp"
 #include "locker.hpp"
 
 #include <iostream>
@@ -57,10 +58,9 @@ KmerCollector::KmerCollector(size_t k, const string &filename, CircularQueue<str
   _reader(k, filename, verbose)
 {
   if (!_reader.isOpen()) {
-    io_mutex.lock();
-    cerr << "Error: Unable to open fasta/fastq file '" << filename << "'" << endl;
-    io_mutex.unlock();
-    exit(1);
+    Exception e;
+    e << "Error: Unable to open fasta/fastq file '" << filename << "'\n";
+    throw e;
   }
 }
 

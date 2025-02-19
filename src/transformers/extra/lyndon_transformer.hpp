@@ -41,10 +41,10 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __INTHASH_TRANSFORMER_HPP__
-#define __INTHASH_TRANSFORMER_HPP__
+#ifndef __LYNDON_TRANSFORMER_HPP__
+#define __LYNDON_TRANSFORMER_HPP__
 
-#include <cstdint>
+#include <cstddef>
 #include <string>
 
 #include <transformer.hpp>
@@ -52,46 +52,24 @@
 namespace bijecthash {
 
   /**
-   * The transformer that encodes k-mer using the hash64 function
-   * (limited to k <= 32).
+   * The transformer that encodes k-mer using the Lyndon rotation.
    */
-  class IntHashTransformer: public Transformer {
-
-  private:
-
-    /**
-     * Precomputed binary mask for retrieving the whole k-mer.
-     */
-    const uint64_t _kmer_mask;
-
-    /**
-     * Precomputed shift offset for retrieving the prefix.
-     */
-    const uint64_t _prefix_shift;
-
-    /**
-     * Precomputed binary mask for retrieving the suffix.
-     */
-    const uint64_t _suffix_mask;
-
+  class LyndonTransformer: public Transformer {
 
   public:
 
     /**
-     * Builds a Transformer depending on the k-mer length and the prefix
-     * length.
+     * Builds a Transformer using Lyndon tranform.
      *
      * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
      * value of \f$k\f$).
      *
      * \param prefix_length The length of the \f$k\f$-mer prefix.
      */
-    IntHashTransformer(size_t kmer_length, size_t prefix_length);
+    LyndonTransformer(size_t kmer_length, size_t prefix_length);
 
     /**
-     * Encode some given k-mer into a prefix/suffix code.
-     *
-     * Each derived class must overload this operator.
+     * Encode some given k-mer into its Lyndon rotation.
      *
      * \param kmer The k-mer to encode.
      *
@@ -102,26 +80,11 @@ namespace bijecthash {
     /**
      * Decode some given encoded k-mer.
      *
-     * Each derived class must overload this operator.
-     *
      * \param e The encoded k-mer to decode.
      *
      * \return Returns the k-mer corresponding to the given encoding.
      */
     virtual std::string operator()(const EncodedKmer &e) const override;
-
-    /**
-     * Get the transformed k-mer from its encoding.
-     *
-     * Each derived class that operates a transformation at the bit
-     * level instead of the nucleotide level should overload this
-     * operator.
-     *
-     * \param e The encoded k-mer to restitute.
-     *
-     * \return Returns the k-mer corresponding to the given encoding.
-     */
-    virtual std::string getTransformedKmer(const EncodedKmer &e) const override;
 
   };
 

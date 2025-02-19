@@ -49,7 +49,6 @@
 #include <kmer_processor.hpp>
 #include <bh_kmer_index.hpp>
 
-
 namespace bijecthash {
 
   /**

@@ -44,6 +44,7 @@
 #ifndef __KMER_COLLECTOR_HPP__
 #define __KMER_COLLECTOR_HPP__
 
+#include <cstddef>
 #include <string>
 
 #include <threaded_processor_helper.hpp>
@@ -93,7 +94,7 @@ namespace bijecthash {
     /**
      * Builds a k-mer collector.
      *
-     * \param kmer_length The length of k-mer to extract (*i.e.*, the
+     * \param k The length of k-mer to extract (*i.e.*, the
      * value of \f$k\f$).
      *
      * \param filename The name of the file to parse (see open() method).

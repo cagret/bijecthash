@@ -41,82 +41,69 @@
 *                                                                             *
 ******************************************************************************/
 
-#include "canonical_transformer.hpp"
+#ifndef __MINIMIZER_TRANSFORMER_HPP__
+#define __MINIMIZER_TRANSFORMER_HPP__
 
-#include "common.hpp"
+#include <cstddef>
+#include <cstdint>
+#include <string>
 
-#include <iostream>
+#include <transformer.hpp>
 
-using namespace std;
+namespace bijecthash {
 
-BEGIN_BIJECTHASH_NAMESPACE
+  /**
+   * Transformer that calculates a minimizer from a k-mer and uses it for encoding.
+   */
+  class MinimizerTransformer : public Transformer {
 
-static char complement(char nucl) {
-  if (nucl > 'Z') {
-    nucl += 'A' - 'a';
-  }
-  switch (nucl) {
-  case 'A': return 'T';
-  case 'C': return 'G';
-  case 'G': return 'C';
-  case 'T':
-  case 'U': return 'A';
-  default:
-    cerr << "Unable to compute the reverse complement of nucleotide '" << nucl << "'" << endl;
-    exit(1);
-  }
-  return 0;
+  public:
+
+    /**
+     * Constructs a MinimizerTransformer with a specified minimizer length.
+     *
+     * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
+     * value of \f$k\f$).
+     *
+     * \param prefix_length The length of the \f$k\f$-mer prefix.
+     */
+    MinimizerTransformer(size_t kmer_length, size_t prefix_length);
+
+    /**
+     * Encodes a given k-mer into a prefix/suffix code using a minimizer.
+     *
+     * Each derived class must overload this operator.
+     *
+     * \param kmer The k-mer to encode.
+     *
+     * \return Returns the EncodedKmer corresponding to the given k-mer.
+     */
+    virtual EncodedKmer operator()(const std::string &kmer) const override;
+
+    /**
+     * Decodes a given encoded k-mer back to its original string representation.
+     *
+     * Each derived class must overload this operator.
+     *
+     * \param e The encoded k-mer to decode.
+     *
+     * \return Returns the k-mer corresponding to the given encoding.
+     */
+    virtual std::string operator()(const EncodedKmer &e) const override;
+
+  private:
+
+    /**
+     * Internal method to calculate the xorshift hash of a substring.
+     *
+     * \param x The value to hash hash.
+     *
+     * \return The hash of the given value.
+     */
+    uint64_t xorshift(uint64_t x) const;
+
+  };
+
 }
 
-CanonicalTransformer::CanonicalTransformer(size_t kmer_length, size_t prefix_length):
-  Transformer(kmer_length, prefix_length, "Canonical") {
-  // We need one bit (to store information about the conserved k-mer
-  // (between the k-mer and is reverse).
-  assert(suffix_length < ((sizeof(uint64_t) << 3) / 2));
-}
-
-Transformer::EncodedKmer CanonicalTransformer::operator()(const string &kmer) const {
-  assert(kmer.length() == kmer_length);
-  string lowest_kmer(kmer_length, '\0');
-  size_t i = 0;
-  int best = 0;
-  while ((best >= 0) && (i < kmer_length)) {
-    lowest_kmer[i] = complement(kmer[kmer_length - i - 1]);
-    if (best == 0) {
-      if (kmer[i] < lowest_kmer[i]) {
-        best = -1;
-      } else {
-        if (kmer[i] > lowest_kmer[i]) {
-          best = 1;
-        }
-      }
-    }
-    ++i;
-  }
-  uint64_t m = 0;
-  if (best < 0) {
-    lowest_kmer = kmer;
-  } else {
-    m = 1ull << 62;
-  }
-  EncodedKmer e;
-  e.prefix = _encode(lowest_kmer.c_str(), prefix_length);
-  e.suffix = _encode(lowest_kmer.c_str() + prefix_length, suffix_length);
-  e.suffix |= m;
-  return e;
-}
-
-string CanonicalTransformer::operator()(const Transformer::EncodedKmer &e) const {
-  string kmer = getTransformedKmer(e);
-  if (e.suffix >> 62) {
-    size_t p = (kmer_length >> 1) + (kmer_length & 1);
-    for (size_t i = 0; i < p; ++i) {
-      char c = complement(kmer[i]);
-      kmer[i] = complement(kmer[kmer_length - i - 1]);
-      kmer[kmer_length - i - 1] = c;
-    }
-  }
-  return kmer;
-}
-
-END_BIJECTHASH_NAMESPACE
+#endif

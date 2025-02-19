@@ -1,6 +1,62 @@
+2025-02-19  DoccY <alban.mancheron@lirmm.fr>
+
+	* .gitignore, ChangeLog, Makefile.in, TODO, aminclude_static.am,
+	config/version.configure.ac, configure, configure.ac,
+	coverage/Makefile.in, doc/Makefile.in, doc/mainpage.dox.in,
+	doc/plugin_compilation.dox, external/Sphinxpp-library,
+	extra/Makefile.in, packaging/Makefile.in,
+	packaging/libkmer-reader.pc.in,
+	packaging/libkmer-transformers.pc.in, resources/Makefile.in,
+	src/Makefile.am, src/Makefile.in, src/bh_kmer_collector.cpp,
+	src/bh_kmer_collector.hpp, src/bh_kmer_index.cpp,
+	src/bh_kmer_index.hpp, src/bh_kmer_processor.hpp,
+	src/biject_hash.cpp, src/circular_queue.hpp, src/common.hpp,
+	src/exception.hpp, src/file_reader.cpp, src/file_reader.hpp,
+	src/kmer_collector.cpp, src/kmer_collector.hpp,
+	src/kmer_processor.hpp, src/kmer_reader.hpp, src/lcp_stats.hpp,
+	src/locker.hpp, src/program_options.cpp, src/program_options.hpp,
+	src/queue_watcher.tpp, src/settings.cpp, src/settings.hpp,
+	src/threaded_processor_helper.hpp, src/threaded_reader_writer.hpp,
+	src/transformer.cpp, src/transformer.hpp,
+	src/transformers/Makefile.am, src/transformers/Makefile.in,
+	src/transformers/basic/Makefile.am,
+	src/transformers/basic/Makefile.in, src/{ =>
+	transformers/basic}/canonical_transformer.cpp, src/{ =>
+	transformers/basic}/canonical_transformer.hpp, src/{ =>
+	transformers/basic}/composition_transformer.cpp, src/{ =>
+	transformers/basic}/composition_transformer.hpp, src/{ =>
+	transformers/basic}/identity_transformer.cpp, src/{ =>
+	transformers/basic}/identity_transformer.hpp,
+	src/transformers/basic/kmer_transformers_basic.hpp,
+	src/transformers/basic/kmer_transformers_basic_plugin.cpp, src/{ =>
+	transformers/basic}/permutation_bit_transformer.cpp, src/{ =>
+	transformers/basic}/permutation_bit_transformer.hpp, src/{ =>
+	transformers/basic}/permutation_transformer.cpp, src/{ =>
+	transformers/basic}/permutation_transformer.hpp,
+	src/transformers/extra/Makefile.am,
+	src/transformers/extra/Makefile.in, src/{ =>
+	transformers/extra}/bwt_transformer.cpp, src/{ =>
+	transformers/extra}/bwt_transformer.hpp, src/{ =>
+	transformers/extra}/gab_transformer.cpp, src/{ =>
+	transformers/extra}/gab_transformer.hpp, src/{ =>
+	transformers/extra}/inthash.c, src/{ =>
+	transformers/extra}/inthash.h, src/{ =>
+	transformers/extra}/inthash_transformer.cpp, src/{ =>
+	transformers/extra}/inthash_transformer.hpp,
+	src/transformers/extra/kmer_transformers_extra.hpp,
+	src/transformers/extra/kmer_transformers_extra_plugin.cpp, src/{ =>
+	transformers/extra}/lyndon_transformer.cpp, src/{ =>
+	transformers/extra}/lyndon_transformer.hpp, src/{ =>
+	transformers/extra}/minimizer_transformer.cpp, src/{ =>
+	transformers/extra}/minimizer_transformer.hpp, src/{ =>
+	transformers}/kmer_transformers.hpp, tests/Makefile.in:
+	Lots of code refactoring to use plugins for k-mer transformers.
+	That way, anyone can easily build and test a k-mer transformation using BijectHash without the need to rebuild the whole suite.
+	
+	
 2025-02-12  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitmodules, Makefile.am, Makefile.in, aclocal.m4,
+	* .gitmodules, ChangeLog, Makefile.am, Makefile.in, aclocal.m4,
 	aminclude_static.am,
 	config/m4/ax_external_included_cxx_library_detection.m4,
 	config/m4/ax_external_included_generic_library_check.m4,
@@ -15,11 +71,12 @@
 	
 2025-02-12  DoccY <alban.mancheron@lirmm.fr>
 
-	* Makefile.am, Makefile.in, aclocal.m4, aminclude_static.am,
-	config/compile, config/config.guess, config/config.h.in,
-	config/config.sub, config/depcomp, config/fix-timestamp.sh,
-	config/git-release, config/git-version-gen, config/install-sh,
-	config/ltmain.sh, config/m4/ax_c_cxx_enable_debug_option.m4,
+	* ChangeLog, Makefile.am, Makefile.in, aclocal.m4,
+	aminclude_static.am, config/compile, config/config.guess,
+	config/config.h.in, config/config.sub, config/depcomp,
+	config/fix-timestamp.sh, config/git-release,
+	config/git-version-gen, config/install-sh, config/ltmain.sh,
+	config/m4/ax_c_cxx_enable_debug_option.m4,
 	config/m4/ax_check_gnu_make.m4, config/m4/ax_code_coverage.m4,
 	config/m4/ax_code_statistics.m4,
 	config/m4/ax_cxx_compile_stdcxx.m4, config/m4/ax_debian_package.m4,
@@ -86,8 +143,8 @@
 	
 2024-05-15  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, Makefile.in, resources/example2.fa, src/Makefile.am,
-	src/Makefile.in, src/bh_kmer_collector.cpp,
+	* .gitignore, ChangeLog, Makefile.in, resources/example2.fa,
+	src/Makefile.am, src/Makefile.in, src/bh_kmer_collector.cpp,
 	src/bh_kmer_collector.hpp, src/{kmer_index.cpp =>
 	bh_kmer_index.cpp}, src/{kmer_index.hpp => bh_kmer_index.hpp},
 	src/bh_kmer_processor.cpp, src/bh_kmer_processor.hpp,
@@ -113,7 +170,7 @@
 	
 2024-05-14  DoccY <alban.mancheron@lirmm.fr>
 
-	* aminclude_static.am, config/version,
+	* ChangeLog, aminclude_static.am, config/version,
 	config/version.config.git-release, config/version.configure.ac,
 	configure:
 	New project release: v0.1.0
@@ -121,9 +178,9 @@
 	
 2024-05-13  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, AUTHORS, LICENSE => COPYING, INSTALL, LICENSE.md,
-	Makefile, Makefile.am, Makefile.in, NEWS, TODO, aclocal.m4,
-	aminclude_static.am, boiteMoustache.py, config/compile,
+	* .gitignore, AUTHORS, LICENSE => COPYING, ChangeLog, INSTALL,
+	LICENSE.md, Makefile, Makefile.am, Makefile.in, NEWS, TODO,
+	aclocal.m4, aminclude_static.am, boiteMoustache.py, config/compile,
 	config/config.guess, config/config.h.in, config/config.sub,
 	config/depcomp, config/fix-timestamp.sh, config/git-release,
 	config/git-version-gen, config/install-sh, config/ltmain.sh,
@@ -275,7 +332,7 @@
 	
 2024-03-26  DoccY <alban.mancheron@lirmm.fr>
 
-	* doc/Doxyfile, src/bwt_transformer.hpp,
+	* ChangeLog, doc/Doxyfile, src/bwt_transformer.hpp,
 	src/inthash_transformer.cpp, src/minimizer_transformer.hpp,
 	src/permutation_bit_transformer.cpp,
 	src/permutation_bit_transformer.hpp, src/settings.hpp:
@@ -465,8 +522,8 @@
 	
 2024-03-18  DoccY <alban.mancheron@lirmm.fr>
 
-	* .gitignore, run_methods.sh, src/Makefile, src/kmer_index.cpp,
-	src/program_options.cpp, src/settings.cpp:
+	* .gitignore, ChangeLog, run_methods.sh, src/Makefile,
+	src/kmer_index.cpp, src/program_options.cpp, src/settings.cpp:
 	Adding two version of BujectHash in the default compilation target:
 	- BijectHash_with_checks: Performs assertion checks and monitor the circular queue.
 	- BijectHash_full_debug: Print lots of debugging information (and performs more assertion checks).
@@ -546,7 +603,7 @@
 	
 2024-03-12  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/gab_transformer.cpp, src/gab_transformer.hpp,
+	* ChangeLog, src/gab_transformer.cpp, src/gab_transformer.hpp,
 	src/kmer_index.hpp, src/main.cpp, src/program_options.cpp,
 	src/settings.cpp:
 	Update the Gab transformer in order to accept custom parameters for the multiplier and the mask.
@@ -555,7 +612,7 @@
 	
 2024-03-11  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/Makefile:
+	* ChangeLog, src/Makefile:
 	Deactivate debug and circular queue watcher and remove assertion checking in the default makefile options.
 	
 	
@@ -624,7 +681,7 @@
 	
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/Makefile, src/circular_queue.hpp, src/main.cpp,
+	* ChangeLog, src/Makefile, src/circular_queue.hpp, src/main.cpp,
 	src/permutation_transformer.cpp, src/transformer.cpp:
 	Using multiple producer-multiple consumer design pattern to read/transform the k-mers.
 	Code is currently not well structured but seems to work pretty well.
@@ -632,7 +689,7 @@
 	
 2024-03-07  DoccY <alban.mancheron@lirmm.fr>
 
-	* src/benchmark.cpp, src/permutations.cpp:
+	* ChangeLog, src/benchmark.cpp, src/permutations.cpp:
 	Remove trailing spaces.
 	
 	

@@ -45,7 +45,9 @@
 #define __BH_KMER_INDEX_HPP__
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -296,4 +298,5 @@ namespace bijecthash {
   }
 
 }
+
 #endif

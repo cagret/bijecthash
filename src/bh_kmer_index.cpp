@@ -44,6 +44,7 @@
 #include "bh_kmer_index.hpp"
 
 #include "common.hpp"
+#include "exception.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -98,10 +99,10 @@ BhKmerIndex::BhKmerIndex(const Settings &s):
             << "for each possible prefix of length " << s.prefix_length
             << " of this new index (" << this << ")");
   if (!_transformer) {
-    cerr << "Error: Unable to find valid transformer for settings:" << '\n'
-         << s
-         << endl;;
-    exit(1);
+    Exception e;
+    e << "Error: Unable to find valid transformer for settings:\n"
+      << s << "\n";
+    throw e;
   }
   DEBUG_MSG("Transformer is " << _transformer->description << "_{" << _transformer->kmer_length << " = " << _transformer->prefix_length << " + " << _transformer->suffix_length << "}");
 }

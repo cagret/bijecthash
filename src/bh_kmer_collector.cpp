@@ -50,7 +50,7 @@ using namespace std;
 BEGIN_BIJECTHASH_NAMESPACE
 
 BhKmerCollector::BhKmerCollector(const Settings &s, const string &filename, CircularQueue<string> &queue):
-  KmerCollector(s.length, filename, queue, s.verbose),
+  KmerCollector(s.kmer_length, filename, queue, s.verbose),
   _lcp_stats(), _transformer(s.transformer()), _prev_transformed_kmer()
 {
   _lcp_stats.start();

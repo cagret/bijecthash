@@ -42,10 +42,274 @@
 ******************************************************************************/
 
 /**
- * \page define_plugin Defining a transformers plugin
+ * \page define_plugin Defining a k-mer transformers plugin
  *
- * TODO
+ * One interesting feature of the BijectHash program is its capability
+ * to use \f$k\f$-mer transformers from plugins.
  *
+ * This is mainly due to its very modular structure and the use of the
+ * [Sphinx++ library](https://doccy.lirmm.net/sphinxpp-library).
+ *
+ * People who wants to test some new transformers can do it quite
+ * easily by writing its own plugin.
+ *
+ * \section Requirements Requirements
+ *
+ * The only file which is really required to write a \f$k\f$-mer
+ * transformers plugin is the file transformer.hpp. Of course, in
+ * order to test your plugin, you will also need the \c
+ * kmer-transformers library (which is part of the BijectHash program)
+ * on your system.
+ *
+ * Although using the [Sphinx++
+ * library](https://doccy.lirmm.net/sphinxpp-library), it is not
+ * necessary to have it to write and compile your plugin either. That
+ * being said, we can use the
+ * [\c sphinx++/macro.h](https://doccy.lirmm.net/sphinxpp-library/group__public__macros.html). helper
+ * file that comes from the [Sphinx++
+ * library](https://doccy.lirmm.net/sphinxpp-library).
+ *
+ * You will also need a C++ compiler compliant with the C++ 17
+ * standard (*e.g.*, \c g++ or \c clang++).
+ *
+ * In the following, we will denote by:
+ * - \c /kmer/transformers/header/install/path the path where the
+ *   kmer_transformers.hpp header stands,
+ * - \c /sphinx++/header/install/path the path where the
+ *   [\c sphinx++/macro.h](https://doccy.lirmm.net/sphinxpp-library/group__public__macros.html)
+ *   header stands.
+ *
+ * \section Creation Creation of some new transformers
+ *
+ * A \f$k\f$-mer transformer is a class which inherits from bijecthash::Transformer.
+ *
+ * The simpler situation is to write a \f$k\f$-mer transformer which
+ * doesn't depends on some extra settings. For an example of how to
+ * use extra settings, you can see the
+ * bijecthash::PermutationTransformer class declaration.
+ *
+ * In its simplest form, the class of our new \c CustomSimpleTransformer must define:
+ * - A constructor taking the \f$k\f$-mer length and the prefix length
+ *   as parameters,
+ * - The encode operator which takes the \f$k\f$-mer as a \c
+ *   std::string and returns it as a
+ *   bijecthash::Transformer::EncodedKmer,
+ * - The decode operator which takes the encoded \f$k\f$-mer as a
+ *   bijecthash::Transformer::EncodedKmer and return it as a \c
+ *   std::string.
+ *
+ * The header file for our new \c CustomSimpleTransformer (let's say
+ * \c custom_simple_transformer.hpp) should look like:
+ *
+ * ```cpp
+ * #ifndef __CUSTOM_SIMPLE_TRANSFORMER_HPP__
+ * #define __CUSTOM_SIMPLE_TRANSFORMER_HPP__
+ *
+ * #include <cstddef>
+ * #include <string>
+ *
+ * #include <transformer.hpp>
+ *
+ * class CustomSimpleTransformer: public bijecthash::Transformer {
+ *   public:
+ *     CustomSimpleTransformer(size_t kmer_length, size_t prefix_length);
+ *
+ *     virtual EncodedKmer operator()(const std::string &kmer) const override;
+ *
+ *     virtual std::string operator()(const EncodedKmer &e) const override;
+ * };
+ * ```
+ *
+ * The content of the \c CustomSimpleTransformer implementation (let's
+ * say \c custom_simple_transformer.cpp) depends of your \f$k\f$-mer
+ * transformation and should compile using the following command line:
+ *
+ * ```sh
+ * g++ -Wall -Wextra -std=c++17 -I/kmer/transformers/header/install/path custom_simple_transformer.cpp -fPIC -c
+ * ```
+ *
+ * Once the file compiles, we can prepare the "plugin" file.
+ *
+ * \section Writing Writing the k-mer transformer plugin
+ *
+ * Now is the time to create the "plugin" file (let's say
+ * \c kmer_transformers_custom_plugin.cpp).
+ *
+ * First of all, we have to include the following headers:
+ *
+ * ```cpp
+ * #include <memory>
+ * #include <string>
+ * #include <sphinx++/macros.h> // Not mandatory but makes the plugin declaration very much simpler
+ * #include <transformer.hpp>   // Not mandatory since it will be included by the custom_simple_transformer.hpp header
+ * #include "custom_simple_transformer.hpp"
+ * ```
+ *
+ * We will use the \c std and \link bijecthash bijecthash\endlink
+ * namespaces :
+ *
+ * ```cpp
+ * using namespace std;
+ * using namespace bijecthash;
+ * ```
+ *
+ * In order to make the maintenance easier, we can define C strings
+ * for the name of the transformer (its label), its arguments
+ * description (here there is no extra arguments) and its full
+ * description:
+ *
+ * ```cpp
+ * #define CUSTOM_SIMPLE_TRANSFORMER_LABEL          "custom-simple"
+ * #define CUSTOM_SIMPLE_TRANSFORMER_EXTRA          ""
+ * #define CUSTOM_SIMPLE_TRANSFORMER_DESCRIPTION                         \
+ *   "The '" CUSTOM_SIMPLE_TRANSFORMER_LABEL CUSTOM_SIMPLE_TRANSFORMER_EXTRA "' " \
+ *   "transforms \f$k\f$-mer using a secret formula blablabla."
+ * ```
+ *
+ * Here is the harder part of making a plugin. We have to define the
+ * plugin transformer factory. Its typically a function taking the
+ * \f$k\f$-mer length, the prefix size, the label of the transformer
+ * to create and the extra arguments (here this last parameter is not
+ * required, but for the general case, it is better to keep it. This
+ * function should return a shared pointer pointing to an instance of
+ * the transformer.
+ *
+ * ```cpp
+ * shared_ptr<const Transformer> _transformerFactory(size_t kmer_length,
+ *                                                   size_t prefix_length,
+ *                                                   const string &label,
+ *                                                   const string &extra) {
+ *   shared_ptr<const Transformer> t(NULL);
+ *   if (label == CUSTOM_SIMPLE_TRANSFORMER_LABEL) {
+ *     t = make_shared<const CustomSimpleTransformer>(kmer_length, prefix_length);
+ *   } else {
+ *     string err = "Error: Unsupported transformation method '";
+ *     err += label;
+ *     err += extra;
+ *     err += "'.\n";
+ *     throw err;
+ *   }
+ *   return t;
+ * }
+ * ```
+ *
+ * It is not mandatory to throw an exception if the label is not
+ * supported since the factory returns null, although its is a good
+ * practice.
+ *
+ * For a more sophisticated example (using \c extra arguments), people
+ * can see the `cyclic` transformer in the \link
+ * src/transformers/basic/kmer_transformers_basic_plugin.cpp
+ * src/transformers/basic/kmer_transformers_basic_plugin.cpp \endlink
+ * file.
+ *
+ * The plugin must also provide the list of the exposed \f$k\f$-mer
+ * transformers as an array:
+ *
+ * ```cpp
+ * Transformer::TransformerInformations _transformerList[] = {
+ *   { CUSTOM_SIMPLE_TRANSFORMER_LABEL,
+ *     CUSTOM_SIMPLE_TRANSFORMER_EXTRA,
+ *     CUSTOM_SIMPLE_TRANSFORMER_DESCRIPTION },
+ *   { "", "", "" } // This last value denotes the end of the array.
+ * };
+ * ```
+ *
+ * Now, it remains to declare the plugin informations (the \c
+ * SPHINXPP_* helper preprocessor macros can be replaced by their
+ * content but its boring).
+ *
+ * ```cpp
+ * extern "C" {
+ *
+ *   SPHINXPP_SET_PLUGIN_NAME("custom-transformers");
+ *   SPHINXPP_SET_PLUGIN_TAG(Transformer::SPHINXPP_PLUGIN_TAG); // Don't change this tag nor remove this line
+ *   SPHINXPP_SET_PLUGIN_AUTHORS("Bob, Alice and may be you");
+ *   SPHINXPP_SET_PLUGIN_SUMMARY("Our Custom \f$k\f$-mer transformers implementation");
+ *   SPHINXPP_SET_PLUGIN_DESCRIPTION
+ *   ("This plugin provides the following transformers which make "
+ *    "us better and younger and whatever you want:\n"
+ *    CUSTOM_SIMPLE_TRANSFORMER_DESCRIPTION "\n"
+ *    "We hope our \f$k\f$-mer transformations will help the community to save the world!"
+ *    );
+ *   SPHINXPP_SET_PLUGIN_VERSION("1.2.3");
+ *   SPHINXPP_PLUGIN_DECLARE_SYMBOLS("transformerFactory", "transformerList");
+ *
+ *   Transformer::TransformerInformations *transformerList = _transformerList;
+ *
+ *   extern Transformer::TransformerInformations *transformerList;
+ *
+ *   void transformerFactory(size_t kmer_length,
+ *                           size_t suffix_length,
+ *                           const string &label,
+ *                           const string &extra,
+ *                           shared_ptr<const Transformer> &ptr) {
+ *     ptr = _transformerFactory(kmer_length, suffix_length, label, extra);
+ *   }
+ *
+ * }
+ * ```
+ *
+ * Notice that the lines below the \c SPHINXPP_SET_PLUGIN_VERSION()
+ * macro must not be modified. Notably, the keyword \c extern in front
+ * of the \c transformerlist pointer declaration is very important
+ * (otherwise the \c transformerlist array pointer will not be
+ * accessible).
+ *
+ * This file should compile using the following command line:
+ *
+ * ```sh
+ * g++ -Wall -Wextra -std=c++17 -I/kmer/transformers/header/install/path -I/sphinx++/header/install/path kmer_transformers_custom_plugin.cpp -fPIC -c
+ * ```
+ *
+ * Now is the time to link our two components together:
+ *
+ * ```sh
+ * g++ -shared custom_simple_transformer.o kmer_transformers_custom_plugin.o -o kmer-transformers-custom-plugin.so
+ * ```
+ *
+ * \section Building Building a plugin using autotools
+ *
+ * If you have read the previous section, and even if you are not
+ * familiar with the autotools, you can automate the plugin
+ * compilation using autotools by copying for example the file \c
+ * Makefile.am standing in the \c src/transformers/basic directory of
+ * the project and diffing this file against the one standing in the
+ * \c src/transformers/extra directory of the project. This way, the
+ * part that should be modified will be highlighted.
+ *
+ * \section Sharing Sharing your custom plugin
+ *
+ * If you want to add your plugin to those provided with this
+ * BijectHash package, simply create a pull request or contact the
+ * project authors.
+ *
+ * Whatever your method to contact us, we encourage you to:
+ *
+ * 1. Define your copyrights with a free software licence.
+ * 2. Create a dedicated sub directory in the \c src/transformers
+ *    directory containing your plugin definitions, and add a file \c
+ *    kmer_transformer_<your_plugin_basename>.hpp. You are invited to
+ *    follow the \c basic and \c extra structure, notably to add an
+ *    automake rule to build this file.
+ * 3. Add your subdirectory in the \c SUBDIRS variable of the \c
+ *    src/transformers/Makefile.am file.
+ * 4. Remove the existing \c src/transformers/kmer_transformers.hpp
+ *    file
+ * 5. Add the generation of the Makefile.in and Makefile of your
+ *    plugin in the \c AC_CONFIG_FILES() declaration at the end of the
+ *    \c configure.ac file (typically after the line \c
+ *    src/transformers/extra/Makefile)
+ * 6. Check that everything compiles (even the documentation, please).
+ * 7. Please, advertise us
+ *
+ * \section Help I need help to building my plugin
+ *
+ * Don't hesitate to contact us, we'll be really happy to help you
+ * since you do us the honor of using our tool.
+ *
+ * \example src/transformers/basic/kmer_transformers_basic_plugin.cpp
+ * \example src/transformers/extra/kmer_transformers_extra_plugin.cpp
  */
 
 // Local Variables:

@@ -41,13 +41,66 @@
 #                                                                             #
 ###############################################################################
 
-prefix=@DEBIAN_PACKAGE_PREFIX@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
-includedir=@includedir@
 
-Name: libkmer-transformers
-Description: A k-mer transformers plugin handler.
-Version: @VERSION@
-Libs: -L${libdir} -lkmer-transformers
-Cflags: -I${includedir} -I${libdir}/@PACKAGE_NAME@-@PACKAGE_VERSION@/kmer-transformers
+########################
+# Global configuration #
+########################
+
+SUBDIRS = basic extra
+
+relative_libdir = transformers
+install_dirname = $(PACKAGE_NAME)-$(PACKAGE_VERSION)/$(relative_libdir)
+pkgincludedir   = $(includedir)/$(install_dirname)
+
+# Bug fix for path with spaces
+bindir = "@bindir@"
+libdir = "@libdir@/$(install_dirname)"
+# End of bug fix
+
+BUILT_SOURCES      =
+lib_LTLIBRARIES    =
+noinst_LTLIBRARIES =
+check_LTLIBRARIES  =
+bin_PROGRAMS       =
+pkginclude_HEADERS =
+
+
+#######################################
+# Official k-mer transformers plugins #
+#######################################
+
+transformers_main_header = $(srcdir)/kmer_transformers.hpp
+
+pkginclude_HEADERS += $(transformers_main_header)
+
+BUILT_SOURCES += $(transformers_main_header)
+
+$(transformers_main_header):
+	@$(AM_V_P) || echo "  HEADER   " '$(@)'
+	$(AM_V_at)($(SED) -n '/^\/\*\+$$/{p;:a;n;/^\*\+\/$$/{p;q};p;ba}' $(CONFIG_HEADER) \
+	&& echo \
+	&& echo '#ifndef __KMER_TRANSFORMERS_HPP__' \
+	&& echo '#define __KMER_TRANSFORMERS_HPP__' \
+	&& echo \
+	&& echo '/**' \
+	&& echo ' * \file' \
+	&& echo ' *' \
+	&& echo ' * Including this file allows to use the k-mer transformers defined in the official plugins.' \
+	&& echo ' */' \
+	&& echo \
+	&& for subdir in $(SUBDIRS); do \
+	  echo "#include <$(LIBNAME)/$(relative_libdir)/$${subdir}/kmer_transformers_$${subdir}.hpp>" ; \
+	done \
+	&& echo \
+	&& echo '#endif' \
+	) > '$(@)'
+
+
+####################
+# Cleaning targets #
+####################
+
+MOSTLYCLEANFILES = *~
+CLEANFILES = *~
+DISTCLEANFILES = *~
+MAINTAINERCLEANFILES = *~

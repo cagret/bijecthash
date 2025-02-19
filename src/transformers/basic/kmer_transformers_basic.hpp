@@ -41,25 +41,19 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __KMER_TRANSFORMERS_HPP__
-#define __KMER_TRANSFORMER_HPPS__
+#ifndef __KMER_TRANSFORMERS_BASIC_HPP__
+#define __KMER_TRANSFORMERS_BASIC_HPP__
 
 /**
  * \file
  *
- * Including this file is enough to use the full kmer-transformers library API.
+ * Including this file allows to use the k-mer transformers defined in the basic plugin.
  */
 
-#include <BijectHash/bwt_transformer.hpp>
-#include <BijectHash/canonical_transformer.hpp>
-#include <BijectHash/composition_transformer.hpp>
-#include <BijectHash/gab_transformer.hpp>
-#include <BijectHash/identity_transformer.hpp>
-#include <BijectHash/inthash_transformer.hpp>
-#include <BijectHash/lyndon_transformer.hpp>
-#include <BijectHash/minimizer_transformer.hpp>
-#include <BijectHash/permutation_bit_transformer.hpp>
-#include <BijectHash/permutation_transformer.hpp>
-#include <BijectHash/transformer.hpp>
+#include <BijectHash/transformers/basic/canonical_transformer.hpp>
+#include <BijectHash/transformers/basic/composition_transformer.hpp>
+#include <BijectHash/transformers/basic/identity_transformer.hpp>
+#include <BijectHash/transformers/basic/permutation_bit_transformer.hpp>
+#include <BijectHash/transformers/basic/permutation_transformer.hpp>
 
 #endif

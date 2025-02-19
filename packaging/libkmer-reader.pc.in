@@ -41,7 +41,7 @@
 #                                                                             #
 ###############################################################################
 
-prefix=@hacked_prefix@
+prefix=@DEBIAN_PACKAGE_PREFIX@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
@@ -50,4 +50,4 @@ Name: libkmer-reader
 Description: A producer/consumer library to read k-mers from Fasta/Fastq formated files.
 Version: @VERSION@
 Libs: -L${libdir} -lkmer-reader
-Cflags: -I${includedir}/@PACKAGE@-@VERSION@ -I${libdir}/@PACKAGE@-@VERSION@/include
+Cflags: -I${includedir} -I${libdir}/@PACKAGE_NAME@-@PACKAGE_VERSION@/kmer-reader

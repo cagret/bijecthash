@@ -41,84 +41,19 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __BH_KMER_COLLECTOR_HPP__
-#define __BH_KMER_COLLECTOR_HPP__
+#ifndef __KMER_TRANSFORMERS_EXTRA_HPP__
+#define __KMER_TRANSFORMERS_EXTRA_HPP__
 
-#include <memory>
-#include <string>
+/**
+ * \file
+ *
+ * Including this file allows to use the k-mer transformers defined in the extra plugin.
+ */
 
-#include <kmer_collector.hpp>
-#include <lcp_stats.hpp>
-#include <settings.hpp>
-
-namespace bijecthash {
-
-  /**
-   * A k-mer collector helper that stores k-mers in a circular queue
-   * and computes the Longest Common Prefixes (LCP) between
-   * consecutive k-mer transformations.
-   *
-   * This helper class allows to run the k-mer collector in a dedicated
-   * thread.
-   */
-  class BhKmerCollector: public KmerCollector {
-
-  private:
-
-    /**
-     * Longest Common Prefixes statistics.
-     */
-    LcpStats _lcp_stats;
-
-    /**
-     * The k-mer transformer used.
-     */
-    std::shared_ptr<const Transformer> _transformer;
-
-    /**
-     * The previously encoded k-mer (needed to computing the LCP statistics)
-     */
-    Transformer::EncodedKmer _prev_transformed_kmer;
-
-    /**
-     * Perform some processing on the given k-mer before enqueuing it.
-     *
-     * By default, this does nothing but any derived class can
-     * override this method.
-     *
-     * \param kmer The k-mer to process before enqueuing it.
-     */
-    virtual void _process(std::string &kmer) override;
-
-  public:
-
-    /**
-     * Builds a k-mer collector.
-     *
-     * \param s The settings to use for the file collector.
-     *
-     * \param filename The name of the file to parse (see open() method).
-     *
-     * \param queue The queue to feed with k-mers.
-     */
-    BhKmerCollector(const Settings &s, const std::string &filename, CircularQueue<std::string> &queue);
-
-    /**
-     * Return the longest common prefix statistics between consecutive
-     * k-mer transformations.
-     *
-     * \param reset To compute the LCP statistics, the LCP stats
-     * object is "stopped" (see LcpStats::stop() method). When the
-     * reset parameter is true, the statistics are then reset
-     * ("started" again, see LcpStats::start() method).
-     *
-     * \return Returns the LCP statistics (average and variance)
-     * between consecutive k-mer transformations.
-     */
-    LcpStats getLcpStats(bool reset = false);
-
-  };
-
-}
+#include <BijectHash/transformers/extra/bwt_transformer.hpp>
+#include <BijectHash/transformers/extra/gab_transformer.hpp>
+#include <BijectHash/transformers/extra/inthash_transformer.hpp>
+#include <BijectHash/transformers/extra/lyndon_transformer.hpp>
+#include <BijectHash/transformers/extra/minimizer_transformer.hpp>
 
 #endif

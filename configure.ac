@@ -246,7 +246,7 @@ AC_SUBST([LIBNAME])
 AC_SUBST([VERSION])
 AC_SUBST([LIB_VERSION])
 AC_SUBST([LIB_VERSION_EXT])
-AC_DEFINE_UNQUOTED([LIB_VERSION],["GV_LIB_VERSION_EXT"],[Libtool version string])
+AC_DEFINE_UNQUOTED([LIB_VERSION], ["GV_LIB_VERSION_EXT"], [Libtool version string])
 
 dnl ========================= End of Library Settings =========================
 
@@ -398,8 +398,8 @@ dnl ================================ Sphinx++ =================================
 
 AX_EXTERNAL_INCLUDED_CXX_LIBRARY_DETECTION([sphinxpp],
                                            [[external/Sphinxpp-library],
-                                            [-I\$(top_srcdir)/external/Sphinxpp-library/src],
-                                            [ ]],
+                                            [-I\$(top_builddir)/external/Sphinxpp-library],
+                                            [-L\$(top_builddir)/external/Sphinxpp-library/src -lsphinx++]],
                                            [libsphinx++])
 
 dnl Don't use neither AX_APPEND_COMPILE_FLAGS() nor
@@ -423,8 +423,16 @@ dnl
 dnl A more secure (and recommended) strategy is to defer the
 dnl compiler/linker flag updates at the end of the configure script,
 dnl before generating the Makefiles using AC_CONFIG_COMMANDS_PRE()
-AC_CONFIG_COMMANDS_PRE([CXXFLAGS="${CXXFLAGS} ${sphinxpp_CXXFLAGS}"
-                        LDFLAGS="${LDFLAGS} ${sphinxpp_LDFLAGS}"])
+
+dnl Append only the Sphinx++ (pre)ompiler flags to the default ones.
+AC_CONFIG_COMMANDS_PRE([CXXFLAGS="${CXXFLAGS} ${sphinxpp_CXXFLAGS}"])
+
+dnl The linker flages are not automatically added since only the
+dnl libkmer-transformers need to be linked with the Sphinx++
+dnl library. So the sphinxpp_LDFLAGS variable is exported in order to
+dnl to be used in Makefiles (typically for the libkmer-transformers.la
+dnl target).
+AC_SUBST([sphinxpp_LDFLAGS])
 
 dnl Disable releases if using the included Sphinx++ library.
 AS_IF([test "x${with_included_sphinxpp}" = "xyes"],
@@ -480,6 +488,9 @@ AC_CONFIG_FILES([
   packaging/Makefile
   resources/Makefile
   src/Makefile
+  src/transformers/Makefile
+  src/transformers/basic/Makefile
+  src/transformers/extra/Makefile
   tests/Makefile
 ])
 AC_OUTPUT

@@ -45,6 +45,7 @@
 #define __LOCKER_HPP__
 
 #include <atomic>
+#include <cstddef>
 
 namespace bijecthash {
 

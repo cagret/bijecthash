@@ -44,6 +44,7 @@
 #ifndef GAB_TRANSFORMER_HPP
 #define GAB_TRANSFORMER_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 
@@ -55,13 +56,12 @@ namespace bijecthash {
    * Random Hashing function that operates a permutation based on a bit
    * rotation (general case of inthash64).
    *
-   * More formally, this defined a bijective permutation on \f$[0;
-   * 2^{\sigma}[\f$ such that for some odd multiplciative value \f$a\f$
-   * and some \f$b\f$ a \f$\sigma\f$ bit offset, \f$G_{a,b}(s) = \left(a
-   * \times \left(\mathrm{rot}(s)\oplus
-   * b\right)\right)\;\mathrm{mod}\;{2^\sigma}\f$ (where
-   * \f$\mathrm{rot}(s)\f$ denotes an inversion of the two halves of the
-   * bits representing \f$s\f$.
+   * More formally, this defined a bijective permutation on
+   * \f$[0; 2^{\sigma}[\f$ such that for some odd multiplicative value
+   * \f$a\f$ and some \f$b\f$ a \f$\sigma\f$ bit offset,
+   * \f$G_{a,b}(s) = \left(a \times \left(\mathrm{rot}(s) \oplus b\right)\right)\;\mathrm{mod}\;{2^\sigma}\f$
+   * (where \f$\mathrm{rot}(s)\f$ denotes an inversion of the two
+   * halves of the bits representing \f$s\f$.
    */
   class GaBTransformer : public Transformer {
 

@@ -41,84 +41,84 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __BH_KMER_COLLECTOR_HPP__
-#define __BH_KMER_COLLECTOR_HPP__
+#include "canonical_transformer.hpp"
 
-#include <memory>
-#include <string>
+#include "common.hpp"
+#include "exception.hpp"
 
-#include <kmer_collector.hpp>
-#include <lcp_stats.hpp>
-#include <settings.hpp>
+#include <iostream>
 
-namespace bijecthash {
+using namespace std;
 
-  /**
-   * A k-mer collector helper that stores k-mers in a circular queue
-   * and computes the Longest Common Prefixes (LCP) between
-   * consecutive k-mer transformations.
-   *
-   * This helper class allows to run the k-mer collector in a dedicated
-   * thread.
-   */
-  class BhKmerCollector: public KmerCollector {
+BEGIN_BIJECTHASH_NAMESPACE
 
-  private:
-
-    /**
-     * Longest Common Prefixes statistics.
-     */
-    LcpStats _lcp_stats;
-
-    /**
-     * The k-mer transformer used.
-     */
-    std::shared_ptr<const Transformer> _transformer;
-
-    /**
-     * The previously encoded k-mer (needed to computing the LCP statistics)
-     */
-    Transformer::EncodedKmer _prev_transformed_kmer;
-
-    /**
-     * Perform some processing on the given k-mer before enqueuing it.
-     *
-     * By default, this does nothing but any derived class can
-     * override this method.
-     *
-     * \param kmer The k-mer to process before enqueuing it.
-     */
-    virtual void _process(std::string &kmer) override;
-
-  public:
-
-    /**
-     * Builds a k-mer collector.
-     *
-     * \param s The settings to use for the file collector.
-     *
-     * \param filename The name of the file to parse (see open() method).
-     *
-     * \param queue The queue to feed with k-mers.
-     */
-    BhKmerCollector(const Settings &s, const std::string &filename, CircularQueue<std::string> &queue);
-
-    /**
-     * Return the longest common prefix statistics between consecutive
-     * k-mer transformations.
-     *
-     * \param reset To compute the LCP statistics, the LCP stats
-     * object is "stopped" (see LcpStats::stop() method). When the
-     * reset parameter is true, the statistics are then reset
-     * ("started" again, see LcpStats::start() method).
-     *
-     * \return Returns the LCP statistics (average and variance)
-     * between consecutive k-mer transformations.
-     */
-    LcpStats getLcpStats(bool reset = false);
-
-  };
-
+static char complement(char nucl) {
+  if (nucl > 'Z') {
+    nucl += 'A' - 'a';
+  }
+  switch (nucl) {
+  case 'A': return 'T';
+  case 'C': return 'G';
+  case 'G': return 'C';
+  case 'T':
+  case 'U': return 'A';
+  default:
+    Exception e;
+    e << "Unable to compute the reverse complement of nucleotide '" << nucl << "'\n";
+    throw e;
+  }
+  return 0;
 }
 
-#endif
+CanonicalTransformer::CanonicalTransformer(size_t kmer_length, size_t prefix_length):
+  Transformer(kmer_length, prefix_length, "Canonical") {
+  // We need one bit (to store information about the conserved k-mer
+  // (between the k-mer and is reverse).
+  assert(suffix_length < ((sizeof(uint64_t) << 3) / 2));
+}
+
+Transformer::EncodedKmer CanonicalTransformer::operator()(const string &kmer) const {
+  assert(kmer.length() == kmer_length);
+  string lowest_kmer(kmer_length, '\0');
+  size_t i = 0;
+  int best = 0;
+  while ((best >= 0) && (i < kmer_length)) {
+    lowest_kmer[i] = complement(kmer[kmer_length - i - 1]);
+    if (best == 0) {
+      if (kmer[i] < lowest_kmer[i]) {
+        best = -1;
+      } else {
+        if (kmer[i] > lowest_kmer[i]) {
+          best = 1;
+        }
+      }
+    }
+    ++i;
+  }
+  uint64_t m = 0;
+  if (best < 0) {
+    lowest_kmer = kmer;
+  } else {
+    m = 1ull << 62;
+  }
+  EncodedKmer e;
+  e.prefix = _encode(lowest_kmer.c_str(), prefix_length);
+  e.suffix = _encode(lowest_kmer.c_str() + prefix_length, suffix_length);
+  e.suffix |= m;
+  return e;
+}
+
+string CanonicalTransformer::operator()(const Transformer::EncodedKmer &e) const {
+  string kmer = getTransformedKmer(e);
+  if (e.suffix >> 62) {
+    size_t p = (kmer_length >> 1) + (kmer_length & 1);
+    for (size_t i = 0; i < p; ++i) {
+      char c = complement(kmer[i]);
+      kmer[i] = complement(kmer[kmer_length - i - 1]);
+      kmer[kmer_length - i - 1] = c;
+    }
+  }
+  return kmer;
+}
+
+END_BIJECTHASH_NAMESPACE

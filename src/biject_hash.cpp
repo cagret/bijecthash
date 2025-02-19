@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
   cout << endl;
 
   cout << settings.tag
-       << '\t' << settings.length
+       << '\t' << settings.kmer_length
        << '\t' << settings.prefix_length
        << '\t' << index.transformer().description
        //<< '\t' << time_mem_stats.time.count()

@@ -48,7 +48,6 @@
 
 #include <threaded_processor_helper.hpp>
 
-
 namespace bijecthash {
 
   /**

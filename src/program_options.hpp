@@ -68,7 +68,7 @@ namespace bijecthash {
     Settings _settings;
 
     /**
-     * List of file o process.
+     * List of file to process.
      */
     std::vector<std::string> _filenames;
 
@@ -78,11 +78,6 @@ namespace bijecthash {
      * The default program settings
      */
     static const Settings default_settings;
-
-    /**
-     * The program available transformers.
-     */
-    static const std::vector<std::string> available_methods;
 
     /**
      * Print usage of the program then exit.

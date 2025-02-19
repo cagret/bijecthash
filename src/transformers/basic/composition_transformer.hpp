@@ -41,10 +41,11 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __PERMUTATION_TRANSFORMER_HPP__
-#define __PERMUTATION_TRANSFORMER_HPP__
+#ifndef __COMPOSITION_TRANSFORMER_HPP__
+#define __COMPOSITION_TRANSFORMER_HPP__
 
-#include <vector>
+#include <cstddef>
+#include <memory>
 #include <string>
 
 #include <transformer.hpp>
@@ -52,71 +53,45 @@
 namespace bijecthash {
 
   /**
-   * The permutation transformer encodes k-mer after applying some given
-   * permutation.
+   * The composition transformer encodes k-mer after applying the
+   * composition of two transformers.
    */
-  class PermutationTransformer: public Transformer {
+  class CompositionTransformer: public Transformer {
 
   protected:
 
     /**
-     * The permutation to apply to some k-mer before encoding it.
+     * First transformer
      */
-    const std::vector<size_t> _permutation;
+    std::shared_ptr<const Transformer> _t1;
 
     /**
-     * The reverse permutation wich allow to retrieve the original k-mer
-     * from the permuted one.
+     * First transformer
      */
-    const std::vector<size_t> _reverse_permutation;
-
-    /**
-     * This method generates a random permutation of the range [0; k[.
-     *
-     * \param k The length of the range.
-     *
-     * \return Return a random permutation of the range [0; k[.
-     */
-    static std::vector<size_t> _generateRandomPermutation(size_t k);
-
-    /**
-     * This method computes the reverse permutation of the given one.
-     *
-     * \param p Some permutation of the range [0; |p|[
-     *
-     * \return Returns the reverse permutation of the given one.
-     */
-    static std::vector<size_t> _computeReversePermutation(const std::vector<size_t> &p);
-
-    /**
-     * This applies the given permutation to the given string.
-     *
-     * \param s The string to permute.
-     *
-     * \param p The permutation of [0; |s|[ to apply.
-     *
-     * \return Returns the permuted string.
-     */
-    static std::string _applyPermutation(const std::string &s, const std::vector<size_t> &p);
+    std::shared_ptr<const Transformer> _t2;
 
   public:
 
     /**
-     * Builds a Transformer depending on the k-mer length and the prefix
-     * length.
+     * Builds a transformer which is a composition of transformers.
      *
      * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
      * value of \f$k\f$).
      *
      * \param prefix_length The length of the \f$k\f$-mer prefix.
      *
-     * \param permutation The k-mer permutation to apply (default is to generate a random permutation).
+     * \param t1 The k-mer transformer to apply to the k-mer.
+     *
+     * \param t2 The k-mer transformer to apply to the k-mer transformed
+     * by transformer1.
      *
      * \param description If given, then the description string is used
-     * instead of the "Permutation[<details>]" auto generated string.
+     * instead of the "Composition(<transformer1>,<transformer2>)" auto
+     * generated string.
      */
-    PermutationTransformer(size_t kmer_length, size_t prefix_length,
-                           const std::vector<size_t> &permutation = std::vector<size_t>(),
+    CompositionTransformer(size_t kmer_length, size_t prefix_length,
+                           std::shared_ptr<const Transformer> &t1,
+                           std::shared_ptr<const Transformer> &t2,
                            const std::string &description = "");
 
     /**
@@ -141,7 +116,18 @@ namespace bijecthash {
      */
     virtual std::string operator()(const EncodedKmer &e) const override;
 
+    /**
+     * Get the transformed k-mer from its encoding.
+     *
+     * \param e The encoded k-mer to restitute.
+     *
+     * \return Returns the k-mer corresponding to the given encoding.
+     */
+    virtual std::string getTransformedKmer(const EncodedKmer &e) const override;
+
   };
+
+  std::shared_ptr<const CompositionTransformer> operator*(std::shared_ptr<const Transformer> &t2, std::shared_ptr<const Transformer> &t1);
 
 }
 

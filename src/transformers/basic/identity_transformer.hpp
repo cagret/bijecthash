@@ -41,9 +41,10 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __LYNDON_TRANSFORMER_HPP__
-#define __LYNDON_TRANSFORMER_HPP__
+#ifndef __IDENTITY_TRANSFORMER_HPP__
+#define __IDENTITY_TRANSFORMER_HPP__
 
+#include <cstddef>
 #include <string>
 
 #include <transformer.hpp>
@@ -51,24 +52,29 @@
 namespace bijecthash {
 
   /**
-   * The transformer that encodes k-mer using the Lyndon rotation.
+   * The "no-op" transformer that just encodes k-mer without any
+   * transformation.
    */
-  class LyndonTransformer: public Transformer {
+  class IdentityTransformer: public Transformer {
 
   public:
 
     /**
-     * Builds a Transformer using Lyndon tranform.
+     * Builds a Transformer depending on the k-mer length and the prefix
+     * length.
      *
      * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
      * value of \f$k\f$).
      *
      * \param prefix_length The length of the \f$k\f$-mer prefix.
      */
-    LyndonTransformer(size_t kmer_length, size_t prefix_length);
+    inline IdentityTransformer(size_t kmer_length, size_t prefix_length):
+      Transformer(kmer_length, prefix_length, "Identity") {}
 
     /**
-     * Encode some given k-mer into its Lyndon rotation.
+     * Encode some given k-mer into a prefix/suffix code.
+     *
+     * Each derived class must overload this operator.
      *
      * \param kmer The k-mer to encode.
      *
@@ -78,6 +84,8 @@ namespace bijecthash {
 
     /**
      * Decode some given encoded k-mer.
+     *
+     * Each derived class must overload this operator.
      *
      * \param e The encoded k-mer to decode.
      *

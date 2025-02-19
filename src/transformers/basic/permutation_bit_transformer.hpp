@@ -41,58 +41,103 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __COMPOSITION_TRANSFORMER_HPP__
-#define __COMPOSITION_TRANSFORMER_HPP__
+#ifndef __PERMUTATION_BIT_TRANSFORMER_HPP__
+#define __PERMUTATION_BIT_TRANSFORMER_HPP__
 
-#include <memory>
+#include <cstddef>
+#include <cstdint>
 #include <string>
+#include <vector>
 
 #include <transformer.hpp>
 
 namespace bijecthash {
 
   /**
-   * The composition transformer encodes k-mer after applying the
-   * composition of two transformers.
+   * The permutation transformer encodes k-mer after applying some given
+   * permutation on the bits.
    */
-  class CompositionTransformer: public Transformer {
+  class PermutationBitTransformer: public Transformer {
+
+  private:
+
+    /**
+     * This applies the given permutation to the bits of the given string.
+     *
+     * \param encoded_kmer The value to permute (interpreted as a bit sequence).
+     *
+     * \param permutation The permutation of the bits to apply.
+     *
+     * \return Returns the permuted value (interpreted as a bit sequence).
+     */
+    uint64_t _applyBitwisePermutation(uint64_t encoded_kmer, const std::vector<size_t> &permutation) const;
 
   protected:
 
     /**
-     * First transformer
+     * The permutation to apply to the bits of the k-mer.
      */
-    std::shared_ptr<const Transformer> _t1;
+    const std::vector<size_t> _permutation;
 
     /**
-     * First transformer
+     * The reverse permutation which allows to retrieve the original k-mer
+     * from the permuted one.
      */
-    std::shared_ptr<const Transformer> _t2;
+    const std::vector<size_t> _reverse_permutation;
+
+
+    /**
+     * Precomputed binary mask for retrieving the whole k-mer.
+     */
+    const uint64_t _kmer_mask;
+
+    /**
+     * Precomputed shift offset for retrieving the prefix.
+     */
+    const uint64_t _prefix_shift;
+
+    /**
+     * Precomputed binary mask for retrieving the suffix.
+     */
+    const uint64_t _suffix_mask;
+
+    /**
+     * This method generates a random permutation of the range [0; k[.
+     *
+     * \param k The length of the range.
+     *
+     * \return Return a random permutation of the range [0; k[.
+     */
+    static std::vector<size_t> _generateRandomPermutation(size_t k);
+
+    /**
+     * This method computes the reverse permutation of the given one.
+     *
+     * \param p Some permutation of the range [0; |p|[
+     *
+     * \return Returns the reverse permutation of the given one.
+     */
+    static std::vector<size_t> _computeReversePermutation(const std::vector<size_t> &p);
 
   public:
 
     /**
-     * Builds a transformer which is a composition of transformers.
+     * Builds a Transformer depending on the k-mer length and the prefix
+     * length.
      *
      * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
      * value of \f$k\f$).
      *
      * \param prefix_length The length of the \f$k\f$-mer prefix.
      *
-     * \param t1 The k-mer transformer to apply to the k-mer.
-     *
-     * \param t2 The k-mer transformer to apply to the k-mer transformed
-     * by transformer1.
+     * \param permutation The bit permutation to apply (default is to generate a random permutation).
      *
      * \param description If given, then the description string is used
-     * instead of the "Composition(<transformer1>,<transformer2>)" auto
-     * generated string.
+     * instead of the "Permutation[<details>]" auto-generated string.
      */
-    CompositionTransformer(size_t kmer_length, size_t prefix_length,
-                           std::shared_ptr<const Transformer> &t1,
-                           std::shared_ptr<const Transformer> &t2,
-                           const std::string &description = "");
-
+    PermutationBitTransformer(size_t kmer_length, size_t prefix_length,
+                              const std::vector<size_t> &permutation = std::vector<size_t>(),
+                              const std::string &description = "");
     /**
      * Encode some given k-mer into a prefix/suffix code.
      *
@@ -115,18 +160,7 @@ namespace bijecthash {
      */
     virtual std::string operator()(const EncodedKmer &e) const override;
 
-    /**
-     * Get the transformed k-mer from its encoding.
-     *
-     * \param e The encoded k-mer to restitute.
-     *
-     * \return Returns the k-mer corresponding to the given encoding.
-     */
-    virtual std::string getTransformedKmer(const EncodedKmer &e) const override;
-
   };
-
-  std::shared_ptr<const CompositionTransformer> operator*(std::shared_ptr<const Transformer> &t2, std::shared_ptr<const Transformer> &t1);
 
 }
 

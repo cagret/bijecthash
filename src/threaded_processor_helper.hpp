@@ -45,6 +45,7 @@
 #define __THREADED_PROCESSOR_HELPER_HPP__
 
 #include <atomic>
+#include <cstddef>
 #include <thread>
 
 #include <circular_queue.hpp>
@@ -107,16 +108,33 @@ namespace bijecthash {
     const size_t id;
 
     /**
-     * Builds a processor.
+     * Builds a processor helper using a given queue.
+     *
+     * The counter of handled processor is updated.
      *
      * \param queue The queue storing the data to exchange.
      */
     ThreadedProcessorHelper(CircularQueue<T> &queue): _is_running(false), _queue(queue), id(++_counter) {
     }
 
+    /**
+     * Builds a processor helper by copy of an existing one.
+     *
+     * The counter of handled processor is updated.
+     *
+     * The new processor is not started, whatever the state of the one
+     * handled by the given helper.
+     *
+     * \param t The processor helper to copy (the processors will
+     * share the same circular queue).
+     */
     ThreadedProcessorHelper(const ThreadedProcessorHelper<C,T> &t): _is_running(false), _queue(t._queue), id(++_counter) {
     }
 
+    /**
+     * Destroy the current helper and update the counter of running
+     * processors if so.
+     */
     ~ThreadedProcessorHelper() {
       if (_is_running) {
         --_running;

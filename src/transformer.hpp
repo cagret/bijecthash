@@ -44,8 +44,14 @@
 #ifndef __TRANSFORMER_HPP__
 #define __TRANSFORMER_HPP__
 
+#include <cstddef>
 #include <cstdint>
+#include <iostream>
+#include <list>
+#include <memory>
 #include <string>
+
+#include <sphinx++/sphinx++.h>
 
 namespace bijecthash {
 
@@ -57,6 +63,89 @@ namespace bijecthash {
    * This is the abstract class description.
    */
   class Transformer {
+
+  public:
+
+    /**
+     * The specific (unique) tag for k-mer transformer plugins (in
+     * order to prevent collisions with other Sphinx++ handled
+     * plugins).
+     */
+    static const int SPHINXPP_PLUGIN_TAG;
+
+    /**
+     * Each transformer plugin must export the `transformerList`
+     * variable symbol, which is a variable size array of
+     * TransformerInformations.
+     *
+     * A TransformerInformations is simply a triplet of strings where
+     * the first string is the transformer "label" (its name), the
+     * second string is the transformer argument description and the
+     * third string is the transformer description.
+     *
+     * The `transformerList` array must have a TransformerInformations
+     * having an empty label (which will be considered to be the after
+     * the last element).
+     */
+    typedef const std::string TransformerInformations[3];
+
+    /**
+     * Each transformer plugin must export the `transformerFactory`
+     * function symbol.
+     *
+     * A transformer factory is a function having five parameters:
+     * - The first parameter is the k-mer length (the value of
+     *   \f$k\f$);
+     * - The second parameter is the k-mer prefix length;
+     * - The third parameter is the transformer label (its name);
+     * - the fourth parameter is the transformer arguments (the
+     *   factory is supposed to parse the argument string;
+     * - the last parameter is the shared pointer to set such that the
+     *   pointed value is the wanted k-mer transformer.
+     */
+    typedef void (*TransformerFactory)(size_t kmer_length,
+                                       size_t prefix_length,
+                                       const std::string &label,
+                                       const std::string &extra,
+                                       std::shared_ptr<const Transformer> &ptr);
+
+  private:
+
+    /**
+     * The k-mer transformer informations.
+     */
+    struct _TransformerInformations {
+      std::string label;          /**< The k-mer tranformer name. */
+      std::string extra;          /**< The k-mer transformer arguments description. */
+      std::string description;    /**< The k-mer transformer description. */
+      TransformerFactory factory; /**< The factory function to use to get the wanted k-mer transformer. */
+    };
+
+    /**
+     * The list of available k-mer transformers.
+     */
+    static std::list<_TransformerInformations> _available_transformers;
+
+    /**
+     * Add a k-mer transformer to the list of available k-mer
+     * transformers.
+     *
+     * \param factory The k-mer transformer factory to use to get the
+     * k-mer transformer.
+     *
+     * \param informations The k-mer transformer informations.
+     */
+    static void _addTransformers(TransformerFactory factory, const TransformerInformations *informations);
+
+    /**
+     * Clear and reload the list of available k-mer transformers.
+     */
+    static void _updateAvailableTransformers();
+
+    /**
+     * The k-mer transformer plugin handler.
+     */
+    static sphinxpp::PluginHandler _plugin_handler;
 
   protected:
 
@@ -92,7 +181,6 @@ namespace bijecthash {
 
   public:
 
-
     /**
      * The transformer k-mer length (i.e., the value of \f$k\f$).
      */
@@ -114,7 +202,7 @@ namespace bijecthash {
     const std::string description;
 
     /**
-     * Data type of a encoded k-mer.
+     * Data type of an encoded k-mer.
      */
     struct EncodedKmer {
       uint64_t prefix; /**< The encoded prefix */
@@ -122,13 +210,13 @@ namespace bijecthash {
     };
 
     /**
-     * @brief Decodes an empty string of a given length.
+     * \brief Decodes an empty string of a given length.
      *
      * This function decodes a string of length `n` that would be encoded as 0.
      * Essentially, it returns a string of `n` 'A' characters, as 'A' is decoded from 0.
      *
-     * @param n The length of the string to decode.
-     * @return The decoded string of length `n`, consisting of all 'A' characters.
+     * \param n The length of the string to decode.
+     * \return The decoded string of length `n`, consisting of all 'A' characters.
      */
     static std::string decode_empty(size_t n) {
       return _decode(0, n);
@@ -187,7 +275,47 @@ namespace bijecthash {
      */
     virtual std::string getTransformedKmer(const EncodedKmer &e) const;
 
+    /**
+     * This method compute the Transformer corresponding to the given
+     * string description.
+     *
+     * \param kmer_length The k-mer length (the value of \f$k\f$).
+     *
+     * \param prefix_length The k-mer prefix length.
+     *
+     * \param method The transformer to create.
+     *
+     * \return Returns the created transformer as a smart pointer.
+     */
+    static std::shared_ptr<const Transformer> string2transformer(size_t kmer_length, size_t prefix_length, const std::string &method);
+
+    /**
+     * Add the given path to the k-mer transformer plugin handler.
+     *
+     * \param path The path to add.
+     */
+    static void addPluginSearchPath(const std::string &path);
+
+    /**
+     * Add the given plugin to the k-mer transformer plugin handler.
+     *
+     * \param path The plugin path to add.
+     *
+     * \return Return true if the plugin was correctly loaded by the
+     * k-mer transformer plugin handler.
+     */
+    static bool addPlugin(const std::string &path);
+
+    /**
+     * Print the informations of the loaded k-mer transformers to the
+     * output stream.
+     *
+     * \param os The output stream.
+     */
+    static void toStream(std::ostream &os = std::cout);
+
   };
 
 }
+
 #endif

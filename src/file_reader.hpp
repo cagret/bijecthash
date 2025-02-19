@@ -41,11 +41,12 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef FILEREADER_HPP
-#define FILEREADER_HPP
+#ifndef __FILE_READER_HPP__
+#define __FILE_READER_HPP__
 
-#include <string>
+#include <cstddef>
 #include <fstream>
+#include <string>
 
 namespace bijecthash {
 
@@ -298,4 +299,4 @@ namespace bijecthash {
 
 }
 
-#endif // FILEREADER_HPP
+#endif

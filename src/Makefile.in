@@ -123,7 +123,6 @@ am__make_keepgoing = (target_option=k; $(am__make_running_with_option))
 am__rm_f = rm -f $(am__rm_f_notfound)
 am__rm_rf = rm -rf $(am__rm_f_notfound)
 pkgdatadir = $(datadir)/@PACKAGE@
-pkglibdir = $(libdir)/@PACKAGE@
 pkglibexecdir = $(libexecdir)/@PACKAGE@
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 install_sh_DATA = $(install_sh) -c -m 644
@@ -188,7 +187,6 @@ CONFIG_HEADER = $(top_builddir)/config/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libdir)" \
-	"$(DESTDIR)$(libbijecthash_core_la_configdir)" \
 	"$(DESTDIR)$(libkmer_reader_la_configdir)" \
 	"$(DESTDIR)$(libkmer_transformers_la_configdir)" \
 	"$(DESTDIR)$(pkgincludedir)"
@@ -267,19 +265,9 @@ libkmer_reader_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(AM_CXXFLAGS) $(CXXFLAGS) $(libkmer_reader_la_LDFLAGS) \
 	$(LDFLAGS) -o $@
-libkmer_transformers_debug_la_LIBADD =
-am__objects_3 = libkmer_transformers_debug_la-bwt_transformer.lo \
-	libkmer_transformers_debug_la-canonical_transformer.lo \
-	libkmer_transformers_debug_la-composition_transformer.lo \
-	libkmer_transformers_debug_la-gab_transformer.lo \
-	libkmer_transformers_debug_la-identity_transformer.lo \
-	inthash.lo \
-	libkmer_transformers_debug_la-inthash_transformer.lo \
-	libkmer_transformers_debug_la-lyndon_transformer.lo \
-	libkmer_transformers_debug_la-minimizer_transformer.lo \
-	libkmer_transformers_debug_la-permutation_bit_transformer.lo \
-	libkmer_transformers_debug_la-permutation_transformer.lo \
-	libkmer_transformers_debug_la-transformer.lo
+libkmer_transformers_debug_la_DEPENDENCIES =  \
+	$(libkmer_transformers_la_LIBADD)
+am__objects_3 = libkmer_transformers_debug_la-transformer.lo
 am_libkmer_transformers_debug_la_OBJECTS = $(am__objects_3)
 libkmer_transformers_debug_la_OBJECTS =  \
 	$(am_libkmer_transformers_debug_la_OBJECTS)
@@ -287,13 +275,8 @@ libkmer_transformers_debug_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) \
 	$(libkmer_transformers_debug_la_LDFLAGS) $(LDFLAGS) -o $@
-libkmer_transformers_la_LIBADD =
-am_libkmer_transformers_la_OBJECTS = bwt_transformer.lo \
-	canonical_transformer.lo composition_transformer.lo \
-	gab_transformer.lo identity_transformer.lo inthash.lo \
-	inthash_transformer.lo lyndon_transformer.lo \
-	minimizer_transformer.lo permutation_bit_transformer.lo \
-	permutation_transformer.lo transformer.lo
+@INCLUDED_sphinxpp_TRUE@libkmer_transformers_la_DEPENDENCIES = @top_builddir@/external/Sphinxpp-library/src/libsphinx++.la
+am_libkmer_transformers_la_OBJECTS = transformer.lo
 libkmer_transformers_la_OBJECTS =  \
 	$(am_libkmer_transformers_la_OBJECTS)
 libkmer_transformers_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
@@ -343,14 +326,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/bh_kmer_collector.Plo \
 	./$(DEPDIR)/bh_kmer_index.Plo \
 	./$(DEPDIR)/bh_kmer_processor.Plo ./$(DEPDIR)/biject_hash.Po \
-	./$(DEPDIR)/bwt_transformer.Plo \
-	./$(DEPDIR)/canonical_transformer.Plo \
-	./$(DEPDIR)/composition_transformer.Plo \
-	./$(DEPDIR)/file_reader.Plo ./$(DEPDIR)/gab_transformer.Plo \
-	./$(DEPDIR)/identity_transformer.Plo ./$(DEPDIR)/inthash.Plo \
-	./$(DEPDIR)/inthash_transformer.Plo \
-	./$(DEPDIR)/kmer_collector.Plo ./$(DEPDIR)/kmer_processor.Plo \
-	./$(DEPDIR)/lcp_stats.Plo \
+	./$(DEPDIR)/file_reader.Plo ./$(DEPDIR)/kmer_collector.Plo \
+	./$(DEPDIR)/kmer_processor.Plo ./$(DEPDIR)/lcp_stats.Plo \
 	./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_collector.Plo \
 	./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_index.Plo \
 	./$(DEPDIR)/libbijecthash_core_debug_la-bh_kmer_processor.Plo \
@@ -361,42 +338,10 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo \
 	./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo \
 	./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo \
-	./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo \
 	./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo \
-	./$(DEPDIR)/locker.Plo ./$(DEPDIR)/lyndon_transformer.Plo \
-	./$(DEPDIR)/minimizer_transformer.Plo \
-	./$(DEPDIR)/permutation_bit_transformer.Plo \
-	./$(DEPDIR)/permutation_transformer.Plo \
-	./$(DEPDIR)/program_options.Plo ./$(DEPDIR)/settings.Plo \
-	./$(DEPDIR)/transformer.Plo
+	./$(DEPDIR)/locker.Plo ./$(DEPDIR)/program_options.Plo \
+	./$(DEPDIR)/settings.Plo ./$(DEPDIR)/transformer.Plo
 am__mv = mv -f
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -415,6 +360,24 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 = 
+CCLD = $(CC)
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 = 
 SOURCES = $(libbijecthash_core_debug_la_SOURCES) \
 	$(libbijecthash_core_la_SOURCES) \
 	$(libkmer_reader_debug_la_SOURCES) \
@@ -431,15 +394,30 @@ DIST_SOURCES = $(libbijecthash_core_debug_la_SOURCES) \
 	$(libkmer_transformers_la_SOURCES) $(BijectHash_SOURCES) \
 	$(BijectHash_with_cache_stats_SOURCES) \
 	$(BijectHash_with_checks_SOURCES)
+RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
+	ctags-recursive dvi-recursive html-recursive info-recursive \
+	install-data-recursive install-dvi-recursive \
+	install-exec-recursive install-html-recursive \
+	install-info-recursive install-pdf-recursive \
+	install-ps-recursive install-recursive installcheck-recursive \
+	installdirs-recursive pdf-recursive ps-recursive \
+	tags-recursive uninstall-recursive
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-DATA = $(libbijecthash_core_la_config_DATA) \
-	$(libkmer_reader_la_config_DATA) \
+DATA = $(libkmer_reader_la_config_DATA) \
 	$(libkmer_transformers_la_config_DATA)
 HEADERS = $(pkginclude_HEADERS)
+RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
+  distclean-recursive maintainer-clean-recursive
+am__recursive_targets = \
+  $(RECURSIVE_TARGETS) \
+  $(RECURSIVE_CLEAN_TARGETS) \
+  $(am__extra_recursive_targets)
+AM_RECURSIVE_TARGETS = $(am__recursive_targets:-recursive=) TAGS CTAGS \
+	distdir distdir-am
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -457,9 +435,36 @@ am__define_uniq_tagged_files = \
   unique=`for i in $$list; do \
     if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
   done | $(am__uniquify_input)`
+DIST_SUBDIRS = $(SUBDIRS)
 am__DIST_COMMON = $(srcdir)/Makefile.in $(top_srcdir)/config/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
+am__relativize = \
+  dir0=`pwd`; \
+  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
+  sed_rest='s,^[^/]*/*,,'; \
+  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
+  sed_butlast='s,/*[^/]*$$,,'; \
+  while test -n "$$dir1"; do \
+    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
+    if test "$$first" != "."; then \
+      if test "$$first" = ".."; then \
+        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
+        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
+      else \
+        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
+        if test "$$first2" = "$$first"; then \
+          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
+        else \
+          dir2="../$$dir2"; \
+        fi; \
+        dir0="$$dir0"/"$$first"; \
+      fi; \
+    fi; \
+    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
+  done; \
+  reldir="$$dir2"
 pkgincludedir = $(includedir)/$(install_dirname)
+pkglibdir = $(libdir)/$(install_dirname)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
@@ -644,6 +649,7 @@ runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sphinxpp_CFLAGS = @sphinxpp_CFLAGS@
+sphinxpp_LDFLAGS = @sphinxpp_LDFLAGS@
 sphinxpp_LIBS = @sphinxpp_LIBS@
 srcdir = @srcdir@
 subdirs = @subdirs@
@@ -656,19 +662,22 @@ target_vendor = @target_vendor@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
+SUBDIRS = transformers
 AM_CXXFLAGS = \
-  -I$(top_srcdir)			\
+  -I$(top_srcdir)/src			\
   -DCXX="\"$(CXX)\""                    \
   -DARCH="\"$(build_cpu)\""             \
   -DOS="\"$(build_os)\""                \
-  -DPACKAGE_DATADIR="\"$(pkgdatadir)\""
+  -DPACKAGE_DATADIR="\"$(pkgdatadir)\"" \
+  -DPACKAGE_LIBDIR="\"$(pkglibdir)/\""
 
 install_dirname = $(PACKAGE_NAME)-$(PACKAGE_VERSION)
 # End of bug fix
+BUILT_SOURCES = $(srcdir)/$(libkmer_reader_main_header)
 
-#############################
-# kmer-transformers library #
-#############################
+##############################
+# k-mer transformers library #
+##############################
 
 #######################
 # kmer-reader library #
@@ -687,95 +696,64 @@ noinst_LTLIBRARIES = libbijecthash-core.la
 # Debug version (for tests)
 check_LTLIBRARIES = libkmer-transformers-debug.la \
 	libkmer-reader-debug.la libbijecthash-core-debug.la
-pkginclude_HEADERS = $(libkmer_transformers_headers) \
-	$(libkmer_transformers_main_header) $(libkmer_reader_headers) \
+pkginclude_HEADERS = transformer.hpp $(libkmer_reader_headers) \
 	$(libkmer_reader_main_header)
-libkmer_transformers_main_header = kmer_transformers.hpp
-libkmer_transformers_headers = \
-  bwt_transformer.hpp			\
-  canonical_transformer.hpp		\
-  composition_transformer.hpp		\
-  gab_transformer.hpp			\
-  identity_transformer.hpp		\
-  inthash_transformer.hpp		\
-  lyndon_transformer.hpp		\
-  minimizer_transformer.hpp		\
-  permutation_bit_transformer.hpp	\
-  permutation_transformer.hpp		\
-  transformer.hpp
-
 libkmer_transformers_ladir = $(abs_srcdir)
 libkmer_transformers_la_SOURCES = \
-  bwt_transformer.cpp bwt_transformer.hpp				\
-  canonical_transformer.cpp canonical_transformer.hpp			\
-  common.hpp								\
-  composition_transformer.cpp composition_transformer.hpp		\
-  gab_transformer.cpp gab_transformer.hpp				\
-  identity_transformer.cpp identity_transformer.hpp			\
-  inthash.c inthash.h							\
-  inthash_transformer.cpp inthash_transformer.hpp			\
-  lyndon_transformer.cpp lyndon_transformer.hpp				\
-  minimizer_transformer.cpp minimizer_transformer.hpp			\
-  permutation_bit_transformer.cpp permutation_bit_transformer.hpp	\
-  permutation_transformer.cpp permutation_transformer.hpp		\
+  common.hpp				\
   transformer.cpp transformer.hpp
 
-libkmer_transformers_la_configdir = $(libdir)/$(install_dirname)/include
+libkmer_transformers_la_configdir = $(pkglibdir)/kmer-transformers
 libkmer_transformers_la_config_DATA = $(CONFIG_HEADER)
-libkmer_transformers_la_LDFLAGS = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
-libkmer_transformers_la_DEPENDENCIES = $(libkmer_transformers_la_LIBADD)
+libkmer_transformers_la_LDFLAGS = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS) $(sphinxpp_LDFLAGS)
+@INCLUDED_sphinxpp_TRUE@libkmer_transformers_la_LIBADD = @top_builddir@/external/Sphinxpp-library/src/libsphinx++.la
 libkmer_transformers_debug_ladir = $(libkmer_transformers_ladir)
 libkmer_transformers_debug_la_SOURCES = $(libkmer_transformers_la_SOURCES)
 libkmer_transformers_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
 libkmer_transformers_debug_la_LDFLAGS = $(libkmer_transformers_la_LDFLAGS)
-libkmer_transformers_debug_la_DEPENDENCIES = $(libkmer_transformers_la_DEPENDENCIES)
+libkmer_transformers_debug_la_LIBADD = $(libkmer_transformers_la_LIBADD)
 libkmer_reader_main_header = kmer_reader.hpp
 libkmer_reader_headers = \
-  circular_queue.hpp			\
-  file_reader.hpp			\
-  kmer_collector.hpp			\
-  kmer_processor.hpp			\
-  locker.hpp				\
+  circular_queue.hpp		\
+  file_reader.hpp		\
+  kmer_collector.hpp		\
+  kmer_processor.hpp		\
+  locker.hpp			\
   threaded_processor_helper.hpp
 
 libkmer_reader_ladir = $(abs_srcdir)
 libkmer_reader_la_SOURCES = \
-  circular_queue.hpp							\
-  common.hpp								\
-  file_reader.cpp file_reader.hpp					\
-  kmer_collector.cpp kmer_collector.hpp					\
-  kmer_processor.cpp kmer_processor.hpp					\
-  locker.cpp locker.hpp							\
+  circular_queue.hpp			\
+  common.hpp				\
+  file_reader.cpp file_reader.hpp	\
+  kmer_collector.cpp kmer_collector.hpp	\
+  kmer_processor.cpp kmer_processor.hpp	\
+  locker.cpp locker.hpp			\
   threaded_processor_helper.hpp
 
-libkmer_reader_la_configdir = $(libdir)/$(install_dirname)/include
+libkmer_reader_la_configdir = $(pkglibdir)/kmer-reader
 libkmer_reader_la_config_DATA = $(CONFIG_HEADER)
 libkmer_reader_la_LDFLAGS = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
-libkmer_reader_la_DEPENDENCIES = $(libkmer_reader_la_LIBADD)
 libkmer_reader_debug_ladir = $(libkmer_reader_ladir)
 libkmer_reader_debug_la_SOURCES = $(libkmer_reader_la_SOURCES)
 libkmer_reader_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
 libkmer_reader_debug_la_LDFLAGS = $(libkmer_reader_la_LDFLAGS)
-libkmer_reader_debug_la_DEPENDENCIES = $(libkmer_reader_la_DEPENDENCIES)
 libbijecthash_core_ladir = $(abs_srcdir)
 libbijecthash_core_la_SOURCES = \
-  bh_kmer_collector.cpp bh_kmer_collector.hpp				\
-  bh_kmer_index.cpp bh_kmer_index.hpp					\
-  bh_kmer_processor.cpp bh_kmer_processor.hpp				\
-  common.hpp								\
-  lcp_stats.cpp lcp_stats.hpp						\
-  program_options.cpp program_options.hpp				\
+  bh_kmer_collector.cpp bh_kmer_collector.hpp	\
+  bh_kmer_index.cpp bh_kmer_index.hpp		\
+  bh_kmer_processor.cpp bh_kmer_processor.hpp	\
+  common.hpp					\
+  exception.hpp					\
+  lcp_stats.cpp lcp_stats.hpp			\
+  program_options.cpp program_options.hpp	\
   settings.cpp settings.hpp
 
-libbijecthash_core_la_configdir = $(libdir)/$(install_dirname)/include
-libbijecthash_core_la_config_DATA = $(CONFIG_HEADER)
-libbijecthash_core_la_LDFLAGS = -version-info "$(LIB_VERSION)" $(AM_LDFLAGS)
-libbijecthash_core_la_DEPENDENCIES = $(libbijecthash_core_la_LIBADD)
+libbijecthash_core_la_LDFLAGS = -avoid-version $(AM_LDFLAGS)
 libbijecthash_core_debug_ladir = $(libbijecthash_core_ladir)
 libbijecthash_core_debug_la_SOURCES = $(libbijecthash_core_la_SOURCES)
 libbijecthash_core_debug_la_CXXFLAGS = $(AM_CXXFLAGS) -UNDEBUG -UDEBUG -g -O0
 libbijecthash_core_debug_la_LDFLAGS = $(libbijecthash_core_la_LDFLAGS)
-libbijecthash_core_debug_la_DEPENDENCIES = $(libbijecthash_core_la_DEPENDENCIES)
 BijectHash_SOURCES = biject_hash.cpp threaded_reader_writer.hpp
 BijectHash_LDADD = libkmer-transformers.la libkmer-reader.la libbijecthash-core.la
 BijectHash_LDFLAGS = -lkmer-transformers -lkmer-reader -lbijecthash-core $(AM_LDFLAGS)
@@ -800,18 +778,17 @@ BijectHash_with_cache_stats_DEPENDENCIES = $(BijectHash_with_cache_stats_LDADD)
 #################
 # Code Coverage #
 #################
-GCDA_FILES = \
-  $(libkmer_transformers_la_OBJECTS:.lo=.gcda)		\
-  $(libkmer_transformers_debug_la_OBJECTS:.lo=.gcda)	\
-  $(libkmer_reader_la_OBJECTS:.lo=.gcda)		\
-  $(libkmer_reader_debug_la_OBJECTS:.lo=.gcda)		\
-  $(libbijecthash_core_debug_la_OBJECTS:.lo=.gcda)	\
-  $(libbijecthash_core_la_OBJECTS:.lo=.gcda)		\
-  $(BijectHash_OBJECTS:.lo=.gcda)			\
-  $(BijectHash_with_checks_OBJECTS:.lo=.gcda)		\
-  $(BijectHash_with_cache_stats_OBJECTS:.lo=.gcda)
-
-GCNO_FILES = $(GCDA_FILES:.gcda=.gcno)
+GCDA_FILES = $(patsubst %.cpp,%.gcda,$(filter %.cpp,$(SOURCES)))
+GCNO_FILES = $(GCDA_FILES:.gcda=.gcno) \
+	$(libkmer_transformers_la_OBJECTS:.lo=.gcno) \
+	$(libkmer_transformers_debug_la_OBJECTS:.lo=.gcno) \
+	$(libkmer_reader_la_OBJECTS:.lo=.gcno) \
+	$(libkmer_reader_debug_la_OBJECTS:.lo=.gcno) \
+	$(libbijecthash_core_debug_la_OBJECTS:.lo=.gcno) \
+	$(libbijecthash_core_la_OBJECTS:.lo=.gcno) \
+	$(BijectHash_OBJECTS:.lo=.gcno) \
+	$(BijectHash_with_checks_OBJECTS:.lo=.gcno) \
+	$(BijectHash_with_cache_stats_OBJECTS:.lo=.gcno)
 GCOV_FILES = $(GCDA_FILES:.gcda=.gcov)
 
 ####################
@@ -821,10 +798,11 @@ MOSTLYCLEANFILES = *~
 CLEANFILES = *~ $(GCDA_FILES) $(GCNO_FILES) $(GCOV_FILES)
 DISTCLEANFILES = *~
 MAINTAINERCLEANFILES = *~
-all: all-am
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .c .cpp .lo .o .obj
+.SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -993,14 +971,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bh_kmer_index.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bh_kmer_processor.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/biject_hash.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bwt_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/canonical_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/composition_transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/file_reader.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gab_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/identity_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inthash.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/inthash_transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kmer_collector.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kmer_processor.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lcp_stats.Plo@am__quote@ # am--include-marker
@@ -1014,22 +985,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/locker.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lyndon_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minimizer_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/permutation_bit_transformer.Plo@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/permutation_transformer.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/program_options.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/settings.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/transformer.Plo@am__quote@ # am--include-marker
@@ -1039,27 +996,6 @@ $(am__depfiles_remade):
 	@: >>$@
 
 am--depfiles: $(am__depfiles_remade)
-
-.c.o:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ $<
-
-.c.obj:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LTCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -1152,76 +1088,6 @@ libkmer_reader_debug_la-locker.lo: locker.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_reader_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_reader_debug_la-locker.lo `test -f 'locker.cpp' || echo '$(srcdir)/'`locker.cpp
 
-libkmer_transformers_debug_la-bwt_transformer.lo: bwt_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-bwt_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Tpo -c -o libkmer_transformers_debug_la-bwt_transformer.lo `test -f 'bwt_transformer.cpp' || echo '$(srcdir)/'`bwt_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='bwt_transformer.cpp' object='libkmer_transformers_debug_la-bwt_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-bwt_transformer.lo `test -f 'bwt_transformer.cpp' || echo '$(srcdir)/'`bwt_transformer.cpp
-
-libkmer_transformers_debug_la-canonical_transformer.lo: canonical_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-canonical_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Tpo -c -o libkmer_transformers_debug_la-canonical_transformer.lo `test -f 'canonical_transformer.cpp' || echo '$(srcdir)/'`canonical_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='canonical_transformer.cpp' object='libkmer_transformers_debug_la-canonical_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-canonical_transformer.lo `test -f 'canonical_transformer.cpp' || echo '$(srcdir)/'`canonical_transformer.cpp
-
-libkmer_transformers_debug_la-composition_transformer.lo: composition_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-composition_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Tpo -c -o libkmer_transformers_debug_la-composition_transformer.lo `test -f 'composition_transformer.cpp' || echo '$(srcdir)/'`composition_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='composition_transformer.cpp' object='libkmer_transformers_debug_la-composition_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-composition_transformer.lo `test -f 'composition_transformer.cpp' || echo '$(srcdir)/'`composition_transformer.cpp
-
-libkmer_transformers_debug_la-gab_transformer.lo: gab_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-gab_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Tpo -c -o libkmer_transformers_debug_la-gab_transformer.lo `test -f 'gab_transformer.cpp' || echo '$(srcdir)/'`gab_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='gab_transformer.cpp' object='libkmer_transformers_debug_la-gab_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-gab_transformer.lo `test -f 'gab_transformer.cpp' || echo '$(srcdir)/'`gab_transformer.cpp
-
-libkmer_transformers_debug_la-identity_transformer.lo: identity_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-identity_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Tpo -c -o libkmer_transformers_debug_la-identity_transformer.lo `test -f 'identity_transformer.cpp' || echo '$(srcdir)/'`identity_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='identity_transformer.cpp' object='libkmer_transformers_debug_la-identity_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-identity_transformer.lo `test -f 'identity_transformer.cpp' || echo '$(srcdir)/'`identity_transformer.cpp
-
-libkmer_transformers_debug_la-inthash_transformer.lo: inthash_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-inthash_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Tpo -c -o libkmer_transformers_debug_la-inthash_transformer.lo `test -f 'inthash_transformer.cpp' || echo '$(srcdir)/'`inthash_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='inthash_transformer.cpp' object='libkmer_transformers_debug_la-inthash_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-inthash_transformer.lo `test -f 'inthash_transformer.cpp' || echo '$(srcdir)/'`inthash_transformer.cpp
-
-libkmer_transformers_debug_la-lyndon_transformer.lo: lyndon_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-lyndon_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Tpo -c -o libkmer_transformers_debug_la-lyndon_transformer.lo `test -f 'lyndon_transformer.cpp' || echo '$(srcdir)/'`lyndon_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='lyndon_transformer.cpp' object='libkmer_transformers_debug_la-lyndon_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-lyndon_transformer.lo `test -f 'lyndon_transformer.cpp' || echo '$(srcdir)/'`lyndon_transformer.cpp
-
-libkmer_transformers_debug_la-minimizer_transformer.lo: minimizer_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-minimizer_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Tpo -c -o libkmer_transformers_debug_la-minimizer_transformer.lo `test -f 'minimizer_transformer.cpp' || echo '$(srcdir)/'`minimizer_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='minimizer_transformer.cpp' object='libkmer_transformers_debug_la-minimizer_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-minimizer_transformer.lo `test -f 'minimizer_transformer.cpp' || echo '$(srcdir)/'`minimizer_transformer.cpp
-
-libkmer_transformers_debug_la-permutation_bit_transformer.lo: permutation_bit_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-permutation_bit_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Tpo -c -o libkmer_transformers_debug_la-permutation_bit_transformer.lo `test -f 'permutation_bit_transformer.cpp' || echo '$(srcdir)/'`permutation_bit_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='permutation_bit_transformer.cpp' object='libkmer_transformers_debug_la-permutation_bit_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-permutation_bit_transformer.lo `test -f 'permutation_bit_transformer.cpp' || echo '$(srcdir)/'`permutation_bit_transformer.cpp
-
-libkmer_transformers_debug_la-permutation_transformer.lo: permutation_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-permutation_transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Tpo -c -o libkmer_transformers_debug_la-permutation_transformer.lo `test -f 'permutation_transformer.cpp' || echo '$(srcdir)/'`permutation_transformer.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='permutation_transformer.cpp' object='libkmer_transformers_debug_la-permutation_transformer.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -c -o libkmer_transformers_debug_la-permutation_transformer.lo `test -f 'permutation_transformer.cpp' || echo '$(srcdir)/'`permutation_transformer.cpp
-
 libkmer_transformers_debug_la-transformer.lo: transformer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libkmer_transformers_debug_la_CXXFLAGS) $(CXXFLAGS) -MT libkmer_transformers_debug_la-transformer.lo -MD -MP -MF $(DEPDIR)/libkmer_transformers_debug_la-transformer.Tpo -c -o libkmer_transformers_debug_la-transformer.lo `test -f 'transformer.cpp' || echo '$(srcdir)/'`transformer.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/libkmer_transformers_debug_la-transformer.Tpo $(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo
@@ -1276,27 +1142,6 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf .libs _libs
-install-libbijecthash_core_la_configDATA: $(libbijecthash_core_la_config_DATA)
-	@$(NORMAL_INSTALL)
-	@list='$(libbijecthash_core_la_config_DATA)'; test -n "$(libbijecthash_core_la_configdir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(libbijecthash_core_la_configdir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(libbijecthash_core_la_configdir)" || exit 1; \
-	fi; \
-	for p in $$list; do \
-	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
-	  echo "$$d$$p"; \
-	done | $(am__base_list) | \
-	while read files; do \
-	  echo " $(INSTALL_DATA) $$files '$(DESTDIR)$(libbijecthash_core_la_configdir)'"; \
-	  $(INSTALL_DATA) $$files "$(DESTDIR)$(libbijecthash_core_la_configdir)" || exit $$?; \
-	done
-
-uninstall-libbijecthash_core_la_configDATA:
-	@$(NORMAL_UNINSTALL)
-	@list='$(libbijecthash_core_la_config_DATA)'; test -n "$(libbijecthash_core_la_configdir)" || list=; \
-	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
-	dir='$(DESTDIR)$(libbijecthash_core_la_configdir)'; $(am__uninstall_files_from_dir)
 install-libkmer_reader_la_configDATA: $(libkmer_reader_la_config_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(libkmer_reader_la_config_DATA)'; test -n "$(libkmer_reader_la_configdir)" || list=; \
@@ -1361,14 +1206,61 @@ uninstall-pkgincludeHEADERS:
 	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
 	dir='$(DESTDIR)$(pkgincludedir)'; $(am__uninstall_files_from_dir)
 
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run 'make' without going through this Makefile.
+# To change the values of 'make' variables: instead of editing Makefiles,
+# (1) if the variable is set in 'config.status', edit 'config.status'
+#     (which will cause the Makefiles to be regenerated when you run 'make');
+# (2) otherwise, pass the desired values on the 'make' command line.
+$(am__recursive_targets):
+	@fail=; \
+	if $(am__make_keepgoing); then \
+	  failcom='fail=yes'; \
+	else \
+	  failcom='exit 1'; \
+	fi; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	case "$@" in \
+	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
+	  *) list='$(SUBDIRS)' ;; \
+	esac; \
+	for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	  || eval $$failcom; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
-tags: tags-am
+tags: tags-recursive
 TAGS: tags
 
 tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	set x; \
 	here=`pwd`; \
+	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
+	  include_option=--etags-include; \
+	  empty_fix=.; \
+	else \
+	  include_option=--include; \
+	  empty_fix=; \
+	fi; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    test ! -f $$subdir/TAGS || \
+	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
+	  fi; \
+	done; \
 	$(am__define_uniq_tagged_files); \
 	shift; \
 	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
@@ -1381,7 +1273,7 @@ tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	      $$unique; \
 	  fi; \
 	fi
-ctags: ctags-am
+ctags: ctags-recursive
 
 CTAGS: ctags
 ctags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
@@ -1394,7 +1286,7 @@ GTAGS:
 	here=`$(am__cd) $(top_builddir) && pwd` \
 	  && $(am__cd) $(top_srcdir) \
 	  && gtags -i $(GTAGS_ARGS) "$$here"
-cscopelist: cscopelist-am
+cscopelist: cscopelist-recursive
 
 cscopelist-am: $(am__tagged_files)
 	list='$(am__tagged_files)'; \
@@ -1445,27 +1337,56 @@ distdir-am: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
+	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
+	  if test "$$subdir" = .; then :; else \
+	    $(am__make_dryrun) \
+	      || test -d "$(distdir)/$$subdir" \
+	      || $(MKDIR_P) "$(distdir)/$$subdir" \
+	      || exit 1; \
+	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
+	    $(am__relativize); \
+	    new_distdir=$$reldir; \
+	    dir1=$$subdir; dir2="$(top_distdir)"; \
+	    $(am__relativize); \
+	    new_top_distdir=$$reldir; \
+	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
+	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
+	    ($(am__cd) $$subdir && \
+	      $(MAKE) $(AM_MAKEFLAGS) \
+	        top_distdir="$$new_top_distdir" \
+	        distdir="$$new_distdir" \
+		am__remove_distdir=: \
+		am__skip_length_check=: \
+		am__skip_mode_fix=: \
+	        distdir) \
+	      || exit 1; \
+	  fi; \
+	done
 check-am: all-am
 	$(MAKE) $(AM_MAKEFLAGS) $(check_LTLIBRARIES)
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-recursive
 all-am: Makefile $(PROGRAMS) $(LTLIBRARIES) $(DATA) $(HEADERS)
 install-binPROGRAMS: install-libLTLIBRARIES
 
 install-checkLTLIBRARIES: install-libLTLIBRARIES
 
-installdirs:
-	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libbijecthash_core_la_configdir)" "$(DESTDIR)$(libkmer_reader_la_configdir)" "$(DESTDIR)$(libkmer_transformers_la_configdir)" "$(DESTDIR)$(pkgincludedir)"; do \
+installdirs: installdirs-recursive
+installdirs-am:
+	for dir in "$(DESTDIR)$(bindir)" "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libkmer_reader_la_configdir)" "$(DESTDIR)$(libkmer_transformers_la_configdir)" "$(DESTDIR)$(pkgincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: install-am
-install-exec: install-exec-am
-install-data: install-data-am
-uninstall: uninstall-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-recursive
+install-exec: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-recursive
+install-data: install-data-recursive
+uninstall: uninstall-recursive
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-am
+installcheck: installcheck-recursive
 install-strip:
 	if test -z '$(STRIP)'; then \
 	  $(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
@@ -1490,14 +1411,15 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-$(am__rm_f) $(BUILT_SOURCES)
 	-$(am__rm_f) $(MAINTAINERCLEANFILES)
-clean: clean-am
+clean: clean-recursive
 
 clean-am: clean-binPROGRAMS clean-checkLTLIBRARIES clean-generic \
 	clean-libLTLIBRARIES clean-libtool clean-noinstLTLIBRARIES \
 	mostlyclean-am
 
-distclean: distclean-am
+distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-biject_hash.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-cache_statistics.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_checks-biject_hash.Po
@@ -1505,14 +1427,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/bh_kmer_index.Plo
 	-rm -f ./$(DEPDIR)/bh_kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/biject_hash.Po
-	-rm -f ./$(DEPDIR)/bwt_transformer.Plo
-	-rm -f ./$(DEPDIR)/canonical_transformer.Plo
-	-rm -f ./$(DEPDIR)/composition_transformer.Plo
 	-rm -f ./$(DEPDIR)/file_reader.Plo
-	-rm -f ./$(DEPDIR)/gab_transformer.Plo
-	-rm -f ./$(DEPDIR)/identity_transformer.Plo
-	-rm -f ./$(DEPDIR)/inthash.Plo
-	-rm -f ./$(DEPDIR)/inthash_transformer.Plo
 	-rm -f ./$(DEPDIR)/kmer_collector.Plo
 	-rm -f ./$(DEPDIR)/kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/lcp_stats.Plo
@@ -1526,22 +1441,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo
 	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo
 	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo
 	-rm -f ./$(DEPDIR)/locker.Plo
-	-rm -f ./$(DEPDIR)/lyndon_transformer.Plo
-	-rm -f ./$(DEPDIR)/minimizer_transformer.Plo
-	-rm -f ./$(DEPDIR)/permutation_bit_transformer.Plo
-	-rm -f ./$(DEPDIR)/permutation_transformer.Plo
 	-rm -f ./$(DEPDIR)/program_options.Plo
 	-rm -f ./$(DEPDIR)/settings.Plo
 	-rm -f ./$(DEPDIR)/transformer.Plo
@@ -1549,51 +1450,50 @@ distclean: distclean-am
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
 
-dvi: dvi-am
+dvi: dvi-recursive
 
 dvi-am:
 
-html: html-am
+html: html-recursive
 
 html-am:
 
-info: info-am
+info: info-recursive
 
 info-am:
 
-install-data-am: install-libbijecthash_core_la_configDATA \
-	install-libkmer_reader_la_configDATA \
+install-data-am: install-libkmer_reader_la_configDATA \
 	install-libkmer_transformers_la_configDATA \
 	install-pkgincludeHEADERS
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) install-data-hook
-install-dvi: install-dvi-am
+install-dvi: install-dvi-recursive
 
 install-dvi-am:
 
 install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
 
-install-html: install-html-am
+install-html: install-html-recursive
 
 install-html-am:
 
-install-info: install-info-am
+install-info: install-info-recursive
 
 install-info-am:
 
 install-man:
 
-install-pdf: install-pdf-am
+install-pdf: install-pdf-recursive
 
 install-pdf-am:
 
-install-ps: install-ps-am
+install-ps: install-ps-recursive
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-am
+maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-biject_hash.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_cache_stats-cache_statistics.Po
 	-rm -f ./$(DEPDIR)/BijectHash_with_checks-biject_hash.Po
@@ -1601,14 +1501,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/bh_kmer_index.Plo
 	-rm -f ./$(DEPDIR)/bh_kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/biject_hash.Po
-	-rm -f ./$(DEPDIR)/bwt_transformer.Plo
-	-rm -f ./$(DEPDIR)/canonical_transformer.Plo
-	-rm -f ./$(DEPDIR)/composition_transformer.Plo
 	-rm -f ./$(DEPDIR)/file_reader.Plo
-	-rm -f ./$(DEPDIR)/gab_transformer.Plo
-	-rm -f ./$(DEPDIR)/identity_transformer.Plo
-	-rm -f ./$(DEPDIR)/inthash.Plo
-	-rm -f ./$(DEPDIR)/inthash_transformer.Plo
 	-rm -f ./$(DEPDIR)/kmer_collector.Plo
 	-rm -f ./$(DEPDIR)/kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/lcp_stats.Plo
@@ -1622,71 +1515,55 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_collector.Plo
 	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-kmer_processor.Plo
 	-rm -f ./$(DEPDIR)/libkmer_reader_debug_la-locker.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-bwt_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-canonical_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-composition_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-gab_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-identity_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-inthash_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-lyndon_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-minimizer_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_bit_transformer.Plo
-	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-permutation_transformer.Plo
 	-rm -f ./$(DEPDIR)/libkmer_transformers_debug_la-transformer.Plo
 	-rm -f ./$(DEPDIR)/locker.Plo
-	-rm -f ./$(DEPDIR)/lyndon_transformer.Plo
-	-rm -f ./$(DEPDIR)/minimizer_transformer.Plo
-	-rm -f ./$(DEPDIR)/permutation_bit_transformer.Plo
-	-rm -f ./$(DEPDIR)/permutation_transformer.Plo
 	-rm -f ./$(DEPDIR)/program_options.Plo
 	-rm -f ./$(DEPDIR)/settings.Plo
 	-rm -f ./$(DEPDIR)/transformer.Plo
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-am
+mostlyclean: mostlyclean-recursive
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-pdf: pdf-am
+pdf: pdf-recursive
 
 pdf-am:
 
-ps: ps-am
+ps: ps-recursive
 
 ps-am:
 
 uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
-	uninstall-libbijecthash_core_la_configDATA \
 	uninstall-libkmer_reader_la_configDATA \
 	uninstall-libkmer_transformers_la_configDATA \
 	uninstall-pkgincludeHEADERS
 	@$(NORMAL_INSTALL)
 	$(MAKE) $(AM_MAKEFLAGS) uninstall-hook
-.MAKE: check-am install-am install-data-am install-strip uninstall-am
+.MAKE: $(am__recursive_targets) all check check-am install install-am \
+	install-data-am install-exec install-strip uninstall-am
 
-.PHONY: CTAGS GTAGS TAGS all all-am am--depfiles check check-am clean \
-	clean-binPROGRAMS clean-checkLTLIBRARIES clean-generic \
-	clean-libLTLIBRARIES clean-libtool clean-noinstLTLIBRARIES \
-	cscopelist-am ctags ctags-am distclean distclean-compile \
-	distclean-generic distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-binPROGRAMS install-data install-data-am \
-	install-data-hook install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-libLTLIBRARIES \
-	install-libbijecthash_core_la_configDATA \
-	install-libkmer_reader_la_configDATA \
+.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am \
+	am--depfiles check check-am clean clean-binPROGRAMS \
+	clean-checkLTLIBRARIES clean-generic clean-libLTLIBRARIES \
+	clean-libtool clean-noinstLTLIBRARIES cscopelist-am ctags \
+	ctags-am distclean distclean-compile distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am html \
+	html-am info info-am install install-am install-binPROGRAMS \
+	install-data install-data-am install-data-hook install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am \
+	install-libLTLIBRARIES install-libkmer_reader_la_configDATA \
 	install-libkmer_transformers_la_configDATA install-man \
 	install-pdf install-pdf-am install-pkgincludeHEADERS \
 	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
+	installcheck-am installdirs installdirs-am maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-hook uninstall-libLTLIBRARIES \
-	uninstall-libbijecthash_core_la_configDATA \
 	uninstall-libkmer_reader_la_configDATA \
 	uninstall-libkmer_transformers_la_configDATA \
 	uninstall-pkgincludeHEADERS
@@ -1694,59 +1571,38 @@ uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
 .PRECIOUS: Makefile
 
 
-# Regenerate kmer-transformers library header file.
-# This is mostly intended to help this library maintainer(s) and you
-# should not have to run this target.
-#
-# There is no direct target for $(libkmer_transformers_main_header) since it should
-# not be considered as a built file but as a source file (that must
-# reside in the source tree)
-update-libkmer-transformers-main-header: $(libkmer_transformers_main_header)
-	@$(AM_V_P) || echo "  HEADER   " $(libkmer_transformers_main_header)
+$(srcdir)/$(libkmer_reader_main_header): $(libkmer_reader_headers)
+	@$(AM_V_P) || echo "  HEADER   " '$(@)'
 	$(AM_V_at)($(SED) -n '/^\/\*\+$$/{p;:a;n;/^\*\+\/$$/{p;q};p;ba}' $(CONFIG_HEADER) \
 	&& echo \
-	&& echo "#ifndef __KMER_TRANSFORMERS_HPP__" \
-	&& echo "#define __KMER_TRANSFORMER_HPPS__" \
+	&& echo '#ifndef __KMER_READER_HPP__' \
+	&& echo '#define __KMER_READER_HPP__' \
 	&& echo \
-	&& echo "/**" \
-	&& echo " * \file" \
-	&& echo " *" \
-	&& echo " * Including this file is enough to use the full kmer-transformers library API." \
-	&& echo " */" \
+	&& echo '/**' \
+	&& echo ' * \file' \
+	&& echo ' *' \
+	&& echo ' * Including this file is enough to use the full kmer-reader library API.' \
+	&& echo ' */' \
 	&& echo \
-	&& for header in $(libkmer_transformers_headers); do \
+	&& for header in $(^F); do \
 	  echo "#include <$(LIBNAME)/$${header}>" ; \
 	done \
 	&& echo \
-	&& echo "#endif" \
-	) > $(libkmer_transformers_main_header)
+	&& echo '#endif' \
+	) > '$(@)'
 
-# Regenerate kmer-reader library header file.
-# This is mostly intended to help this library maintainer(s) and you
-# should not have to run this target.
-#
-# There is no direct target for $(libkmer_reader_main_header) since it should
-# not be considered as a built file but as a source file (that must
-# reside in the source tree)
-update-libkmer-reader-main-header: $(libkmer_reader_main_header)
-	@$(AM_V_P) || echo "  HEADER   " $(libkmer_reader_main_header)
-	$(AM_V_at)($(SED) -n '/^\/\*\+$$/{p;:a;n;/^\*\+\/$$/{p;q};p;ba}' $(CONFIG_HEADER) \
-	&& echo \
-	&& echo "#ifndef __KMER_READER_HPP__" \
-	&& echo "#define __KMER_READER_HPP__" \
-	&& echo \
-	&& echo "/**" \
-	&& echo " * \file" \
-	&& echo " *" \
-	&& echo " * Including this file is enough to use the full kmer-reader library API." \
-	&& echo " */" \
-	&& echo \
-	&& for header in $(libkmer_reader_headers); do \
-	  echo "#include <$(LIBNAME)/$${header}>" ; \
-	done \
-	&& echo \
-	&& echo "#endif" \
-	) > $(libkmer_reader_main_header)
+#########################
+# Dependencies handling #
+#########################
+
+# named target
+.PHONY: force-rebuild
+
+# rule
+force-rebuild:
+
+$(top_builddir)/external/%: force-rebuild
+	$(AM_V_at)$(MAKE) $(AM_MAKEFLAGS) '$(@F)' -C '$(@D)'
 
 ##########################
 # install/uninstall hook #

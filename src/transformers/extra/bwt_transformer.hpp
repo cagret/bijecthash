@@ -41,34 +41,35 @@
 *                                                                             *
 ******************************************************************************/
 
-#ifndef __CANONICAL_TRANSFORMER_HPP__
-#define __CANONICAL_TRANSFORMER_HPP__
+#ifndef __BWT_TRANSFORMER_HPP__
+#define __BWT_TRANSFORMER_HPP__
+
+#include <cstddef>
+#include <string>
 
 #include <transformer.hpp>
 
 namespace bijecthash {
 
   /**
-   * The "no-op" transformer that just encodes k-mer without any
-   * transformation.
+   * Transformer that calculates a bwt from a k-mer and uses it for encoding.
    */
-  class CanonicalTransformer: public Transformer {
+  class BwtTransformer : public Transformer {
 
   public:
 
     /**
-     * Builds a Transformer depending on the k-mer length and the prefix
-     * length.
+     * Constructs a BwtTransformer with a specified bwt length.
      *
      * \param kmer_length The length of the \f$k\f$-mer (*i.e.* the
      * value of \f$k\f$).
      *
      * \param prefix_length The length of the \f$k\f$-mer prefix.
      */
-    CanonicalTransformer(size_t kmer_length, size_t prefix_length);
+    BwtTransformer(size_t kmer_length, size_t prefix_length);
 
     /**
-     * Encode some given k-mer into a prefix/suffix code.
+     * Encodes a given k-mer into a prefix/suffix code using a bwt.
      *
      * Each derived class must overload this operator.
      *
@@ -79,7 +80,7 @@ namespace bijecthash {
     virtual EncodedKmer operator()(const std::string &kmer) const override;
 
     /**
-     * Decode some given encoded k-mer.
+     * Decodes a given encoded k-mer back to its original string representation.
      *
      * Each derived class must overload this operator.
      *

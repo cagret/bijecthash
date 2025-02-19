@@ -44,6 +44,8 @@
 #ifndef __LCP_STATS_HPP__
 #define __LCP_STATS_HPP__
 
+#include <cstddef>
+
 #include <transformer.hpp>
 
 namespace bijecthash {
@@ -52,6 +54,7 @@ namespace bijecthash {
    * Structure to handle Longuest Common prefixes statistics.
    */
   struct LcpStats {
+
     /**
      * The total number of k-mers used to compute the statistics.
      */
@@ -78,14 +81,41 @@ namespace bijecthash {
     inline LcpStats(): nb_kmers(0), average(0), variance(0) {
     }
 
+    /**
+     * Compute the LCP between two encoded k-mers.
+     *
+     * \param e1 The first encoded k-mer.
+     *
+     * \param e2 The second encoded k-mer.
+     *
+     * \param k The lenght of the k-mers (*i.e.*, the value of
+     * \f$k\f$).
+     *
+     * \param k1 The prefix lenght of the k-mers.
+     *
+     * \return Returns the longest common prefix between the two given
+     * encoded k-mers. The LCP is the number of identical bits of the
+     * k-mer encodings, ignoring the unused padding bits of the prefix
+     * (*i.e.*, if \f$k_1=12\f$ and the prefix, since the prefix is
+     * encoded on a 64 bits memory word, only the 24 less significant
+     * bits of the memomy word are taken into account and the 40 most
+     * significant bits of this wor are ignored).
+     */
     size_t LCP(const Transformer::EncodedKmer &e1, const Transformer::EncodedKmer &e2, size_t k, size_t k1);
 
+    /**
+     * Start (initialize counters) a new LCP computation serie.
+     */
     inline void start() {
       nb_kmers = 0;
       average = 0;
       variance = 0;
     }
 
+    /**
+     * Stop the computation and computes the average and the variance
+     * of the observed LCP (if at least one LCP was observed).
+     */
     inline void stop() {
       if (nb_kmers) {
         average /= (double) nb_kmers;

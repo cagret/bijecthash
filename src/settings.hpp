@@ -44,8 +44,10 @@
 #ifndef __SETTINGS_HPP__
 #define __SETTINGS_HPP__
 
+#include <cstddef>
 #include <iostream>
 #include <memory>
+#include <string>
 
 namespace bijecthash {
 
@@ -68,22 +70,12 @@ namespace bijecthash {
      */
     std::string _method;
 
-    /**
-     * This method compute the Transformer corresponding to the given
-     * string description.
-     *
-     * \param name The transformer to create.
-     *
-     * \return Returns the created transformer as a smart pointer.
-     */
-    std::shared_ptr<const Transformer> _string2transformer(const std::string &name) const;
-
   public:
 
     /**
      * The k-mer length.
      */
-    size_t length;
+    size_t kmer_length;
 
     /**
      * The k-mer prefix length.
@@ -113,7 +105,7 @@ namespace bijecthash {
     /**
      * Settings constructor
      *
-     * \param length The length of the k-mers.
+     * \param kmer_length The length of the k-mers.
      *
      * \param prefix_length The length of the k-mer prefix.
      *
@@ -128,7 +120,7 @@ namespace bijecthash {
      *
      * \param verbose Verbosity of the program.
      */
-    Settings(size_t length, size_t prefix_length, const std::string &method,
+    Settings(size_t kmer_length, size_t prefix_length, const std::string &method,
              const std::string &tag = "",
              size_t nb_bins = 1024, size_t queue_size = 1024,
              bool verbose = true);
@@ -136,18 +128,26 @@ namespace bijecthash {
     /**
      * Get the transformer method to use.
      *
+     * \param must_be_available If true, then the method name is
+     * returned only if the k-mer transformer was correctly loaded
+     * (default). If false, then return the name of the expected
+     * method.
+     *
      * \return Returns the transformer method to use.
      */
-    inline std::string getMethod() const {
-      return _method;
+    inline std::string getMethod(bool must_be_available = true) const {
+      return ((!must_be_available || _transformer) ? _method : "");
     }
 
     /**
      * Get the transformer method to use.
      *
      * \param method The transformation method name to use.
+     *
+     * \return Returns true if the method was correctly set and false
+     * otherwise.
      */
-    void setMethod(const std::string &method);
+    bool setMethod(const std::string &method);
 
     /**
      * Provide the transformer corresponding to this settings.

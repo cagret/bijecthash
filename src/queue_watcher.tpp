@@ -41,13 +41,15 @@
 *                                                                             *
 ******************************************************************************/
 
-#include <threaded_processor_helper.hpp>
-#include <locker.hpp>
-
 #include <cassert>
 #include <chrono>
+#include <cstddef>
 #include <iostream>
+#include <string>
 #include <thread>
+
+#include <threaded_processor_helper.hpp>
+#include <locker.hpp>
 
 namespace bijecthash {
 

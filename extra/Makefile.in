@@ -388,6 +388,7 @@ runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sphinxpp_CFLAGS = @sphinxpp_CFLAGS@
+sphinxpp_LDFLAGS = @sphinxpp_LDFLAGS@
 sphinxpp_LIBS = @sphinxpp_LIBS@
 srcdir = @srcdir@
 subdirs = @subdirs@

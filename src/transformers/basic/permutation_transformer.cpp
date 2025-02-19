@@ -44,6 +44,7 @@
 #include "permutation_transformer.hpp"
 
 #include "common.hpp"
+#include "exception.hpp"
 
 #include <algorithm>
 #ifdef DEBUG
@@ -129,10 +130,7 @@ Transformer::EncodedKmer PermutationTransformer::operator()(const string &kmer) 
             string unpermuted_kmer = _applyPermutation(permuted_kmer, _reverse_permutation);
             cerr << MSG_DBG_HEADER << "Unpermuted k-mer: '" << unpermuted_kmer << "'" << '\n';
             if (unpermuted_kmer != kmer) {
-              cerr << "Error: the unpermuted k-mer"
-                   << " differs from the original k-mer"
-                   << endl;
-              exit(1);
+              throw Exception("Error: the unpermuted k-mer differs from the original k-mer.\n");
             }
             cerr);
   e.prefix = _encode(permuted_kmer.c_str(), prefix_length);

@@ -44,6 +44,7 @@
 #include "file_reader.hpp"
 
 #include "common.hpp"
+#include "exception.hpp"
 #include "locker.hpp"
 
 #include <iostream>
@@ -419,16 +420,14 @@ bool FileReader::_nextKmerFromFastq() {
     }
 
     default:
-      io_mutex.lock();
-      cerr << "BUG: this situation should never occur!!! "
-           << "     "
-           << "file '" << _filename
-           << "' (line " << _line << ", column " << _column << "):"
-           << " character '" << c << "'"
-           << " for sequence '" << _current_sequence_description << "'."
-           << endl;
-      exit(1);
-      io_mutex.unlock();
+      Exception e;
+      e << "BUG: this situation should never occur!!! "
+        << "     "
+        << "file '" << _filename
+        << "' (line " << _line << ", column " << _column << "):"
+        << " character '" << c << "'"
+        << " for sequence '" << _current_sequence_description << "'.\n";
+      throw e;
     }
 
     warn &= (state == 1);

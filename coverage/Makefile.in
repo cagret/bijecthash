@@ -62,7 +62,7 @@
 ########################
 
 # aminclude_static.am generated automatically by Autoconf
-# from AX_AM_MACROS_STATIC on Wed Feb 12 14:21:33 CET 2025
+# from AX_AM_MACROS_STATIC on Wed Feb 19 15:16:09 CET 2025
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -389,6 +389,7 @@ runstatedir = @runstatedir@
 sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sphinxpp_CFLAGS = @sphinxpp_CFLAGS@
+sphinxpp_LDFLAGS = @sphinxpp_LDFLAGS@
 sphinxpp_LIBS = @sphinxpp_LIBS@
 srcdir = @srcdir@
 subdirs = @subdirs@
